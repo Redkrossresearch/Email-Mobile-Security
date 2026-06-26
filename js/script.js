@@ -90,26 +90,27 @@ function setText(id,val){ const el=document.getElementById(id); if(el) el.textCo
    ════════════════════════════════════════════ */
 
 async function checkSPF(){
-  const d=document.getElementById("domainInput")?.value||"cybershield.com";
+  const d=document.getElementById("spfInput")?.value||document.getElementById("domainInput")?.value||"cybershield.com";
   showLoading("res-spf");
   const r=await apiPost("/email/check-spf",{domain:d});
   showResult("res-spf",r,"SPF");
 }
 async function checkDKIM(){
-  const d=document.getElementById("domainInput")?.value||"cybershield.com";
+  const d=document.getElementById("dkimInput")?.value||document.getElementById("domainInput")?.value||"cybershield.com";
   showLoading("res-dkim");
   const r=await apiPost("/email/check-dkim",{domain:d});
   showResult("res-dkim",r,"DKIM");
 }
 async function checkDMARC(){
-  const d=document.getElementById("domainInput")?.value||"cybershield.com";
+  const d=document.getElementById("dmarcInput")?.value||document.getElementById("domainInput")?.value||"cybershield.com";
   showLoading("res-dmarc");
   const r=await apiPost("/email/check-dmarc",{domain:d});
   showResult("res-dmarc",r,"DMARC");
 }
 async function checkSandbox(){
+  const fn=document.getElementById("sandboxInput")?.value||"invoice.exe";
   showLoading("res-sandbox");
-  const r=await apiPost("/email/sandbox-analysis",{file_name:"invoice.exe"});
+  const r=await apiPost("/email/sandbox-analysis",{file_name:fn});
   showResult("res-sandbox",r,"Sandbox");
 }
 async function checkURL(){
@@ -143,8 +144,9 @@ async function checkAttachment(){
   showResult("res-attach",r,"Attachment");
 }
 async function checkOutboundEncrypt(){
+  const content=document.getElementById("encryptInput")?.value||"confidential.pdf";
   showLoading("res-encrypt");
-  const r=await apiPost("/email/outbound-encrypt",{attachment_name:"confidential.pdf",recipient:"client@partner.com"});
+  const r=await apiPost("/email/outbound-encrypt",{attachment_name:content,recipient:"client@partner.com"});
   showResult("res-encrypt",r,"Encryption");
 }
 async function checkPhishing(){
@@ -230,8 +232,9 @@ async function runHeaderAnalysis(){
    ════════════════════════════════════════════ */
 
 async function checkAppReputation(){
+  const pkg=document.getElementById("reputationInput")?.value||"com.cleanmaster.pro";
   showLoading("res-reputation");
-  const r=await apiPost("/mobile/app-reputation",{package_name:"com.cleanmaster.pro",app_name:"CleanMaster Pro"});
+  const r=await apiPost("/mobile/app-reputation",{package_name:pkg,app_name:"App Reputation Check"});
   showResult("res-reputation",r,"App Rep");
 }
 async function checkCallerScan(){
@@ -380,27 +383,6 @@ async function checkAIModels(){
 /* ════════════════════════════════════════════
    SANDBOX (Create, Upload, Status, Destroy)
    ════════════════════════════════════════════ */
-
-async function checkCreateSandbox(){
-  showLoading("res-sandbox-create");
-  const r=await apiPost("/sandbox/create",{});
-  showResult("res-sandbox-create",r,"Sandbox");
-}
-async function checkSandboxUpload(){
-  showLoading("res-sandbox-upload");
-  const r=await apiPost("/sandbox/upload",{session_id:"test",file_name:"malware.exe"});
-  showResult("res-sandbox-upload",r,"SB Upload");
-}
-async function checkSandboxStatus(){
-  showLoading("res-sandbox-status");
-  const r=await apiGet("/sandbox/status");
-  showResult("res-sandbox-status",r,"SB Status");
-}
-async function checkDestroySandbox(){
-  showLoading("res-destroy");
-  const r=await apiPost("/sandbox/destroy",{session_id:document.getElementById("sandboxSessionInput")?.value||"all"});
-  showResult("res-destroy",r,"SB Destroy");
-}
 
 /* ════════════════════════════════════════════
    APK ANALYZER (Decompile, Static, Malware Scan)

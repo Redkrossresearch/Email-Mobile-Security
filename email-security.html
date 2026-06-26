@@ -298,6 +298,13 @@
       font-size: .82rem; color: rgba(200,230,245,.55);
       line-height: 1.5; margin-bottom: 1rem;
     }
+    .card-input, .card-textarea {
+      width:100%; padding:10px; margin-bottom:8px;
+      background:var(--bg3); border:1px solid var(--border);
+      border-radius:6px; color:var(--text); font-size:12px;
+      font-family:var(--mono); box-sizing:border-box;
+    }
+    .card-textarea { min-height:56px; resize:vertical; }
     .tc-result {
       font-family: var(--mono); font-size: .72rem;
       padding: .4rem .7rem;
@@ -601,9 +608,6 @@
       <a href="ai-engine.html" class="nav-link">
         <span class="nav-icon">🤖</span> AI Engine
       </a>
-      <a href="sandbox.html" class="nav-link">
-        <span class="nav-icon">📦</span> Sandbox
-      </a>
       <a href="apk-analyzer.html" class="nav-link">
         <span class="nav-icon">📱</span> APK Analyzer
       </a>
@@ -720,6 +724,7 @@
         </div>
         <div class="tc-title">SPF Checker</div>
         <div class="tc-desc">Verify Sender Policy Framework records to prevent email spoofing on your domain.</div>
+        <input type="text" class="card-input" id="spfInput" placeholder="Enter domain (e.g. google.com)">
         <div class="tc-result" id="res-spf"></div>
         <button class="tc-btn btn-cyan" onclick="checkSPF()">Check SPF</button>
       </div>
@@ -732,6 +737,7 @@
         </div>
         <div class="tc-title">DKIM Checker</div>
         <div class="tc-desc">Validate DomainKeys Identified Mail signatures to ensure message integrity.</div>
+        <input type="text" class="card-input" id="dkimInput" placeholder="Enter domain (e.g. google.com)">
         <div class="tc-result" id="res-dkim"></div>
         <button class="tc-btn btn-green" onclick="checkDKIM()">Check DKIM</button>
       </div>
@@ -744,6 +750,7 @@
         </div>
         <div class="tc-title">DMARC Checker</div>
         <div class="tc-desc">Inspect DMARC policy: none / quarantine / reject and reporting alignment.</div>
+        <input type="text" class="card-input" id="dmarcInput" placeholder="Enter domain (e.g. google.com)">
         <div class="tc-result" id="res-dmarc"></div>
         <button class="tc-btn btn-blue" onclick="checkDMARC()">Check DMARC</button>
       </div>
@@ -768,6 +775,7 @@
         </div>
         <div class="tc-title">Phishing Detection</div>
         <div class="tc-desc">AI-powered phishing scan: detects spoofed domains, credential harvesting pages, BEC patterns.</div>
+        <input type="text" class="card-input" id="phishInput" placeholder="Paste suspicious email content here...">
         <div class="tc-result" id="res-phish"></div>
         <button class="tc-btn btn-red" onclick="phishingScan()">Scan Email</button>
       </div>
@@ -793,6 +801,7 @@
         </div>
         <div class="tc-title">Sandbox Analysis</div>
         <div class="tc-desc">Detonate suspicious attachments in an isolated sandbox to detect malware, exploits, and zero-day threats.</div>
+        <input type="text" class="card-input" id="sandboxInput" placeholder="Enter file hash or filename (e.g. invoice.exe)">
         <div class="tc-result" id="res-sandbox"></div>
         <button class="tc-btn btn-red" onclick="checkSandbox()">Analyze File</button>
       </div>
@@ -805,6 +814,7 @@
         </div>
         <div class="tc-title">Lookalike Domain Detector</div>
         <div class="tc-desc">Detect typosquatting, homograph attacks, and lookalike domains targeting your brand.</div>
+        <input type="text" class="card-input" id="lookalikeInput" placeholder="Enter domain (e.g. g00gle.com)">
         <div class="tc-result" id="res-lookalike"></div>
         <button class="tc-btn btn-orange" onclick="checkLookalike()">Check Domain</button>
       </div>
@@ -817,6 +827,7 @@
         </div>
         <div class="tc-title">BEC Attack Detection</div>
         <div class="tc-desc">Detect Business Email Compromise attempts: impersonation, payment fraud, and executive spoofing.</div>
+        <textarea class="card-textarea" id="becInput" placeholder="Paste email body to scan for BEC patterns..."></textarea>
         <div class="tc-result" id="res-bec"></div>
         <button class="tc-btn btn-red" onclick="checkBEC()">Scan for BEC</button>
       </div>
@@ -829,6 +840,7 @@
         </div>
         <div class="tc-title">Heuristic Content Scan</div>
         <div class="tc-desc">Rule-based analysis of email body, subject, and headers for spam, phishing, and social engineering.</div>
+        <textarea class="card-textarea" id="heuristicInput" placeholder="Paste email content to scan..."></textarea>
         <div class="tc-result" id="res-heuristic"></div>
         <button class="tc-btn btn-yellow" onclick="checkHeuristic()">Scan Content</button>
       </div>
@@ -841,6 +853,7 @@
         </div>
         <div class="tc-title">Attachment Blocking</div>
         <div class="tc-desc">Block dangerous file types by extension, MIME type, and magic byte signature — including renamed extensions.</div>
+        <input type="text" class="card-input" id="attachInput" placeholder="Enter filename to check (e.g. invoice.exe)">
         <div class="tc-result" id="res-attach"></div>
         <button class="tc-btn btn-green" onclick="checkAttachment()">Check File</button>
       </div>
@@ -853,6 +866,7 @@
         </div>
         <div class="tc-title">Outbound Encryption</div>
         <div class="tc-desc">Automatically encrypt outbound emails with sensitive content using S/MIME, PGP, or TLS.</div>
+        <input type="text" class="card-input" id="encryptInput" placeholder="Enter content or attachment name to encrypt">
         <div class="tc-result" id="res-encrypt"></div>
         <button class="tc-btn btn-cyan" onclick="checkOutboundEncrypt()">Encrypt Email</button>
       </div>

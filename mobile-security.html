@@ -322,6 +322,12 @@
       font-size: 11px; color: var(--text-dim);
       line-height: 1.5; margin-bottom: 12px;
     }
+    .card-input {
+      width:100%; padding:10px; margin-bottom:8px;
+      background:var(--bg3); border:1px solid var(--border);
+      border-radius:6px; color:var(--text); font-size:11px;
+      font-family:'Share Tech Mono',monospace; box-sizing:border-box;
+    }
     .tc-result {
       font-family: 'Share Tech Mono'; font-size: 10px;
       padding: 6px 10px; border-radius: 4px;
@@ -562,7 +568,6 @@
     <a href="reports.html" class="nav-item">📋 Reports</a>
     <a href="threat-intel.html" class="nav-item">🌐 Threat Intel</a>
     <a href="ai-engine.html" class="nav-item">🤖 AI Engine</a>
-    <a href="sandbox.html" class="nav-item">📦 Sandbox</a>
     <a href="apk-analyzer.html" class="nav-item">📱 APK Analyzer</a>
     <a href="yara-rules.html" class="nav-item">📜 YARA Rules</a>
     <a href="integrations.html" class="nav-item">🔗 Integrations</a>
@@ -710,6 +715,7 @@
       </div>
       <div class="tc-title">App Reputation Check</div>
       <div class="tc-desc">Score app reputation based on permissions, behavior, reviews, and known malware associations.</div>
+      <input type="text" class="card-input" id="reputationInput" placeholder="Enter package name (e.g. com.example.app)">
       <div class="tc-result" id="res-reputation"></div>
       <button class="tc-btn yellow" onclick="checkAppReputation()">Check Rep</button>
     </div>

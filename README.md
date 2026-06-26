@@ -1,8 +1,8 @@
 # CyberShield SOC — Enterprise Security Platform
 
-**Version 7.0** — 120+ Features Across 12 Integrated Modules
+**Version 7.0** — 116+ Features Across 11 Integrated Modules
 
-A single-server Flask SOC platform with 90+ API endpoints and a dark-themed frontend covering Email Security, Mobile Security, Threat Intelligence, AI Engine, Sandbox, APK Analyzer, YARA Rules, Third-Party Integrations, Encryption, UEBA, Auth & IAM, and Reporting.
+A single-server Flask SOC platform with 85+ API endpoints and a dark-themed frontend covering Email Security, Mobile Security, Threat Intelligence, AI Engine, APK Analyzer, YARA Rules, Third-Party Integrations, Encryption, UEBA, Auth & IAM, and Reporting.
 
 ---
 
@@ -26,7 +26,7 @@ python backend/app.py
 
 ---
 
-## 12 Modules — 90+ API Endpoints
+## 11 Modules — 85+ API Endpoints
 
 ### 1. Email Security (15 endpoints)
 
@@ -67,7 +67,6 @@ Frontend: `mobile-security.html`
 | Dashboard Stats | `GET /api/mobile/dashboard-stats` | Aggregate security metrics |
 | App Reputation | `POST /api/mobile/app-reputation` | Package name reputation lookup |
 | Caller Scanner | `POST /api/mobile/caller-scan` | Real phone validation via phonenumbers |
-| SMS Threat Scan | `POST /api/mobile/sms-threat-scan` | SMS threat analysis |
 | Live Caller Feed | `GET /api/mobile/caller-feed` | Real-time call event simulation |
 
 ### 3. Threat Intelligence (5 endpoints)
@@ -95,18 +94,7 @@ Frontend: `ai-engine.html`
 | History | `GET /api/ai/history` | AI analysis history |
 | Report Gen | `POST /api/ai/generate-report` | AI-generated security report |
 
-### 5. Sandbox (4 endpoints)
-
-Frontend: `sandbox.html`
-
-| Feature | Endpoint | Description |
-|---|---|---|
-| Create Session | `POST /api/sandbox/create` | Isolated Windows 11 sandbox |
-| Upload File | `POST /api/sandbox/upload` | File detonation + behavioral analysis |
-| Status | `GET /api/sandbox/status` | Active session status |
-| Destroy | `POST /api/sandbox/destroy` | Terminate sandbox session |
-
-### 6. APK Analyzer (5 endpoints)
+### 5. APK Analyzer (5 endpoints)
 
 Frontend: `apk-analyzer.html`
 
@@ -118,7 +106,7 @@ Frontend: `apk-analyzer.html`
 | History | `GET /api/apk/analyses` | Last 20 analyses |
 | Tools Status | `GET /api/apk/tools-status` | APKTool/JADX/dex2jar/aapt2 status |
 
-### 7. YARA Rules (6 endpoints)
+### 6. YARA Rules (6 endpoints)
 
 Frontend: `yara-rules.html`
 
@@ -131,7 +119,7 @@ Frontend: `yara-rules.html`
 | Delete Rule | `POST /api/yara/rules/delete` | Remove rule by ID |
 | Scan History | `GET /api/yara/history` | Recent YARA scans |
 
-### 8. Integrations (9 endpoints)
+### 7. Integrations (9 endpoints)
 
 Frontend: `integrations.html`
 
@@ -147,7 +135,7 @@ Frontend: `integrations.html`
 | Graph Audit Logs | `POST /api/integration/graph/audit-logs` | M365 audit retrieval |
 | Graph Disconnect | `POST /api/integration/graph/disconnect` | Revoke tokens |
 
-### 9. Encryption (5 endpoints)
+### 8. Encryption (5 endpoints)
 
 Frontend: `encryption.html`
 
@@ -159,7 +147,7 @@ Frontend: `encryption.html`
 | TLS Status | `GET /api/encryption/tls-status` | TLS 1.3 config + cert status |
 | PGP Encrypt | `POST /api/encryption/pgp-encrypt` | RSA-2048 / AES-256 PGP |
 
-### 10. UEBA (4 endpoints)
+### 9. UEBA (4 endpoints)
 
 Frontend: `ueba.html`
 
@@ -170,7 +158,7 @@ Frontend: `ueba.html`
 | Login Anomaly | `POST /api/ueba/login-anomaly` | Impossible travel, brute force |
 | Risk Score | `POST /api/ueba/risk-score` | Multi-signal risk calculation |
 
-### 11. Auth & IAM (12 endpoints)
+### 10. Auth & IAM (12 endpoints)
 
 Frontend: `login.html` + `auth-enhanced.html`
 
@@ -190,7 +178,7 @@ Frontend: `login.html` + `auth-enhanced.html`
 | Argon2 Status | `GET /api/auth-enhanced/argon2-status` | Hashing config status |
 | OAuth Initiate/Callback | `POST /api/auth-enhanced/oauth-*` | Google/Microsoft OAuth |
 
-### 12. Reports (7 endpoints)
+### 11. Reports (7 endpoints)
 
 Frontend: `reports.html`
 
@@ -217,7 +205,6 @@ Frontend: `reports.html`
 | Mobile Security | `mobile-security.html` | 12 scanners + caller/sms analysis |
 | Threat Intel | `threat-intel.html` | IOC lookup, feeds, hash scan, alerts |
 | AI Engine | `ai-engine.html` | AI IOC/email/search, models, report |
-| Sandbox | `sandbox.html` | Create/upload/status/destroy sessions |
 | APK Analyzer | `apk-analyzer.html` | Decompile, static, malware, history |
 | YARA Rules | `yara-rules.html` | IP scan, rules CRUD, history |
 | Integrations | `integrations.html` | Gmail + Microsoft Graph tools |
@@ -233,7 +220,7 @@ Frontend: `reports.html`
 ```
 Forntend1/
 ├── index.html              # Landing page
-├── *.html                  # 15 frontend pages
+├── *.html                  # 14 frontend pages
 ├── js/
 │   └── script.js           # All frontend logic (~925 lines)
 ├── backend/
@@ -243,7 +230,7 @@ Forntend1/
 │   ├── middleware/
 │   │   └── auth.py         # JWT decorator
 │   ├── controllers/        # 12 controller modules
-│   ├── routes/             # 13 route blueprints
+│   ├── routes/             # 12 route blueprints
 │   └── services/           # Gmail + Graph integration services
 └── requirements.txt
 ```
