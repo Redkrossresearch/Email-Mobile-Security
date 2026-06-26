@@ -13,7 +13,6 @@ from routes.ueba_routes import ueba_bp
 from routes.encryption_routes import encryption_bp
 from routes.auth_enhanced_routes import auth_enhanced_bp
 from routes.ai_routes import ai_bp
-from routes.sandbox_routes import sandbox_bp
 from routes.apk_routes import apk_bp
 from routes.yara_routes import yara_bp
 from routes.integration_routes import integration_bp
@@ -35,7 +34,6 @@ app.register_blueprint(ueba_bp, url_prefix="/api/ueba")
 app.register_blueprint(encryption_bp, url_prefix="/api/encryption")
 app.register_blueprint(auth_enhanced_bp, url_prefix="/api/auth-enhanced")
 app.register_blueprint(ai_bp, url_prefix="/api/ai")
-app.register_blueprint(sandbox_bp, url_prefix="/api/sandbox")
 app.register_blueprint(apk_bp, url_prefix="/api/apk")
 app.register_blueprint(yara_bp, url_prefix="/api/yara")
 app.register_blueprint(integration_bp, url_prefix="/api/integration")
@@ -47,7 +45,7 @@ def health_check():
 @app.route("/api/features", methods=["GET"])
 def list_features():
     return jsonify({
-        "total_features": 120,
+        "total_features": 116,
         "email_security": [
             "DMARC Enforcement", "SPF Check", "DKIM Verification", "Zero-Day Sandbox",
             "Time-of-Click URL Analysis", "Content Disarm & Reconstruction (CDR)",
@@ -115,11 +113,6 @@ def list_features():
             "AI Search Engine for Security Research", "Automated AI Report Generation",
             "Multi-Model Support (Llama3, Phi3, Mistral)", "Analysis History Tracking"
         ],
-        "sandbox": [
-            "Isolated Sandbox Environment", "Dynamic Malware Analysis",
-            "Behavioral Detection (Process/Network/Registry)",
-            "File Upload & Analysis Tracking"
-        ],
         "apk_analyzer": [
             "APK Decompilation (JADX + APKTool)", "Static Code Analysis",
             "Malware Scanning Engine (5/72 detection)", "Permission & Network Analysis",
@@ -150,7 +143,7 @@ if __name__ == "__main__":
     print("="*65)
     print("  75+ Features Across 12 Modules")
     print("  Auth | Email | Mobile | Threat Intel | UEBA | Encryption")
-    print("  AI Engine | Sandbox | APK Analyzer | YARA | Reports | Integrations")
+    print("  AI Engine | APK Analyzer | YARA | Reports | Integrations | Auth Enhanced")
     print("-"*65)
     print("  OPEN BROWSER: http://localhost:5000")
     print("="*65 + "\n")

@@ -1,0 +1,26 @@
+{
+  "headers": {
+    "From": "PayPal Support <support@paypal.com>",
+    "To": "test@example.com",
+    "Subject": "Verify Your Account"
+  },
+  "body_preview": "Dear Customer,\r\n\r\nPlease verify your account immediately.\r\n\r\nClick here:\r\nhttps://bit.ly/verify-account\r\n\r\nThank you.",
+  "has_html": false,
+  "attachments": [],
+  "attachment_count": 0,
+  "received_hops": 0,
+  "phishing_score": 24,
+  "findings": [
+    "Contains suspicious keyword: 'verify'",
+    "Contains suspicious keyword: 'click here'",
+    "Contains 1 URL(s)"
+  ],
+  "urls_found": [
+    "https://bit.ly/verify-account"
+  ],
+  "verdict": "SAFE",
+  "message_size": 214,
+  "analysis_id": "3180bd553412",
+  "filename": "test_email.eml",
+  "analyzed_at": "2026-06-26T10:50:40.078201Z"
+}
