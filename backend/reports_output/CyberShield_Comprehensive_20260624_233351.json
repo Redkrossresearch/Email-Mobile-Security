@@ -1,0 +1,64 @@
+{
+  "report_id": "CR-6249E5D6",
+  "generated_at": "2026-06-24T18:03:51.975461Z",
+  "report_type": "summary",
+  "platform": "CyberShield SOC v5.0",
+  "total_features": 50,
+  "modules": {
+    "identity_access": {
+      "features": [
+        "login",
+        "mfa",
+        "sso",
+        "oauth",
+        "rbac",
+        "recovery"
+      ],
+      "status": "operational"
+    },
+    "email_security": {
+      "features_count": 23,
+      "status": "operational"
+    },
+    "mobile_security": {
+      "features_count": 25,
+      "status": "operational"
+    },
+    "threat_intelligence": {
+      "features": [
+        "ioc_lookup",
+        "feeds",
+        "alerts",
+        "hash_scan"
+      ],
+      "status": "operational"
+    },
+    "ueba": {
+      "features": [
+        "behavior_analysis",
+        "anomaly_detection",
+        "risk_scoring"
+      ],
+      "status": "operational"
+    },
+    "encryption": {
+      "features": [
+        "aes256",
+        "tls13",
+        "pgp",
+        "key_management"
+      ],
+      "status": "operational"
+    },
+    "reporting": {
+      "features": [
+        "pdf",
+        "csv",
+        "json"
+      ],
+      "status": "operational"
+    }
+  },
+  "overall_status": "OPERATIONAL",
+  "total_endpoints": 70
+}

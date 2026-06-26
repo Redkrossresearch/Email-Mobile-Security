@@ -1,0 +1,258 @@
+
+==================================================
+  CyberShield SOC - Backend Server
+  Mobile & Email Security Platform
+==================================================
+  API Endpoints:
+  POST /api/auth/login          - Email login
+  POST /api/auth/mobile-login   - Mobile login
+  POST /api/auth/verify-otp     - OTP verification
+  POST /api/auth/verify-mfa     - MFA verification
+  GET  /api/mobile/devices      - List devices
+  GET  /api/mobile/scan-apps    - Scan apps
+  POST /api/mobile/analyze-sms  - Analyze SMS
+  GET  /api/mobile/malware-scan - Malware scan
+  GET  /api/mobile/sms-logs     - SMS logs
+  GET  /api/mobile/call-logs    - Call logs
+  GET  /api/mobile/check-battery- Battery check
+  GET  /api/mobile/device-health- Device health
+  GET  /api/mobile/dashboard-stats- Dashboard
+  POST /api/email/check-spf     - SPF check
+  POST /api/email/check-dkim    - DKIM check
+  POST /api/email/check-dmarc   - DMARC check
+  POST /api/email/analyze-headers- Headers
+  POST /api/email/phishing-scan - Phishing
+  POST /api/email/scan-url      - URL scan
+  GET  /api/reports/download-pdf - PDF report
+  GET  /api/reports/download-csv - CSV export
+  GET  /api/reports/download-json- JSON export
+==================================================
+  Server starting on http://localhost:5000
+==================================================
+
+ * Serving Flask app 'app'
+ * Debug mode: on
+
+==================================================
+  CyberShield SOC - Backend Server
+  Mobile & Email Security Platform
+==================================================
+  API Endpoints:
+  POST /api/auth/login          - Email login
+  POST /api/auth/mobile-login   - Mobile login
+  POST /api/auth/verify-otp     - OTP verification
+  POST /api/auth/verify-mfa     - MFA verification
+  GET  /api/mobile/devices      - List devices
+  GET  /api/mobile/scan-apps    - Scan apps
+  POST /api/mobile/analyze-sms  - Analyze SMS
+  GET  /api/mobile/malware-scan - Malware scan
+  GET  /api/mobile/sms-logs     - SMS logs
+  GET  /api/mobile/call-logs    - Call logs
+  GET  /api/mobile/check-battery- Battery check
+  GET  /api/mobile/device-health- Device health
+  GET  /api/mobile/dashboard-stats- Dashboard
+  POST /api/email/check-spf     - SPF check
+  POST /api/email/check-dkim    - DKIM check
+  POST /api/email/check-dmarc   - DMARC check
+  POST /api/email/analyze-headers- Headers
+  POST /api/email/phishing-scan - Phishing
+  POST /api/email/scan-url      - URL scan
+  GET  /api/reports/download-pdf - PDF report
+  GET  /api/reports/download-csv - CSV export
+  GET  /api/reports/download-json- JSON export
+==================================================
+  Server starting on http://localhost:5000
+==================================================
+
+
+==================================================
+  CyberShield SOC - Backend Server
+  Mobile & Email Security Platform
+==================================================
+  API Endpoints:
+  POST /api/auth/login          - Email login
+  POST /api/auth/mobile-login   - Mobile login
+  POST /api/auth/verify-otp     - OTP verification
+  POST /api/auth/verify-mfa     - MFA verification
+  GET  /api/mobile/devices      - List devices
+  GET  /api/mobile/scan-apps    - Scan apps
+  POST /api/mobile/analyze-sms  - Analyze SMS
+  GET  /api/mobile/malware-scan - Malware scan
+  GET  /api/mobile/sms-logs     - SMS logs
+  GET  /api/mobile/call-logs    - Call logs
+  GET  /api/mobile/check-battery- Battery check
+  GET  /api/mobile/device-health- Device health
+  GET  /api/mobile/dashboard-stats- Dashboard
+  POST /api/email/check-spf     - SPF check
+  POST /api/email/check-dkim    - DKIM check
+  POST /api/email/check-dmarc   - DMARC check
+  POST /api/email/analyze-headers- Headers
+  POST /api/email/phishing-scan - Phishing
+  POST /api/email/scan-url      - URL scan
+  GET  /api/reports/download-pdf - PDF report
+  GET  /api/reports/download-csv - CSV export
+  GET  /api/reports/download-json- JSON export
+==================================================
+  Server starting on http://localhost:5000
+==================================================
+
+
+==================================================
+  CyberShield SOC - Backend Server
+  Mobile & Email Security Platform
+==================================================
+  API Endpoints:
+  POST /api/auth/login          - Email login
+  POST /api/auth/mobile-login   - Mobile login
+  POST /api/auth/verify-otp     - OTP verification
+  POST /api/auth/verify-mfa     - MFA verification
+  GET  /api/mobile/devices      - List devices
+  GET  /api/mobile/scan-apps    - Scan apps
+  POST /api/mobile/analyze-sms  - Analyze SMS
+  GET  /api/mobile/malware-scan - Malware scan
+  GET  /api/mobile/sms-logs     - SMS logs
+  GET  /api/mobile/call-logs    - Call logs
+  GET  /api/mobile/check-battery- Battery check
+  GET  /api/mobile/device-health- Device health
+  GET  /api/mobile/dashboard-stats- Dashboard
+  POST /api/email/check-spf     - SPF check
+  POST /api/email/check-dkim    - DKIM check
+  POST /api/email/check-dmarc   - DMARC check
+  POST /api/email/analyze-headers- Headers
+  POST /api/email/phishing-scan - Phishing
+  POST /api/email/scan-url      - URL scan
+  GET  /api/reports/download-pdf - PDF report
+  GET  /api/reports/download-csv - CSV export
+  GET  /api/reports/download-json- JSON export
+==================================================
+  Server starting on http://localhost:5000
+==================================================
+
+
+==================================================
+  CyberShield SOC - Backend Server
+  Mobile & Email Security Platform
+==================================================
+  API Endpoints:
+  POST /api/auth/login          - Email login
+  POST /api/auth/mobile-login   - Mobile login
+  POST /api/auth/verify-otp     - OTP verification
+  POST /api/auth/verify-mfa     - MFA verification
+  GET  /api/mobile/devices      - List devices
+  GET  /api/mobile/scan-apps    - Scan apps
+  POST /api/mobile/analyze-sms  - Analyze SMS
+  GET  /api/mobile/malware-scan - Malware scan
+  GET  /api/mobile/sms-logs     - SMS logs
+  GET  /api/mobile/call-logs    - Call logs
+  GET  /api/mobile/check-battery- Battery check
+  GET  /api/mobile/device-health- Device health
+  GET  /api/mobile/dashboard-stats- Dashboard
+  POST /api/email/check-spf     - SPF check
+  POST /api/email/check-dkim    - DKIM check
+  POST /api/email/check-dmarc   - DMARC check
+  POST /api/email/analyze-headers- Headers
+  POST /api/email/phishing-scan - Phishing
+  POST /api/email/scan-url      - URL scan
+  GET  /api/reports/download-pdf - PDF report
+  GET  /api/reports/download-csv - CSV export
+  GET  /api/reports/download-json- JSON export
+==================================================
+  Server starting on http://localhost:5000
+==================================================
+
+
+==================================================
+  CyberShield SOC - Backend Server
+  Mobile & Email Security Platform
+==================================================
+  API Endpoints:
+  POST /api/auth/login          - Email login
+  POST /api/auth/mobile-login   - Mobile login
+  POST /api/auth/verify-otp     - OTP verification
+  POST /api/auth/verify-mfa     - MFA verification
+  GET  /api/mobile/devices      - List devices
+  GET  /api/mobile/scan-apps    - Scan apps
+  POST /api/mobile/analyze-sms  - Analyze SMS
+  GET  /api/mobile/malware-scan - Malware scan
+  GET  /api/mobile/sms-logs     - SMS logs
+  GET  /api/mobile/call-logs    - Call logs
+  GET  /api/mobile/check-battery- Battery check
+  GET  /api/mobile/device-health- Device health
+  GET  /api/mobile/dashboard-stats- Dashboard
+  POST /api/email/check-spf     - SPF check
+  POST /api/email/check-dkim    - DKIM check
+  POST /api/email/check-dmarc   - DMARC check
+  POST /api/email/analyze-headers- Headers
+  POST /api/email/phishing-scan - Phishing
+  POST /api/email/scan-url      - URL scan
+  GET  /api/reports/download-pdf - PDF report
+  GET  /api/reports/download-csv - CSV export
+  GET  /api/reports/download-json- JSON export
+==================================================
+  Server starting on http://localhost:5000
+==================================================
+
+
+==================================================
+  CyberShield SOC - Backend Server
+  Mobile & Email Security Platform
+==================================================
+  API Endpoints:
+  POST /api/auth/login          - Email login
+  POST /api/auth/mobile-login   - Mobile login
+  POST /api/auth/verify-otp     - OTP verification
+  POST /api/auth/verify-mfa     - MFA verification
+  GET  /api/mobile/devices      - List devices
+  GET  /api/mobile/scan-apps    - Scan apps
+  POST /api/mobile/analyze-sms  - Analyze SMS
+  GET  /api/mobile/malware-scan - Malware scan
+  GET  /api/mobile/sms-logs     - SMS logs
+  GET  /api/mobile/call-logs    - Call logs
+  GET  /api/mobile/check-battery- Battery check
+  GET  /api/mobile/device-health- Device health
+  GET  /api/mobile/dashboard-stats- Dashboard
+  POST /api/email/check-spf     - SPF check
+  POST /api/email/check-dkim    - DKIM check
+  POST /api/email/check-dmarc   - DMARC check
+  POST /api/email/analyze-headers- Headers
+  POST /api/email/phishing-scan - Phishing
+  POST /api/email/scan-url      - URL scan
+  GET  /api/reports/download-pdf - PDF report
+  GET  /api/reports/download-csv - CSV export
+  GET  /api/reports/download-json- JSON export
+==================================================
+  Server starting on http://localhost:5000
+==================================================
+
+
+==================================================
+  CyberShield SOC - Backend Server
+  Mobile & Email Security Platform
+==================================================
+  API Endpoints:
+  POST /api/auth/login          - Email login
+  POST /api/auth/mobile-login   - Mobile login
+  POST /api/auth/verify-otp     - OTP verification
+  POST /api/auth/verify-mfa     - MFA verification
+  GET  /api/mobile/devices      - List devices
+  GET  /api/mobile/scan-apps    - Scan apps
+  POST /api/mobile/analyze-sms  - Analyze SMS
+  GET  /api/mobile/malware-scan - Malware scan
+  GET  /api/mobile/sms-logs     - SMS logs
+  GET  /api/mobile/call-logs    - Call logs
+  GET  /api/mobile/check-battery- Battery check
+  GET  /api/mobile/device-health- Device health
+  GET  /api/mobile/dashboard-stats- Dashboard
+  POST /api/email/check-spf     - SPF check
+  POST /api/email/check-dkim    - DKIM check
+  POST /api/email/check-dmarc   - DMARC check
+  POST /api/email/analyze-headers- Headers
+  POST /api/email/phishing-scan - Phishing
+  POST /api/email/scan-url      - URL scan
+  GET  /api/reports/download-pdf - PDF report
+  GET  /api/reports/download-csv - CSV export
+  GET  /api/reports/download-json- JSON export
+==================================================
+  Server starting on http://localhost:5000
+==================================================
+

@@ -1,0 +1,27 @@
+{
+  "report_id": "TR-F9CDFB44",
+  "generated_at": "2026-06-24T17:47:05.201293Z",
+  "threat_landscape": {
+    "sms_threats": {
+      "phishing": 4,
+      "spam": 2,
+      "safe": 1
+    },
+    "call_threats": {
+      "blocked": 4,
+      "total": 5
+    },
+    "top_attack_vectors": [
+      "SMS Phishing (42%)",
+      "Spam (28%)",
+      "Scam Calls (20%)",
+      "Robocalls (10%)"
+    ]
+  },
+  "remediation_actions": [
+    "Block identified phishing domains",
+    "Enable STIR/SHAKEN for all calls",
+    "Deploy SMS filtering rules",
+    "Flag high-risk senders for review"
+  ]
+}

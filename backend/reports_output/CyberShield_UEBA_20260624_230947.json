@@ -1,0 +1,57 @@
+{
+  "report_id": "UR-8DCCBDA5",
+  "generated_at": "2026-06-24T17:39:47.361517Z",
+  "total_users_analyzed": 4,
+  "users": [
+    {
+      "user_id": "admin@cybershield.com",
+      "risk_score": 12,
+      "risk_level": "LOW",
+      "events_logged": 45,
+      "anomalies": []
+    },
+    {
+      "user_id": "user@example.com",
+      "risk_score": 58,
+      "risk_level": "HIGH",
+      "events_logged": 120,
+      "anomalies": [
+        "Unusual IP: 203.0.113.5",
+        "Login at 03:00 UTC"
+      ]
+    },
+    {
+      "user_id": "test@domain.com",
+      "risk_score": 34,
+      "risk_level": "MEDIUM",
+      "events_logged": 78,
+      "anomalies": [
+        "New device fingerprint"
+      ]
+    },
+    {
+      "user_id": "finance@company.com",
+      "risk_score": 82,
+      "risk_level": "CRITICAL",
+      "events_logged": 210,
+      "anomalies": [
+        "Impossible travel detected",
+        "Failed login attempts: 15",
+        "Data exfiltration pattern"
+      ]
+    }
+  ],
+  "risk_distribution": {
+    "critical": 1,
+    "high": 1,
+    "medium": 1,
+    "low": 1
+  },
+  "model": "IsolationForest (v2.1)",
+  "recommendations": [
+    "Investigate CRITICAL risk users immediately",
+    "Enforce MFA for all HIGH risk users",
+    "Review recent access logs for anomalous patterns",
+    "Update behavioral baselines for new users"
+  ]
+}

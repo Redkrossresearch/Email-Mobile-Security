@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Email Security Module — CyberShield SOC</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cyan:   #00f5ff;
+      --green:  #00ff88;
+      --red:    #ff3355;
+      --orange: #ff9900;
+      --yellow: #ffdd00;
+      --bg:     #050b14;
+      --bg2:    #091525;
+      --bg3:    #0d1f33;
+      --border: rgba(0,245,255,0.15);
+      --text:   #c8e6f5;
+      --mono:   'Share Tech Mono', monospace;
+      --head:   'Exo 2', sans-serif;
+      --body:   'Rajdhani', sans-serif;
+      --sidebar-w: 260px;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--body);
+      overflow-x: hidden;
+    }
+
+    /* grid bg */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+    /* scan line */
+    body::after {
+      content: '';
+      position: fixed; top: -100%; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      animation: scan 8s linear infinite;
+      pointer-events: none; z-index: 999; opacity: 0.3;
+    }
+    @keyframes scan { to { top: 110%; } }
+
+    /* ══ LAYOUT ══ */
+    .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+    /* ══ SIDEBAR ══ */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 0;
+      position: sticky; top: 0;
+      flex-shrink: 0;
+    }
+    .sidebar-header {
+      padding: 1.6rem 1.5rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo {
+      font-family: var(--head);
+      font-weight: 900;
+      font-size: 1.15rem;
+      color: var(--cyan);
+      letter-spacing: 2px;
+      text-shadow: 0 0 16px var(--cyan);
+      display: flex; align-items: center; gap: .5rem;
+      margin-bottom: .4rem;
+    }
+    .sidebar-sub {
+      font-family: var(--mono);
+      font-size: .65rem;
+      color: rgba(200,230,245,.35);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .sidebar-status {
+      margin-top: .8rem;
+      display: flex; align-items: center; gap: .5rem;
+      font-family: var(--mono); font-size: .68rem;
+      color: var(--green);
+    }
+    .pulse { width:7px; height:7px; background:var(--green); border-radius:50%; animation:pulse 1.5s ease-in-out infinite; box-shadow:0 0 7px var(--green); }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.6)} }
+
+    .sidebar-nav { padding: 1.2rem .8rem; flex: 1; }
+    .nav-section-label {
+      font-family: var(--mono);
+      font-size: .62rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(200,230,245,.3);
+      padding: .5rem .6rem .3rem;
+      margin-bottom: .3rem;
+    }
+    .nav-link {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .65rem .8rem;
+      border-radius: 8px;
+      color: rgba(200,230,245,.6);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: .9rem;
+      letter-spacing: .5px;
+      transition: all .2s;
+      margin-bottom: .2rem;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .nav-link:hover {
+      background: rgba(0,245,255,.06);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .nav-link.active {
+      background: rgba(0,245,255,.1);
+      color: var(--cyan);
+      border-color: rgba(0,245,255,.25);
+    }
+    .nav-link.active::before {
+      content: '';
+      position: absolute; left: 0; top: 4px; bottom: 4px;
+      width: 3px; background: var(--cyan);
+      border-radius: 0 3px 3px 0;
+      box-shadow: 0 0 8px var(--cyan);
+    }
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    .sidebar-footer {
+      padding: 1rem .8rem;
+      border-top: 1px solid var(--border);
+    }
+    .logout-btn {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      width: 100%; padding: .7rem;
+      background: rgba(255,51,85,.1);
+      border: 1px solid rgba(255,51,85,.3);
+      border-radius: 8px;
+      color: var(--red);
+      font-family: var(--head); font-weight: 700; font-size: .9rem;
+      letter-spacing: 1px; text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .logout-btn:hover {
+      background: rgba(255,51,85,.2);
+      box-shadow: 0 0 16px rgba(255,51,85,.25);
+      color: var(--red);
+    }
+
+    /* ══ MAIN ══ */
+    .main {
+      flex: 1;
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+    }
+
+    /* Page header */
+    .page-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 1.8rem;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    
+    .page-breadcrumb {
+      font-family: var(--mono); font-size: .7rem;
+      color: rgba(200,230,245,.35);
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: .4rem;
+    }
+    .page-title {
+      font-family: var(--head); font-weight: 900;
+      font-size: 2rem; color: #fff;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .page-title span { color: var(--cyan); text-shadow: 0 0 18px var(--cyan); }
+
+    .header-actions { display: flex; gap: .8rem; align-items: center; }
+    .time-badge {
+      font-family: var(--mono); font-size: .75rem;
+      padding: .4rem .9rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--cyan);
+      letter-spacing: 1px;
+    }
+    .refresh-btn {
+      padding: .4rem .9rem;
+      background: rgba(0,245,255,.08);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--cyan);
+      font-family: var(--head); font-weight: 600;
+      font-size: .82rem; letter-spacing: 1px;
+      cursor: pointer; transition: all .2s;
+    }
+    .refresh-btn:hover { background: rgba(0,245,255,.15); box-shadow: 0 0 12px rgba(0,245,255,.2); }
+
+    /* Alert banner */
+    .alert-banner {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .9rem 1.2rem;
+      background: rgba(255,51,85,.07);
+      border: 1px solid rgba(255,51,85,.25);
+      border-left: 3px solid var(--red);
+      border-radius: 8px;
+      margin-bottom: 1.8rem;
+      font-size: .92rem;
+    }
+    .alert-icon { font-size: 1.2rem; }
+    .alert-text { flex: 1; }
+    .alert-text strong { color: var(--red); }
+    .alert-dismiss {
+      font-family: var(--mono); font-size: .7rem;
+      color: rgba(200,230,245,.4);
+      cursor: pointer; border: 1px solid rgba(200,230,245,.15);
+      padding: .2rem .5rem; border-radius: 4px;
+      background: none; transition: all .2s;
+    }
+    .alert-dismiss:hover { color: var(--text); border-color: rgba(200,230,245,.3); }
+
+    /* ══ TOOL CARDS ══ */
+    .section-label {
+      font-family: var(--mono); font-size: .72rem;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: var(--cyan);
+      display: flex; align-items: center; gap: .6rem;
+      margin-bottom: 1rem;
+    }
+    .section-label::before { content:''; display:inline-block; width:24px; height:1px; background:var(--cyan); }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .tool-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+      cursor: default;
+    }
+    .tool-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 2px; opacity: 0; transition: opacity .2s;
+    }
+    .tool-card:hover { transform: translateY(-4px); border-color: rgba(0,245,255,.3); box-shadow: 0 10px 32px rgba(0,0,0,.5); }
+    .tool-card:hover::before { opacity: 1; }
+    .tc-cyan::before   { background: linear-gradient(90deg, var(--cyan), #0077ff); }
+    .tc-green::before  { background: linear-gradient(90deg, var(--green), #00c853); }
+    .tc-red::before    { background: linear-gradient(90deg, var(--red), var(--orange)); }
+    .caller-scanner-box { background: rgba(0,245,255,0.03); border: 1px solid rgba(0,245,255,0.12); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+    .caller-input-row { display: flex; gap: 10px; }
+    .tc-orange::before { background: linear-gradient(90deg, var(--orange), var(--yellow)); }
+    .tc-blue::before   { background: linear-gradient(90deg, #4488ff, var(--cyan)); }
+    .tc-yellow::before { background: linear-gradient(90deg, var(--yellow), var(--orange)); }
+
+    .tc-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: .8rem; }
+    .tc-icon { font-size: 1.6rem; }
+    .tc-badge {
+      font-family: var(--mono); font-size: .6rem;
+      padding: .15rem .5rem; border-radius: 4px;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .badge-active   { background: rgba(0,255,136,.12); color: var(--green); }
+    .badge-warning  { background: rgba(255,153,0,.12);  color: var(--orange); }
+    .badge-critical { background: rgba(255,51,85,.12);   color: var(--red); }
+    .badge-info     { background: rgba(0,245,255,.12);   color: var(--cyan); }
+
+    .tc-title {
+      font-family: var(--head); font-weight: 700;
+      font-size: 1rem; color: #fff; margin-bottom: .3rem;
+    }
+    .tc-desc {
+      font-size: .82rem; color: rgba(200,230,245,.55);
+      line-height: 1.5; margin-bottom: 1rem;
+    }
+    .tc-result {
+      font-family: var(--mono); font-size: .72rem;
+      padding: .4rem .7rem;
+      border-radius: 5px;
+      margin-bottom: .9rem;
+      display: none;
+    }
+    .tc-result.show { display: block; }
+    .res-pass    { background: rgba(0,255,136,.08); border: 1px solid rgba(0,255,136,.2); color: var(--green); }
+    .res-fail    { background: rgba(255,51,85,.08);  border: 1px solid rgba(255,51,85,.2);  color: var(--red); }
+    .res-warn    { background: rgba(255,153,0,.08);  border: 1px solid rgba(255,153,0,.2);  color: var(--orange); }
+    .res-info    { background: rgba(0,245,255,.08);  border: 1px solid rgba(0,245,255,.2);  color: var(--cyan); }
+    .res-loading { background: rgba(200,230,245,.05); border: 1px solid var(--border); color: rgba(200,230,245,.5); }
+
+    .tc-btn {
+      width: 100%; padding: .55rem;
+      border-radius: 7px; border: none;
+      font-family: var(--head); font-weight: 700;
+      font-size: .85rem; letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-cyan   { background: linear-gradient(135deg,var(--cyan),#0077ff); color:#000; }
+    .btn-green  { background: linear-gradient(135deg,var(--green),#00c853); color:#000; }
+    .btn-red    { background: linear-gradient(135deg,var(--red),#cc0022); color:#fff; }
+    .btn-orange { background: linear-gradient(135deg,var(--orange),#ff5500); color:#000; }
+    .btn-blue   { background: linear-gradient(135deg,#4488ff,var(--cyan)); color:#000; }
+    .btn-yellow { background: linear-gradient(135deg,var(--yellow),var(--orange)); color:#000; }
+    .tc-btn:hover { opacity: .85; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+
+    /* ══ EMAIL HEADER ANALYZER ══ */
+    .analyzer-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .analyzer-card h4 {
+      font-family: var(--head); font-weight: 700;
+      font-size: 1.05rem; color: #fff;
+      display: flex; align-items: center; gap: .5rem;
+      margin-bottom: 1rem;
+    }
+    .header-input {
+      width: 100%; height: 110px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-family: var(--mono); font-size: .78rem;
+      padding: .9rem 1rem; resize: vertical; outline: none;
+      transition: border-color .2s;
+    }
+    .header-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,245,255,.06); }
+    .header-input::placeholder { color: rgba(200,230,245,.25); }
+
+    .domain-row { display: flex; gap: .8rem; margin-top: .8rem; }
+    .domain-input {
+      flex: 1; padding: .65rem 1rem;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; color: #fff;
+      font-family: var(--mono); font-size: .85rem;
+      outline: none; transition: border-color .2s;
+    }
+    .domain-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,245,255,.06); }
+    .domain-input::placeholder { color: rgba(200,230,245,.25); }
+    .analyze-btn {
+      padding: .65rem 1.5rem;
+      background: linear-gradient(135deg,var(--cyan),#0077ff);
+      color: #000; border: none; border-radius: 8px;
+      font-family: var(--head); font-weight: 700;
+      font-size: .88rem; letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: all .2s; white-space: nowrap;
+    }
+    .analyze-btn:hover { box-shadow: 0 0 20px rgba(0,245,255,.35); transform: translateY(-1px); }
+
+    .header-result {
+      margin-top: 1rem;
+      display: none;
+    }
+    .header-result.show { display: block; }
+    .header-row {
+      display: flex; align-items: center; gap: .8rem;
+      padding: .6rem .9rem; border-radius: 6px;
+      background: var(--bg3); margin-bottom: .5rem;
+      font-family: var(--mono); font-size: .75rem;
+    }
+    .hr-key { color: var(--cyan); min-width: 130px; }
+    .hr-val { color: var(--text); flex: 1; }
+    .hr-status { font-size: .65rem; padding: .15rem .5rem; border-radius: 3px; letter-spacing: 1px; text-transform: uppercase; }
+    .s-ok   { background:rgba(0,255,136,.1);  color:var(--green); }
+    .s-bad  { background:rgba(255,51,85,.1);   color:var(--red); }
+    .s-warn { background:rgba(255,153,0,.1);   color:var(--orange); }
+    .s-info { background:rgba(0,245,255,.1);   color:var(--cyan); }
+
+    /* ══ STATUS PANEL ══ */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .status-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.3rem;
+      display: flex; flex-direction: column; gap: .5rem;
+      position: relative; overflow: hidden;
+    }
+    .sc-label {
+      font-family: var(--mono); font-size: .68rem;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: rgba(200,230,245,.4);
+    }
+    .sc-icon { font-size: 1.4rem; position: absolute; top: 1rem; right: 1.2rem; opacity: .5; }
+    .sc-value {
+      font-family: var(--head); font-weight: 900;
+      font-size: 1.4rem;
+    }
+    .sc-sub {
+      font-size: .78rem; color: rgba(200,230,245,.45);
+    }
+    .sc-bar {
+      height: 3px; background: rgba(255,255,255,.06);
+      border-radius: 100px; overflow: hidden; margin-top: .3rem;
+    }
+    .sc-fill { height: 100%; border-radius: 100px; }
+
+    /* ══ INBOX SCANNER ══ */
+    .inbox-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .inbox-card h4 {
+      font-family: var(--head); font-weight: 700; font-size: 1.05rem;
+      color: #fff; display: flex; align-items: center; gap: .5rem;
+      margin-bottom: .5rem;
+    }
+    .inbox-sub { font-size: .85rem; color: rgba(200,230,245,.45); margin-bottom: 1.2rem; }
+
+    .inbox-filter {
+      display: flex; gap: .5rem; margin-bottom: 1rem; flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: .3rem .8rem; border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--bg3); color: rgba(200,230,245,.55);
+      font-family: var(--head); font-size: .78rem; font-weight: 600;
+      letter-spacing: .5px; cursor: pointer; transition: all .2s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      border-color: var(--cyan); color: var(--cyan);
+      background: rgba(0,245,255,.07);
+    }
+
+    .mail-list { display: flex; flex-direction: column; gap: .5rem; }
+    .mail-row {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .75rem 1rem; border-radius: 8px;
+      background: var(--bg3);
+      border: 1px solid transparent;
+      cursor: pointer; transition: all .2s;
+    }
+    .mail-row:hover { border-color: var(--border); background: rgba(0,245,255,.04); }
+    .mail-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .95rem; flex-shrink: 0;
+    }
+    .mail-body { flex: 1; min-width: 0; }
+    .mail-sender { font-size: .85rem; font-weight: 600; color: #fff; }
+    .mail-subject { font-size: .78rem; color: rgba(200,230,245,.5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mail-meta { display: flex; flex-direction: column; align-items: flex-end; gap: .3rem; flex-shrink: 0; }
+    .mail-time { font-family: var(--mono); font-size: .65rem; color: rgba(200,230,245,.3); }
+    .mail-tag {
+      font-family: var(--mono); font-size: .62rem;
+      padding: .15rem .5rem; border-radius: 3px;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .mt-safe    { background:rgba(0,255,136,.1);  color:var(--green);  border:1px solid rgba(0,255,136,.2); }
+    .mt-phish   { background:rgba(255,51,85,.1);   color:var(--red);    border:1px solid rgba(255,51,85,.2); }
+    .mt-spam    { background:rgba(255,153,0,.1);   color:var(--orange); border:1px solid rgba(255,153,0,.2); }
+    .mt-malware { background:rgba(255,51,85,.18);  color:var(--red);    border:1px solid rgba(255,51,85,.3); }
+    .mt-bec     { background:rgba(255,221,0,.1);   color:var(--yellow); border:1px solid rgba(255,221,0,.2); }
+
+    /* ══ GAUGE BARS ══ */
+    .gauge-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+    }
+    .gauge-card h4 {
+      font-family: var(--head); font-weight: 700; font-size: 1.05rem;
+      color: #fff; margin-bottom: 1.2rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .gauge-list { display: flex; flex-direction: column; gap: 1rem; }
+    .gauge-row label {
+      display: flex; justify-content: space-between;
+      font-size: .85rem; margin-bottom: .35rem;
+      color: rgba(200,230,245,.7);
+    }
+    .gauge-row label span { font-family: var(--mono); font-size: .8rem; }
+    .gauge-track {
+      height: 6px; background: rgba(255,255,255,.05);
+      border-radius: 100px; overflow: hidden;
+    }
+    .gauge-fill { height: 100%; border-radius: 100px; transition: width 1.4s cubic-bezier(.25,.8,.25,1); }
+    .gf-cyan   { background: linear-gradient(90deg,#0077ff,var(--cyan)); box-shadow:0 0 8px var(--cyan); }
+    .gf-green  { background: linear-gradient(90deg,#00c853,var(--green)); box-shadow:0 0 8px var(--green); }
+    .gf-orange { background: linear-gradient(90deg,#ff5500,var(--orange)); box-shadow:0 0 8px var(--orange); }
+    .gf-red    { background: linear-gradient(90deg,#cc0022,var(--red)); box-shadow:0 0 8px var(--red); }
+
+    /* ══ BOTTOM GRID ══ */
+    .bottom-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.5rem; margin-top: 2rem;
+    }
+    @media(max-width:900px){ .bottom-grid { grid-template-columns: 1fr; } }
+
+    /* ══ FOOTER ══ */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono); font-size: .72rem;
+      color: rgba(200,230,245,.25);
+      letter-spacing: 1px;
+      position: relative; z-index: 1;
+    }
+
+    /* ══ MODAL ══ */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(5,11,20,.85);
+      backdrop-filter: blur(8px);
+      z-index: 500;
+      display: none; align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 2rem;
+      width: 90%; max-width: 520px;
+      animation: popIn .25s ease;
+    }
+    @keyframes popIn { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
+    .modal-title {
+      font-family: var(--head); font-weight: 900;
+      font-size: 1.2rem; color: #fff;
+      display: flex; align-items: center; gap: .6rem;
+      margin-bottom: 1rem;
+    }
+    .modal-content { font-size: .9rem; color: rgba(200,230,245,.7); line-height: 1.7; }
+    .modal-close {
+      margin-top: 1.5rem; width: 100%; padding: .65rem;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-family: var(--head); font-weight: 700; font-size: .9rem;
+      cursor: pointer; transition: all .2s;
+    }
+    .modal-close:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* fade-in */
+    .fade-in { animation: fadeIn .5s ease both; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+    @media(max-width:768px){
+      .main { padding: 1.2rem; }
+      .sidebar { display: none; }
+      .tools-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🛡️ CyberShield SOC</div>
+      <div class="sidebar-sub">Security Operations Center</div>
+      <div class="sidebar-status"><span class="pulse"></span>All Systems Active</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Navigation</div>
+      <a href="dashboard.html" class="nav-link">
+        <span class="nav-icon">🖥️</span> Dashboard
+      </a>
+      <a href="email-security.html" class="nav-link active">
+        <span class="nav-icon">📧</span> Email Security
+      </a>
+      <a href="mobile-security.html" class="nav-link">
+        <span class="nav-icon">📱</span> Mobile Security
+      </a>
+      <a href="reports.html" class="nav-link">
+        <span class="nav-icon">📊</span> Reports
+      </a>
+      <a href="threat-intel.html" class="nav-link">
+        <span class="nav-icon">🌐</span> Threat Intel
+      </a>
+      <a href="ai-engine.html" class="nav-link">
+        <span class="nav-icon">🤖</span> AI Engine
+      </a>
+      <a href="sandbox.html" class="nav-link">
+        <span class="nav-icon">📦</span> Sandbox
+      </a>
+      <a href="apk-analyzer.html" class="nav-link">
+        <span class="nav-icon">📱</span> APK Analyzer
+      </a>
+      <a href="yara-rules.html" class="nav-link">
+        <span class="nav-icon">📜</span> YARA Rules
+      </a>
+      <a href="integrations.html" class="nav-link">
+        <span class="nav-icon">🔗</span> Integrations
+      </a>
+      <a href="encryption.html" class="nav-link">
+        <span class="nav-icon">🔐</span> Encryption
+      </a>
+      <a href="ueba.html" class="nav-link">
+        <span class="nav-icon">🧠</span> UEBA
+      </a>
+      <a href="auth-enhanced.html" class="nav-link">
+        <span class="nav-icon">🛡️</span> Auth Enhanced
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="login.html" class="logout-btn">🚪 Logout</a>
+    </div>
+  </aside>
+
+  <!-- ══════════ MAIN ══════════ -->
+  <div class="main">
+
+    <!-- Page Header -->
+    <div class="page-header fade-in">
+      <div class="page-title-wrap">
+        <div class="page-breadcrumb">CyberShield SOC // Email Security</div>
+        <h1 class="page-title">📧 Email <span>Security Module</span></h1>
+      </div>
+      <div class="header-actions">
+        <div class="time-badge" id="liveClock">--:--:--</div>
+        <button class="refresh-btn" onclick="refreshAll()">↻ Refresh All</button>
+      </div>
+    </div>
+
+    <!-- Alert Banner -->
+    <div class="alert-banner fade-in" id="alertBanner">
+      <span class="alert-icon">🔴</span>
+      <span class="alert-text"><strong>THREAT DETECTED:</strong> Phishing campaign targeting finance team — 3 emails intercepted in last 10 minutes. Review quarantine immediately.</span>
+      <button class="alert-dismiss" onclick="this.closest('#alertBanner').style.display='none'">✕ Dismiss</button>
+    </div>
+
+    <!-- Security Status Tiles -->
+    <div class="section-label">Security Status</div>
+    <div class="status-grid fade-in">
+      <div class="status-card">
+        <span class="sc-icon">🛡️</span>
+        <div class="sc-label">SPF Validation</div>
+        <div class="sc-value" style="color:var(--green)">PASSED</div>
+        <div class="sc-sub">All outbound mail authenticated</div>
+        <div class="sc-bar"><div class="sc-fill gf-green" style="width:100%"></div></div>
+      </div>
+      <div class="status-card">
+        <span class="sc-icon">🔐</span>
+        <div class="sc-label">DKIM Verification</div>
+        <div class="sc-value" style="color:var(--green)">PASSED</div>
+        <div class="sc-sub">Signature valid — no tampering</div>
+        <div class="sc-bar"><div class="sc-fill gf-green" style="width:100%"></div></div>
+      </div>
+      <div class="status-card">
+        <span class="sc-icon">⚠️</span>
+        <div class="sc-label">Phishing Scan</div>
+        <div class="sc-value" style="color:var(--red)">THREAT DETECTED</div>
+        <div class="sc-sub">3 emails quarantined today</div>
+        <div class="sc-bar"><div class="sc-fill gf-red" style="width:25%"></div></div>
+      </div>
+      <div class="status-card">
+        <span class="sc-icon">⏱️</span>
+        <div class="sc-label">Last Email Scan</div>
+        <div class="sc-value" style="color:var(--cyan)" id="lastScan">2 Min Ago</div>
+        <div class="sc-sub">148,392 emails scanned today</div>
+        <div class="sc-bar"><div class="sc-fill gf-cyan" style="width:90%"></div></div>
+      </div>
+      <div class="status-card">
+        <span class="sc-icon">📊</span>
+        <div class="sc-label">DMARC Compliance</div>
+        <div class="sc-value" style="color:var(--orange)">96.4%</div>
+        <div class="sc-sub">14 domains non-compliant</div>
+        <div class="sc-bar"><div class="sc-fill gf-orange" style="width:96%"></div></div>
+      </div>
+      <div class="status-card">
+        <span class="sc-icon">🚫</span>
+        <div class="sc-label">Threats Blocked</div>
+        <div class="sc-value" style="color:var(--cyan)">2,847</div>
+        <div class="sc-sub">Since midnight today</div>
+        <div class="sc-bar"><div class="sc-fill gf-cyan" style="width:70%"></div></div>
+      </div>
+    </div>
+
+    <!-- Sender Reputation Scanner (Truecaller-like for Email) -->
+    <div class="section-label" style="margin-top:20px;">📧 SENDER REPUTATION SCANNER</div>
+    <div class="caller-scanner-box">
+      <div class="caller-input-row">
+        <input class="domain-input" id="senderInput" type="text" placeholder="Paste email address (e.g. security@paypa1.com)" style="flex:1;padding:10px 14px;">
+        <button class="scan-btn primary" onclick="checkSenderScan()" style="padding:10px 24px;font-size:12px;">🔍 CHECK SENDER</button>
+      </div>
+      <div class="tc-result" id="res-sender" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- Security Tools -->
+    <div class="section-label">Security Tools</div>
+    <div class="tools-grid fade-in">
+
+      <!-- SPF -->
+      <div class="tool-card tc-cyan">
+        <div class="tc-header">
+          <span class="tc-icon">🛡️</span>
+          <span class="tc-badge badge-active">Active</span>
+        </div>
+        <div class="tc-title">SPF Checker</div>
+        <div class="tc-desc">Verify Sender Policy Framework records to prevent email spoofing on your domain.</div>
+        <div class="tc-result" id="res-spf"></div>
+        <button class="tc-btn btn-cyan" onclick="checkSPF()">Check SPF</button>
+      </div>
+
+      <!-- DKIM -->
+      <div class="tool-card tc-green">
+        <div class="tc-header">
+          <span class="tc-icon">🔐</span>
+          <span class="tc-badge badge-active">Active</span>
+        </div>
+        <div class="tc-title">DKIM Checker</div>
+        <div class="tc-desc">Validate DomainKeys Identified Mail signatures to ensure message integrity.</div>
+        <div class="tc-result" id="res-dkim"></div>
+        <button class="tc-btn btn-green" onclick="checkDKIM()">Check DKIM</button>
+      </div>
+
+      <!-- DMARC -->
+      <div class="tool-card tc-blue">
+        <div class="tc-header">
+          <span class="tc-icon">📋</span>
+          <span class="tc-badge badge-active">Active</span>
+        </div>
+        <div class="tc-title">DMARC Checker</div>
+        <div class="tc-desc">Inspect DMARC policy: none / quarantine / reject and reporting alignment.</div>
+        <div class="tc-result" id="res-dmarc"></div>
+        <button class="tc-btn btn-blue" onclick="checkDMARC()">Check DMARC</button>
+      </div>
+
+      <!-- Header Analyzer -->
+      <div class="tool-card tc-orange">
+        <div class="tc-header">
+          <span class="tc-icon">🔎</span>
+          <span class="tc-badge badge-info">Scanner</span>
+        </div>
+        <div class="tc-title">Header Analyzer</div>
+        <div class="tc-desc">Deep-parse email headers for spoofing, relay hops, IP reputation and anomalies.</div>
+        <div class="tc-result" id="res-header"></div>
+        <button class="tc-btn btn-orange" onclick="analyzeHeader()">Analyze Header</button>
+      </div>
+
+      <!-- Phishing -->
+      <div class="tool-card tc-red">
+        <div class="tc-header">
+          <span class="tc-icon">🎣</span>
+          <span class="tc-badge badge-critical">Critical</span>
+        </div>
+        <div class="tc-title">Phishing Detection</div>
+        <div class="tc-desc">AI-powered phishing scan: detects spoofed domains, credential harvesting pages, BEC patterns.</div>
+        <div class="tc-result" id="res-phish"></div>
+        <button class="tc-btn btn-red" onclick="phishingScan()">Scan Email</button>
+      </div>
+
+      <!-- URL Scanner -->
+      <div class="tool-card tc-yellow">
+        <div class="tc-header">
+          <span class="tc-icon">🔗</span>
+          <span class="tc-badge badge-warning">Scanner</span>
+        </div>
+        <div class="tc-title">URL Scanner</div>
+        <div class="tc-desc">Paste a URL below to scan against threat intel feeds, blocklists, and redirect chain analysis.</div>
+        <input type="text" id="urlInput" placeholder="https://example.com/malicious-link" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;margin-bottom:8px;font-family:'Share Tech Mono',monospace;">
+        <div class="tc-result" id="res-url"></div>
+        <button class="tc-btn btn-yellow" onclick="scanURL()">Scan URL</button>
+      </div>
+
+      <!-- Sandbox Analysis -->
+      <div class="tool-card tc-red">
+        <div class="tc-header">
+          <span class="tc-icon">🏖️</span>
+          <span class="tc-badge badge-critical">Sandbox</span>
+        </div>
+        <div class="tc-title">Sandbox Analysis</div>
+        <div class="tc-desc">Detonate suspicious attachments in an isolated sandbox to detect malware, exploits, and zero-day threats.</div>
+        <div class="tc-result" id="res-sandbox"></div>
+        <button class="tc-btn btn-red" onclick="checkSandbox()">Analyze File</button>
+      </div>
+
+      <!-- Lookalike Domain -->
+      <div class="tool-card tc-orange">
+        <div class="tc-header">
+          <span class="tc-icon">👀</span>
+          <span class="tc-badge badge-warning">Lookalike</span>
+        </div>
+        <div class="tc-title">Lookalike Domain Detector</div>
+        <div class="tc-desc">Detect typosquatting, homograph attacks, and lookalike domains targeting your brand.</div>
+        <div class="tc-result" id="res-lookalike"></div>
+        <button class="tc-btn btn-orange" onclick="checkLookalike()">Check Domain</button>
+      </div>
+
+      <!-- BEC Detection -->
+      <div class="tool-card tc-red">
+        <div class="tc-header">
+          <span class="tc-icon">💼</span>
+          <span class="tc-badge badge-critical">BEC</span>
+        </div>
+        <div class="tc-title">BEC Attack Detection</div>
+        <div class="tc-desc">Detect Business Email Compromise attempts: impersonation, payment fraud, and executive spoofing.</div>
+        <div class="tc-result" id="res-bec"></div>
+        <button class="tc-btn btn-red" onclick="checkBEC()">Scan for BEC</button>
+      </div>
+
+      <!-- Heuristic Scan -->
+      <div class="tool-card tc-yellow">
+        <div class="tc-header">
+          <span class="tc-icon">📐</span>
+          <span class="tc-badge badge-warning">Heuristic</span>
+        </div>
+        <div class="tc-title">Heuristic Content Scan</div>
+        <div class="tc-desc">Rule-based analysis of email body, subject, and headers for spam, phishing, and social engineering.</div>
+        <div class="tc-result" id="res-heuristic"></div>
+        <button class="tc-btn btn-yellow" onclick="checkHeuristic()">Scan Content</button>
+      </div>
+
+      <!-- Attachment Block -->
+      <div class="tool-card tc-green">
+        <div class="tc-header">
+          <span class="tc-icon">📎</span>
+          <span class="tc-badge badge-active">Attachments</span>
+        </div>
+        <div class="tc-title">Attachment Blocking</div>
+        <div class="tc-desc">Block dangerous file types by extension, MIME type, and magic byte signature — including renamed extensions.</div>
+        <div class="tc-result" id="res-attach"></div>
+        <button class="tc-btn btn-green" onclick="checkAttachment()">Check File</button>
+      </div>
+
+      <!-- Outbound Encrypt -->
+      <div class="tool-card tc-cyan">
+        <div class="tc-header">
+          <span class="tc-icon">🔒</span>
+          <span class="tc-badge badge-active">Encryption</span>
+        </div>
+        <div class="tc-title">Outbound Encryption</div>
+        <div class="tc-desc">Automatically encrypt outbound emails with sensitive content using S/MIME, PGP, or TLS.</div>
+        <div class="tc-result" id="res-encrypt"></div>
+        <button class="tc-btn btn-cyan" onclick="checkOutboundEncrypt()">Encrypt Email</button>
+      </div>
+
+    </div>
+
+    <!-- Email Header Analyzer Input -->
+    <div class="section-label">Header Analysis Tool</div>
+    <div class="analyzer-card fade-in">
+      <h4>🔎 Email Header Deep Analyzer</h4>
+      <textarea class="header-input" id="headerInput"
+        placeholder="Paste raw email headers here (Received:, From:, Reply-To:, X-Originating-IP:, DKIM-Signature:, etc.)…"></textarea>
+      <div class="domain-row">
+        <input class="domain-input" id="domainInput" type="text" placeholder="Target domain (e.g. yourcompany.com)">
+        <button class="analyze-btn" onclick="runHeaderAnalysis()">🔍 Analyze</button>
+      </div>
+      <div class="header-result" id="headerResult"></div>
+    </div>
+
+    <!-- EML File Analysis -->
+    <div class="section-label">Email File Analysis</div>
+    <div class="analyzer-card fade-in">
+      <h4>📧 .EML File Analyzer & Report Generator</h4>
+      <p style="opacity:0.6;font-size:12px;margin-bottom:12px;">Upload an .eml file to extract headers, body, attachments, and get a phishing risk score. Generate PDF or Excel reports.</p>
+      <div class="domain-row">
+        <input type="file" id="emailFile" accept=".eml" style="flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;">
+        <button class="analyze-btn" id="scanBtn" onclick="analyzeEmail()">🔍 Analyze</button>
+      </div>
+      <div id="scanningMsg" style="display:none;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--cyan);">⏳ Parsing email headers, scanning attachments, analyzing content...</div>
+      <div id="alertBar" style="display:none;margin-top:8px;padding:8px 12px;border-radius:5px;font-size:12px;"></div>
+      <div id="resultBox" style="display:none;margin-top:10px;"></div>
+    </div>
+
+    <!-- Bottom Grid -->
+    <div class="bottom-grid">
+
+      <!-- Inbox Threat Feed -->
+      <div class="inbox-card fade-in">
+        <h4>📬 Inbox Threat Feed</h4>
+        <p class="inbox-sub">Real-time classification of incoming messages — auto-updated every 30s.</p>
+        <div class="inbox-filter">
+          <button class="filter-btn active" onclick="filterInbox(this,'all')">All</button>
+          <button class="filter-btn" onclick="filterInbox(this,'safe')">✅ Safe</button>
+          <button class="filter-btn" onclick="filterInbox(this,'threat')">🔴 Threats</button>
+          <button class="filter-btn" onclick="filterInbox(this,'spam')">📩 Spam</button>
+        </div>
+        <div class="mail-list" id="mailList">
+          <div class="mail-row" data-cat="safe">
+            <div class="mail-avatar" style="background:rgba(0,255,136,.1)">👤</div>
+            <div class="mail-body"><div class="mail-sender">finance@partner.com</div><div class="mail-subject">Q3 invoice — please review and approve</div></div>
+            <div class="mail-meta"><span class="mail-time">08:14</span><span class="mail-tag mt-safe">✓ Safe</span></div>
+          </div>
+          <div class="mail-row" data-cat="threat">
+            <div class="mail-avatar" style="background:rgba(255,51,85,.12)">⚠</div>
+            <div class="mail-body"><div class="mail-sender">security@paypa1.com</div><div class="mail-subject">Urgent: Verify your account immediately</div></div>
+            <div class="mail-meta"><span class="mail-time">08:09</span><span class="mail-tag mt-phish">🎣 Phish</span></div>
+          </div>
+          <div class="mail-row" data-cat="threat">
+            <div class="mail-avatar" style="background:rgba(255,221,0,.1)">💼</div>
+            <div class="mail-body"><div class="mail-sender">ceo@yourcompany-secure.net</div><div class="mail-subject">Wire transfer needed ASAP — confidential</div></div>
+            <div class="mail-meta"><span class="mail-time">07:58</span><span class="mail-tag mt-bec">BEC</span></div>
+          </div>
+          <div class="mail-row" data-cat="spam">
+            <div class="mail-avatar" style="background:rgba(255,153,0,.1)">📨</div>
+            <div class="mail-body"><div class="mail-sender">promo@deals-best.ru</div><div class="mail-subject">You've been selected! Click to claim prize</div></div>
+            <div class="mail-meta"><span class="mail-time">07:42</span><span class="mail-tag mt-spam">Spam</span></div>
+          </div>
+          <div class="mail-row" data-cat="threat">
+            <div class="mail-avatar" style="background:rgba(255,51,85,.15)">☠</div>
+            <div class="mail-body"><div class="mail-sender">hr@micros0ft-updates.com</div><div class="mail-subject">Updated benefits document.exe</div></div>
+            <div class="mail-meta"><span class="mail-time">07:33</span><span class="mail-tag mt-malware">🦠 Malware</span></div>
+          </div>
+          <div class="mail-row" data-cat="safe">
+            <div class="mail-avatar" style="background:rgba(0,245,255,.08)">📋</div>
+            <div class="mail-body"><div class="mail-sender">newsletter@techcrunch.com</div><div class="mail-subject">This week in AI — top 10 stories</div></div>
+            <div class="mail-meta"><span class="mail-time">07:20</span><span class="mail-tag mt-safe">✓ Safe</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Score -->
+      <div class="gauge-card fade-in">
+        <h4>📊 Email Security Health Score</h4>
+        <div class="gauge-list">
+          <div class="gauge-row">
+            <label>Phishing Detection Rate <span>99.7%</span></label>
+            <div class="gauge-track"><div class="gauge-fill gf-cyan" style="width:99.7%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>Spam Filter Accuracy <span>98.2%</span></label>
+            <div class="gauge-track"><div class="gauge-fill gf-green" style="width:98.2%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>Malware Block Rate <span>100%</span></label>
+            <div class="gauge-track"><div class="gauge-fill gf-cyan" style="width:100%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>DMARC Compliance <span>96.4%</span></label>
+            <div class="gauge-track"><div class="gauge-fill gf-orange" style="width:96.4%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>False Positive Rate <span style="color:var(--green)">0.08%</span></label>
+            <div class="gauge-track"><div class="gauge-fill gf-green" style="width:0.8%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>SPF Pass Rate <span>97.8%</span></label>
+            <div class="gauge-track"><div class="gauge-fill gf-cyan" style="width:97.8%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>DKIM Validity <span>99.1%</span></label>
+            <div class="gauge-track"><div class="gauge-fill gf-green" style="width:99.1%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>Encryption Coverage <span style="color:var(--orange)">88.5%</span></label>
+            <div class="gauge-track"><div class="gauge-fill gf-orange" style="width:88.5%"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<footer>© 2026 CyberShield SOC | Email &amp; Mobile Security Platform — v3.1.0</footer>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">Result</div>
+    <div class="modal-content" id="modalContent"></div>
+    <button class="modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+
+<script src="js/script.js"></script>
+
+</body>
+</html>

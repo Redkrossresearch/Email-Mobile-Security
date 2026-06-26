@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Integrations — CyberShield SOC</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cyan:   #00f5ff;
+      --green:  #00ff88;
+      --red:    #ff3355;
+      --orange: #ff9900;
+      --yellow: #ffdd00;
+      --bg:     #050b14;
+      --bg2:    #091525;
+      --bg3:    #0d1f33;
+      --border: rgba(0,245,255,0.15);
+      --text:   #c8e6f5;
+      --mono:   'Share Tech Mono', monospace;
+      --head:   'Exo 2', sans-serif;
+      --body:   'Rajdhani', sans-serif;
+      --sidebar-w: 260px;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--body);
+      overflow-x: hidden;
+    }
+
+    /* grid bg */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+    /* scan line */
+    body::after {
+      content: '';
+      position: fixed; top: -100%; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      animation: scan 8s linear infinite;
+      pointer-events: none; z-index: 999; opacity: 0.3;
+    }
+    @keyframes scan { to { top: 110%; } }
+
+    /* ══ LAYOUT ══ */
+    .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+    /* ══ SIDEBAR ══ */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 0;
+      position: sticky; top: 0;
+      flex-shrink: 0;
+    }
+    .sidebar-header {
+      padding: 1.6rem 1.5rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo {
+      font-family: var(--head);
+      font-weight: 900;
+      font-size: 1.15rem;
+      color: var(--cyan);
+      letter-spacing: 2px;
+      text-shadow: 0 0 16px var(--cyan);
+      display: flex; align-items: center; gap: .5rem;
+      margin-bottom: .4rem;
+    }
+    .sidebar-sub {
+      font-family: var(--mono);
+      font-size: .65rem;
+      color: rgba(200,230,245,.35);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .sidebar-status {
+      margin-top: .8rem;
+      display: flex; align-items: center; gap: .5rem;
+      font-family: var(--mono); font-size: .68rem;
+      color: var(--green);
+    }
+    .pulse { width:7px; height:7px; background:var(--green); border-radius:50%; animation:pulse 1.5s ease-in-out infinite; box-shadow:0 0 7px var(--green); }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.6)} }
+
+    .sidebar-nav { padding: 1.2rem .8rem; flex: 1; }
+    .nav-section-label {
+      font-family: var(--mono);
+      font-size: .62rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(200,230,245,.3);
+      padding: .5rem .6rem .3rem;
+      margin-bottom: .3rem;
+    }
+    .nav-link {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .65rem .8rem;
+      border-radius: 8px;
+      color: rgba(200,230,245,.6);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: .9rem;
+      letter-spacing: .5px;
+      transition: all .2s;
+      margin-bottom: .2rem;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .nav-link:hover {
+      background: rgba(0,245,255,.06);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .nav-link.active {
+      background: rgba(0,245,255,.1);
+      color: var(--cyan);
+      border-color: rgba(0,245,255,.25);
+    }
+    .nav-link.active::before {
+      content: '';
+      position: absolute; left: 0; top: 4px; bottom: 4px;
+      width: 3px; background: var(--cyan);
+      border-radius: 0 3px 3px 0;
+      box-shadow: 0 0 8px var(--cyan);
+    }
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    .sidebar-footer {
+      padding: 1rem .8rem;
+      border-top: 1px solid var(--border);
+    }
+    .logout-btn {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      width: 100%; padding: .7rem;
+      background: rgba(255,51,85,.1);
+      border: 1px solid rgba(255,51,85,.3);
+      border-radius: 8px;
+      color: var(--red);
+      font-family: var(--head); font-weight: 700; font-size: .9rem;
+      letter-spacing: 1px; text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .logout-btn:hover {
+      background: rgba(255,51,85,.2);
+      box-shadow: 0 0 16px rgba(255,51,85,.25);
+      color: var(--red);
+    }
+
+    /* ══ MAIN ══ */
+    .main {
+      flex: 1;
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+    }
+
+    /* Page header */
+    .page-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 1.8rem;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    
+    .page-breadcrumb {
+      font-family: var(--mono); font-size: .7rem;
+      color: rgba(200,230,245,.35);
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: .4rem;
+    }
+    .page-title {
+      font-family: var(--head); font-weight: 900;
+      font-size: 2rem; color: #fff;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .page-title span { color: var(--cyan); text-shadow: 0 0 18px var(--cyan); }
+
+    .header-actions { display: flex; gap: .8rem; align-items: center; }
+    .time-badge {
+      font-family: var(--mono); font-size: .75rem;
+      padding: .4rem .9rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--cyan);
+      letter-spacing: 1px;
+    }
+    .refresh-btn {
+      padding: .4rem .9rem;
+      background: rgba(0,245,255,.08);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--cyan);
+      font-family: var(--head); font-weight: 600;
+      font-size: .82rem; letter-spacing: 1px;
+      cursor: pointer; transition: all .2s;
+    }
+    .refresh-btn:hover { background: rgba(0,245,255,.15); box-shadow: 0 0 12px rgba(0,245,255,.2); }
+
+    /* Alert banner */
+    .alert-banner {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .9rem 1.2rem;
+      background: rgba(255,51,85,.07);
+      border: 1px solid rgba(255,51,85,.25);
+      border-left: 3px solid var(--red);
+      border-radius: 8px;
+      margin-bottom: 1.8rem;
+      font-size: .92rem;
+    }
+    .alert-icon { font-size: 1.2rem; }
+    .alert-text { flex: 1; }
+    .alert-text strong { color: var(--red); }
+    .alert-dismiss {
+      font-family: var(--mono); font-size: .7rem;
+      color: rgba(200,230,245,.4);
+      cursor: pointer; border: 1px solid rgba(200,230,245,.15);
+      padding: .2rem .5rem; border-radius: 4px;
+      background: none; transition: all .2s;
+    }
+    .alert-dismiss:hover { color: var(--text); border-color: rgba(200,230,245,.3); }
+
+    /* ══ TOOL CARDS ══ */
+    .section-label {
+      font-family: var(--mono); font-size: .72rem;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: var(--cyan);
+      display: flex; align-items: center; gap: .6rem;
+      margin-bottom: 1rem;
+    }
+    .section-label::before { content:''; display:inline-block; width:24px; height:1px; background:var(--cyan); }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .tool-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+      cursor: default;
+    }
+    .tool-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 2px; opacity: 0; transition: opacity .2s;
+    }
+    .tool-card:hover { transform: translateY(-4px); border-color: rgba(0,245,255,.3); box-shadow: 0 10px 32px rgba(0,0,0,.5); }
+    .tool-card:hover::before { opacity: 1; }
+    .tc-cyan::before   { background: linear-gradient(90deg, var(--cyan), #0077ff); }
+    .tc-green::before  { background: linear-gradient(90deg, var(--green), #00c853); }
+    .tc-red::before    { background: linear-gradient(90deg, var(--red), var(--orange)); }
+    .caller-scanner-box { background: rgba(0,245,255,0.03); border: 1px solid rgba(0,245,255,0.12); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+    .caller-input-row { display: flex; gap: 10px; }
+    .tc-orange::before { background: linear-gradient(90deg, var(--orange), var(--yellow)); }
+    .tc-blue::before   { background: linear-gradient(90deg, #4488ff, var(--cyan)); }
+    .tc-yellow::before { background: linear-gradient(90deg, var(--yellow), var(--orange)); }
+
+    .tc-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: .8rem; }
+    .tc-icon { font-size: 1.6rem; }
+    .tc-badge {
+      font-family: var(--mono); font-size: .6rem;
+      padding: .15rem .5rem; border-radius: 4px;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .badge-active   { background: rgba(0,255,136,.12); color: var(--green); }
+    .badge-warning  { background: rgba(255,153,0,.12);  color: var(--orange); }
+    .badge-critical { background: rgba(255,51,85,.12);   color: var(--red); }
+    .badge-info     { background: rgba(0,245,255,.12);   color: var(--cyan); }
+
+    .tc-title {
+      font-family: var(--head); font-weight: 700;
+      font-size: 1rem; color: #fff; margin-bottom: .3rem;
+    }
+    .tc-desc {
+      font-size: .82rem; color: rgba(200,230,245,.55);
+      line-height: 1.5; margin-bottom: 1rem;
+    }
+    .tc-result {
+      font-family: var(--mono); font-size: .72rem;
+      padding: .4rem .7rem;
+      border-radius: 5px;
+      margin-bottom: .9rem;
+      display: none;
+    }
+    .tc-result.show { display: block; }
+    .res-pass    { background: rgba(0,255,136,.08); border: 1px solid rgba(0,255,136,.2); color: var(--green); }
+    .res-fail    { background: rgba(255,51,85,.08);  border: 1px solid rgba(255,51,85,.2);  color: var(--red); }
+    .res-warn    { background: rgba(255,153,0,.08);  border: 1px solid rgba(255,153,0,.2);  color: var(--orange); }
+    .res-info    { background: rgba(0,245,255,.08);  border: 1px solid rgba(0,245,255,.2);  color: var(--cyan); }
+    .res-loading { background: rgba(200,230,245,.05); border: 1px solid var(--border); color: rgba(200,230,245,.5); }
+
+    .tc-btn {
+      width: 100%; padding: .55rem;
+      border-radius: 7px; border: none;
+      font-family: var(--head); font-weight: 700;
+      font-size: .85rem; letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-cyan   { background: linear-gradient(135deg,var(--cyan),#0077ff); color:#000; }
+    .btn-green  { background: linear-gradient(135deg,var(--green),#00c853); color:#000; }
+    .btn-red    { background: linear-gradient(135deg,var(--red),#cc0022); color:#fff; }
+    .btn-orange { background: linear-gradient(135deg,var(--orange),#ff5500); color:#000; }
+    .btn-blue   { background: linear-gradient(135deg,#4488ff,var(--cyan)); color:#000; }
+    .btn-yellow { background: linear-gradient(135deg,var(--yellow),var(--orange)); color:#000; }
+    .tc-btn:hover { opacity: .85; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+
+    /* ══ CUSTOM STATUS CARDS ══ */
+    .status-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .status-card { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:1.5rem; }
+    .status-card .sc-value { font-family:var(--mono); font-size:1.8rem; color:var(--cyan); text-shadow:0 0 10px var(--cyan); }
+    .status-card .sc-label { font-size:.8rem; color:rgba(200,230,245,.5); margin-top:.3rem; }
+    .status-card .sc-sub { font-size:.7rem; color:rgba(200,230,245,.3); margin-top:.2rem; }
+
+    /* fade-in */
+    .fade-in { animation: fadeIn .5s ease both; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+    @media(max-width:768px){
+      .main { padding: 1.2rem; }
+      .sidebar { display: none; }
+      .tools-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🛡️ CyberShield SOC</div>
+      <div class="sidebar-sub">Security Operations Center</div>
+      <div class="sidebar-status"><span class="pulse"></span>All Systems Active</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Navigation</div>
+      <a href="dashboard.html" class="nav-link">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+      <a href="email-security.html" class="nav-link">
+        <span class="nav-icon">📧</span> Email Security
+      </a>
+      <a href="mobile-security.html" class="nav-link">
+        <span class="nav-icon">📱</span> Mobile Security
+      </a>
+      <a href="threat-intel.html" class="nav-link">
+        <span class="nav-icon">🌐</span> Threat Intel
+      </a>
+      <a href="ai-engine.html" class="nav-link">
+        <span class="nav-icon">🤖</span> AI Engine
+      </a>
+      <a href="sandbox.html" class="nav-link">
+        <span class="nav-icon">📦</span> Sandbox
+      </a>
+      <a href="apk-analyzer.html" class="nav-link">
+        <span class="nav-icon">📱</span> APK Analyzer
+      </a>
+      <a href="yara-rules.html" class="nav-link">
+        <span class="nav-icon">📜</span> YARA Rules
+      </a>
+      <a href="integrations.html" class="nav-link active">
+        <span class="nav-icon">🔗</span> Integrations
+      </a>
+      <a href="encryption.html" class="nav-link">
+        <span class="nav-icon">🔐</span> Encryption
+      </a>
+      <a href="ueba.html" class="nav-link">
+        <span class="nav-icon">🧠</span> UEBA
+      </a>
+      <a href="auth-enhanced.html" class="nav-link">
+        <span class="nav-icon">🛡️</span> Auth Enhanced
+      </a>
+      <a href="reports.html" class="nav-link">
+        <span class="nav-icon">📊</span> Reports
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="login.html" class="logout-btn">🚪 Logout</a>
+    </div>
+  </aside>
+
+  <!-- ══════════ MAIN ══════════ -->
+  <div class="main">
+
+    <!-- Page Header -->
+    <div class="page-header fade-in">
+      <div class="page-title-wrap">
+        <div class="page-breadcrumb">CyberShield SOC // Integrations</div>
+        <h1 class="page-title">🔗 Integration <span>Hub</span></h1>
+      </div>
+      <div class="header-actions">
+        <div class="time-badge" id="liveClock">--:--:--</div>
+        <button class="refresh-btn" onclick="refreshAll()">↻ Refresh All</button>
+      </div>
+    </div>
+
+    <!-- Alert Banner -->
+    <div class="alert-banner fade-in" id="alertBanner">
+      <span class="alert-icon">🔔</span>
+      <span class="alert-text"><strong>INTEGRATIONS STATUS:</strong> Gmail and Microsoft 365 are disconnected. SIEM forwarding is active. 3 webhooks configured.</span>
+      <button class="alert-dismiss" onclick="this.closest('#alertBanner').style.display='none'">✕ Dismiss</button>
+    </div>
+
+    <!-- Status Cards -->
+    <div class="section-label">Integration Status</div>
+    <div class="status-grid fade-in">
+      <div class="status-card">
+        <div class="sc-value" style="color:var(--red)">Disconnected</div>
+        <div class="sc-label">Gmail</div>
+        <div class="sc-sub">Click to connect</div>
+      </div>
+      <div class="status-card">
+        <div class="sc-value" style="color:var(--red)">Disconnected</div>
+        <div class="sc-label">Microsoft 365</div>
+        <div class="sc-sub">Click to connect</div>
+      </div>
+      <div class="status-card">
+        <div class="sc-value" style="color:var(--green)">Enabled</div>
+        <div class="sc-label">SIEM Forwarding</div>
+        <div class="sc-sub">Splunk, QRadar, Sentinel</div>
+      </div>
+      <div class="status-card">
+        <div class="sc-value" style="color:var(--cyan)">Active</div>
+        <div class="sc-label">Webhook Status</div>
+        <div class="sc-sub">3 webhooks configured</div>
+      </div>
+    </div>
+
+    <!-- Integration Tools -->
+    <div class="section-label">Integration Tools</div>
+    <div class="tools-grid fade-in">
+
+      <!-- Gmail Connect -->
+      <div class="tool-card tc-red">
+        <div class="tc-header">
+          <span class="tc-icon">📧</span>
+          <span class="tc-badge badge-critical">Disconnected</span>
+        </div>
+        <div class="tc-title">Gmail Connect</div>
+        <div class="tc-desc">Connect CyberShield to your Gmail account using API credentials.</div>
+        <div class="tc-result" id="res-gmail-connect"></div>
+        <textarea id="gmailCredentials" placeholder='Paste Gmail API credentials JSON here (client_id, client_secret, etc.)' style="width:100%;height:70px;padding:.5rem .7rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:.72rem;margin-bottom:.5rem;outline:none;resize:vertical;"></textarea>
+        <button class="tc-btn btn-red" onclick="checkGmailConnect()">Connect Gmail</button>
+      </div>
+
+      <!-- Gmail Scan -->
+      <div class="tool-card tc-orange">
+        <div class="tc-header">
+          <span class="tc-icon">🔍</span>
+          <span class="tc-badge badge-warning">Scanner</span>
+        </div>
+        <div class="tc-title">Gmail Scan</div>
+        <div class="tc-desc">Scan your Gmail inbox for phishing, malware, and suspicious emails.</div>
+        <div class="tc-result" id="res-gmail-scan"></div>
+        <button class="tc-btn btn-orange" onclick="checkGmailScan()">Scan Inbox</button>
+      </div>
+
+      <!-- Gmail Search -->
+      <div class="tool-card tc-yellow">
+        <div class="tc-header">
+          <span class="tc-icon">🔎</span>
+          <span class="tc-badge badge-warning">Search</span>
+        </div>
+        <div class="tc-title">Gmail Search</div>
+        <div class="tc-desc">Search across Gmail messages using advanced query syntax.</div>
+        <div class="tc-result" id="res-gmail-search"></div>
+        <input type="text" id="gmailQuery" placeholder="Search query (e.g. subject:invoice)" style="width:100%;padding:.5rem .7rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:.78rem;margin-bottom:.5rem;outline:none;">
+        <button class="tc-btn btn-yellow" onclick="checkGmailSearch()">Search</button>
+      </div>
+
+      <!-- Graph Connect -->
+      <div class="tool-card tc-cyan">
+        <div class="tc-header">
+          <span class="tc-icon">🟦</span>
+          <span class="tc-badge badge-info">Disconnected</span>
+        </div>
+        <div class="tc-title">Graph Connect</div>
+        <div class="tc-desc">Connect CyberShield to Microsoft 365 via Microsoft Graph API.</div>
+        <div class="tc-result" id="res-graph-connect"></div>
+        <textarea id="graphCredentials" placeholder='Paste Microsoft Graph API credentials JSON here (tenant_id, client_id, client_secret)' style="width:100%;height:70px;padding:.5rem .7rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:.72rem;margin-bottom:.5rem;outline:none;resize:vertical;"></textarea>
+        <button class="tc-btn btn-cyan" onclick="checkGraphConnect()">Connect Graph</button>
+      </div>
+
+      <!-- Graph Users -->
+      <div class="tool-card tc-green">
+        <div class="tc-header">
+          <span class="tc-icon">👥</span>
+          <span class="tc-badge badge-active">Users</span>
+        </div>
+        <div class="tc-title">Graph Users</div>
+        <div class="tc-desc">List all Microsoft 365 users and their account details.</div>
+        <div class="tc-result" id="res-graph-users"></div>
+        <button class="tc-btn btn-green" onclick="checkGraphUsers()">List Users</button>
+      </div>
+
+      <!-- Graph Mail Scan -->
+      <div class="tool-card tc-red">
+        <div class="tc-header">
+          <span class="tc-icon">📨</span>
+          <span class="tc-badge badge-critical">Scan</span>
+        </div>
+        <div class="tc-title">Graph Mail Scan</div>
+        <div class="tc-desc">Scan Microsoft 365 mailboxes for threats and suspicious activity.</div>
+        <div class="tc-result" id="res-graph-scan"></div>
+        <button class="tc-btn btn-red" onclick="checkGraphScan()">Scan Mailboxes</button>
+      </div>
+
+      <!-- Graph Audit Logs -->
+      <div class="tool-card tc-blue">
+        <div class="tc-header">
+          <span class="tc-icon">📋</span>
+          <span class="tc-badge badge-info">Audit</span>
+        </div>
+        <div class="tc-title">Graph Audit Logs</div>
+        <div class="tc-desc">Fetch Microsoft 365 audit logs for security analysis and compliance.</div>
+        <div class="tc-result" id="res-graph-audit"></div>
+        <button class="tc-btn btn-blue" onclick="checkGraphAudit()">Fetch Logs</button>
+      </div>
+
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<footer>© 2026 CyberShield SOC | Email &amp; Mobile Security Platform — v3.1.0</footer>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">Result</div>
+    <div class="modal-content" id="modalContent"></div>
+    <button class="modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script src="js/script.js"></script>
+
+</body>
+</html>

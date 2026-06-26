@@ -1,0 +1,7 @@
+[
+  {"id": 1, "from": "+1-800-FRAUD", "type": "scam", "blocked": true, "timestamp": "2026-06-11T07:33:07Z"},
+  {"id": 2, "from": "+91-1122334455", "type": "robocall", "blocked": true, "timestamp": "2026-06-11T07:15:00Z"},
+  {"id": 3, "from": "+44-20-7946-0958", "type": "spoofed", "blocked": true, "timestamp": "2026-06-11T06:50:00Z"},
+  {"id": 4, "from": "UNKNOWN", "type": "scam", "blocked": true, "timestamp": "2026-06-11T06:22:00Z"},
+  {"id": 5, "from": "+91-9988776655", "type": "safe", "blocked": false, "timestamp": "2026-06-11T08:00:00Z"}
+]

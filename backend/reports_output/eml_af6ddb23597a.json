@@ -1,0 +1,45 @@
+{
+  "headers": {
+    "From": "attacker@evil.com",
+    "To": "victim@company.com",
+    "Subject": "Urgent: Verify your account now",
+    "Date": "Wed, 24 Jun 2026 10:00:00 +0000",
+    "Message-ID": "<abc123@evil.com>",
+    "Reply-To": "phishing@evil.com",
+    "MIME-Version": "1.0",
+    "Content-Type": "multipart/mixed; boundary=\"==BOUNDARY==\""
+  },
+  "body_preview": "Dear user, your account has been suspended. Click here to verify:\r\nhttp://evil-phish.com/login?token=abc123\r\nPlease update your password immediately.\r\n",
+  "has_html": true,
+  "attachments": [
+    {
+      "filename": "invoice.pdf",
+      "content_type": "application/pdf",
+      "size": 56
+    }
+  ],
+  "attachment_count": 1,
+  "received_hops": 2,
+  "phishing_score": 100,
+  "findings": [
+    "Contains suspicious keyword: 'verify'",
+    "Contains suspicious keyword: 'account suspended'",
+    "Contains suspicious keyword: 'click here'",
+    "Contains suspicious keyword: 'login'",
+    "Contains suspicious keyword: 'password'",
+    "Contains suspicious keyword: 'suspended'",
+    "Contains 2 URL(s)",
+    "Found 1 form(s) submitting to: http://evil-phish.com/steal",
+    "Encoding: mime",
+    "Spoof risk: Reply-To (phishing@evil.com) != From (attacker@evil.com)"
+  ],
+  "urls_found": [
+    "http://evil-phish.com/steal",
+    "http://evil-phish.com/login?token=abc123"
+  ],
+  "verdict": "PHISHING",
+  "message_size": 1030,
+  "analysis_id": "af6ddb23597a",
+  "filename": "phish_test.eml",
+  "analyzed_at": "2026-06-24T17:54:07.577337Z"
+}

@@ -1,0 +1,25 @@
+{
+  "headers": {
+    "From": "test@evil.com",
+    "To": "user@co.com",
+    "Subject": "Test",
+    "Date": "Wed, 24 Jun 2026",
+    "MIME-Version": "1.0",
+    "Content-Type": "multipart/mixed; boundary=\"==B==\""
+  },
+  "body_preview": "Test body",
+  "has_html": false,
+  "attachments": [],
+  "attachment_count": 0,
+  "received_hops": 0,
+  "phishing_score": 0,
+  "findings": [
+    "Encoding: mime"
+  ],
+  "urls_found": [],
+  "verdict": "SAFE",
+  "message_size": 206,
+  "analysis_id": "5dce4369eea7",
+  "filename": "test.eml",
+  "analyzed_at": "2026-06-24T18:05:28.276667Z"
+}

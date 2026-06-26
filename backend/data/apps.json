@@ -1,0 +1,18 @@
+{
+  "installed": [
+    {"name": "WhatsApp", "package": "com.whatsapp", "permissions": ["CAMERA", "MICROPHONE", "STORAGE", "CONTACTS"], "risk": "low", "risk_score": 15},
+    {"name": "CleanMaster Pro", "package": "com.cleanmaster.pro", "permissions": ["CONTACTS", "SMS_READ", "CALL_LOG", "LOCATION", "CAMERA"], "risk": "high", "risk_score": 82},
+    {"name": "BatteryBoost+", "package": "com.battery.boost", "permissions": ["STORAGE", "LOCATION", "PHONE_STATE"], "risk": "medium", "risk_score": 55},
+    {"name": "Google Maps", "package": "com.google.maps", "permissions": ["LOCATION", "STORAGE"], "risk": "low", "risk_score": 10},
+    {"name": "Instagram", "package": "com.instagram.android", "permissions": ["CAMERA", "MICROPHONE", "STORAGE", "CONTACTS"], "risk": "low", "risk_score": 20},
+    {"name": "FreeVPN Pro", "package": "com.freevpn.pro", "permissions": ["VPN", "STORAGE", "PHONE_STATE", "LOCATION"], "risk": "high", "risk_score": 78},
+    {"name": "File Manager", "package": "com.file.manager", "permissions": ["STORAGE", "SMS_READ", "CONTACTS"], "risk": "medium", "risk_score": 45}
+  ],
+  "malware_signatures": [
+    {"name": "Joker", "package": "com.joker.sms", "type": "spyware", "severity": "critical"},
+    {"name": "AgentSmith", "package": "com.agent.smith", "type": "trojan", "severity": "critical"},
+    {"name": "Xavier", "package": "com.xavier.ad", "type": "adware", "severity": "medium"},
+    {"name": "Triada", "package": "com.triada.mod", "type": "trojan", "severity": "critical"},
+    {"name": "CopyCat", "package": "com.copycat.ads", "type": "adware", "severity": "medium"}
+  ]
+}

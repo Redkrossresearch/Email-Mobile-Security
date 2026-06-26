@@ -1,0 +1,6 @@
+Device ID,Name,OS,Type,Status,Health Score,Last Scan,Encrypted,VPN
+DEV001,Rahul's iPhone 15,iOS 18.2,corporate,healthy,96,2026-06-11T08:00:00Z,True,True
+DEV002,Priya's Galaxy S24,Android 14,BYOD,warning,74,2026-06-11T07:30:00Z,True,False
+DEV003,Amit's Pixel 8,Android 15,corporate,healthy,92,2026-06-11T06:45:00Z,True,True
+DEV004,Sneha's iPad Air,iPadOS 18.2,corporate,healthy,98,2026-06-10T22:00:00Z,True,True
+DEV005,Vikram's OnePlus 12,Android 14,BYOD,critical,45,2026-06-11T05:00:00Z,False,False

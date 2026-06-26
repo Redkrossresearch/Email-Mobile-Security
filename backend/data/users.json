@@ -1,0 +1,42 @@
+{
+  "admin@cybershield.com": {
+    "password": "admin123",
+    "name": "SOC Admin",
+    "role": "admin",
+    "mfa_enabled": false,
+    "mfa_method": "totp",
+    "sso_enabled": false,
+    "created": "2026-01-01T00:00:00Z",
+    "last_login": "2026-06-11T08:00:00Z"
+  },
+  "analyst@cybershield.com": {
+    "password": "analyst123",
+    "name": "Security Analyst",
+    "role": "analyst",
+    "mfa_enabled": true,
+    "mfa_method": "totp",
+    "sso_enabled": true,
+    "created": "2026-01-15T00:00:00Z",
+    "last_login": "2026-06-11T07:30:00Z"
+  },
+  "compliance@cybershield.com": {
+    "password": "compliance123",
+    "name": "Compliance Officer",
+    "role": "compliance",
+    "mfa_enabled": true,
+    "mfa_method": "totp",
+    "sso_enabled": false,
+    "created": "2026-02-01T00:00:00Z",
+    "last_login": "2026-06-10T16:00:00Z"
+  },
+  "itadmin@cybershield.com": {
+    "password": "itadmin123",
+    "name": "IT System Admin",
+    "role": "admin",
+    "mfa_enabled": true,
+    "mfa_method": "totp",
+    "sso_enabled": true,
+    "created": "2026-01-20T00:00:00Z",
+    "last_login": "2026-06-11T06:45:00Z"
+  }
+}

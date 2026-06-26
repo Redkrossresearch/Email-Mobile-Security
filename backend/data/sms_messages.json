@@ -1,0 +1,9 @@
+[
+  {"id": 1, "from": "+91-9876543210", "text": "Congratulations! You won a free iPhone. Claim now: http://bit.ly/fr33-prize", "type": "phishing", "timestamp": "2026-06-11T08:09:11Z"},
+  {"id": 2, "from": "AXISBANK", "text": "Your ATM card has been blocked. Update KYC immediately: https://axis-secure-verify.com", "type": "phishing", "timestamp": "2026-06-11T07:55:00Z"},
+  {"id": 3, "from": "FLIPKART", "text": "Flipkart Big Billion Days! 90% off on all items. Shop here: http://flipkart-deals.tk", "type": "spam", "timestamp": "2026-06-11T07:30:00Z"},
+  {"id": 4, "from": "+1-800-123-4567", "text": "Your Netflix account is suspended. Verify payment: https://netflix-verify.tk", "type": "phishing", "timestamp": "2026-06-11T06:45:00Z"},
+  {"id": 5, "from": "ICICI", "text": "Dear customer, your loan offer of Rs 5,00,000 is approved. Call 1800-XXX-XXX", "type": "spam", "timestamp": "2026-06-11T06:00:00Z"},
+  {"id": 6, "from": "DELHIVERY", "text": "Your package #DH28471 will be delivered today. Track: http://delhivery-track.com", "type": "safe", "timestamp": "2026-06-11T08:15:00Z"},
+  {"id": 7, "from": "+91-9999888877", "text": "Job offer! Work from home, earn Rs 50,000/month. Register: https://easy-money.cc", "type": "phishing", "timestamp": "2026-06-11T05:20:00Z"}
+]

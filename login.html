@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — CyberShield SOC</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3064/3064197.png">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep:    #020b14;
+            --bg-panel:   #04111e;
+            --accent:     #00ffe7;
+            --accent2:    #0077ff;
+            --danger:     #ff3c5a;
+            --warn:       #ffc107;
+            --text:       #c9e8f5;
+            --muted:      #4a7a96;
+            --border:     rgba(0,255,231,0.15);
+            --glow:       0 0 18px rgba(0,255,231,0.25);
+            --glow-strong:0 0 32px rgba(0,255,231,0.5);
+            --font-mono:  'Share Tech Mono', monospace;
+            --font-main:  'Rajdhani', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg-deep);
+            color: var(--text);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ── Animated grid background ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,255,231,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,231,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridPan 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gridPan {
+            0%   { background-position: 0 0; }
+            100% { background-position: 40px 40px; }
+        }
+
+        /* ── Radial glow behind card ── */
+        .glow-bg {
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 500px;
+            background: radial-gradient(ellipse, rgba(0,119,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; transform: translate(-50%,-50%) scale(1); }
+            50%       { opacity: 1;   transform: translate(-50%,-50%) scale(1.1); }
+        }
+
+        /* ── Floating particles ── */
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: float linear infinite;
+            opacity: 0;
+        }
+        @keyframes float {
+            0%   { transform: translateY(100vh) translateX(0);   opacity: 0; }
+            10%  { opacity: 0.6; }
+            90%  { opacity: 0.3; }
+            100% { transform: translateY(-20px) translateX(60px); opacity: 0; }
+        }
+
+        /* ── Header bar ── */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 44px;
+            background: rgba(2,11,20,0.9);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .top-bar .brand {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--accent);
+            letter-spacing: 2px;
+        }
+        .status-dots {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            animation: blink 2s ease-in-out infinite;
+        }
+        .dot.green  { background: #00ff88; animation-delay: 0s; }
+        .dot.yellow { background: var(--warn); animation-delay: 0.7s; }
+        .dot.red    { background: var(--danger); animation-delay: 1.4s; }
+        @keyframes blink {
+            0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+        }
+        .sys-time {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* ── Main wrapper ── */
+        .wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 480px;
+            padding: 0 20px;
+            animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        @keyframes slideUp {
+            from { opacity:0; transform: translateY(30px); }
+            to   { opacity:1; transform: translateY(0); }
+        }
+
+        /* ── Card ── */
+        .card {
+            background: linear-gradient(160deg, rgba(4,17,30,0.97) 0%, rgba(2,11,20,0.99) 100%);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 40px 36px 32px;
+            box-shadow: var(--glow), inset 0 1px 0 rgba(0,255,231,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+            animation: scanLine 3s linear infinite;
+        }
+        @keyframes scanLine {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        /* Corner decorations */
+        .corner { position: absolute; width: 16px; height: 16px; }
+        .corner.tl { top: 8px; left: 8px;  border-top: 1.5px solid var(--accent); border-left: 1.5px solid var(--accent); }
+        .corner.tr { top: 8px; right: 8px; border-top: 1.5px solid var(--accent); border-right: 1.5px solid var(--accent); }
+        .corner.bl { bottom: 8px; left: 8px;  border-bottom: 1.5px solid var(--accent); border-left: 1.5px solid var(--accent); }
+        .corner.br { bottom: 8px; right: 8px; border-bottom: 1.5px solid var(--accent); border-right: 1.5px solid var(--accent); }
+
+        /* ── Logo section ── */
+        .logo-area {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .shield-icon {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 12px;
+            background: linear-gradient(135deg, rgba(0,255,231,0.1), rgba(0,119,255,0.1));
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            box-shadow: var(--glow);
+            animation: rotateBorder 6s linear infinite;
+        }
+        @keyframes rotateBorder {
+            0%   { box-shadow: var(--glow), 0 0 0 1px rgba(0,255,231,0.2); }
+            50%  { box-shadow: var(--glow-strong), 0 0 0 2px rgba(0,255,231,0.4); }
+            100% { box-shadow: var(--glow), 0 0 0 1px rgba(0,255,231,0.2); }
+        }
+        .logo-area h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(0,255,231,0.4);
+        }
+        .logo-area .subtitle {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+
+        /* ── Auth tabs ── */
+        .auth-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 28px;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            background: rgba(0,255,231,0.08);
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+        }
+        .tab-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.03);
+            color: var(--text);
+        }
+
+        /* ── Form fields ── */
+        .field {
+            margin-bottom: 18px;
+        }
+        .field label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 7px;
+        }
+        .field label .ico { font-size: 13px; }
+        .input-wrap {
+            position: relative;
+        }
+        .input-wrap input {
+            width: 100%;
+            background: rgba(0,255,231,0.03);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 11px 44px 11px 14px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text);
+            outline: none;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+        }
+        .input-wrap input::placeholder { color: #2a4a5a; }
+        .input-wrap input:focus {
+            border-color: var(--accent);
+            background: rgba(0,255,231,0.05);
+            box-shadow: var(--glow);
+        }
+        .input-wrap input:focus + .input-bar {
+            width: 100%;
+        }
+        .input-bar {
+            position: absolute;
+            bottom: 0; left: 0;
+            height: 2px;
+            width: 0;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border-radius: 0 0 3px 3px;
+            transition: width 0.4s ease;
+        }
+        .toggle-pw {
+            position: absolute;
+            right: 12px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 15px;
+            transition: color 0.2s;
+            z-index: 2;
+        }
+        .toggle-pw:hover { color: var(--accent); }
+
+        /* ── Security options ── */
+        .security-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .check-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+        }
+        .check-label input { display: none; }
+        .custom-check {
+            width: 16px; height: 16px;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: transparent;
+            transition: all 0.2s;
+        }
+        .check-label input:checked ~ .custom-check {
+            background: rgba(0,255,231,0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .forgot-link {
+            font-size: 13px;
+            color: var(--muted);
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            transition: color 0.2s;
+        }
+        .forgot-link:hover { color: var(--accent); text-decoration: none; }
+
+        /* ── MFA section ── */
+        .mfa-section {
+            background: rgba(0,255,231,0.03);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 14px;
+            margin-bottom: 18px;
+            display: none;
+        }
+        .mfa-section.show { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: translateY(0); } }
+        .mfa-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .otp-inputs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        .otp-inputs input {
+            width: 44px; height: 48px;
+            background: rgba(0,255,231,0.04);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 20px;
+            color: var(--accent);
+            outline: none;
+            transition: all 0.2s;
+        }
+        .otp-inputs input:focus {
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+        }
+
+        /* ── Login button ── */
+        .btn-login {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(90deg, rgba(0,255,231,0.12), rgba(0,119,255,0.12));
+            border: 1px solid var(--accent);
+            border-radius: 3px;
+            color: var(--accent);
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            margin-bottom: 14px;
+        }
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0,255,231,0.15), transparent);
+            transition: left 0.5s;
+        }
+        .btn-login:hover::before { left: 100%; }
+        .btn-login:hover {
+            background: linear-gradient(90deg, rgba(0,255,231,0.2), rgba(0,119,255,0.2));
+            box-shadow: var(--glow-strong);
+            transform: translateY(-1px);
+        }
+        .btn-login:active { transform: translateY(0); }
+        .btn-login.loading { pointer-events: none; opacity: 0.7; }
+        .btn-login .spinner {
+            display: none;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(0,255,231,0.3);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-login.loading .btn-text { display: none; }
+        .btn-login.loading .spinner { display: block; }
+
+        /* ── Divider ── */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .divider hr { flex: 1; border-color: var(--border); }
+        .divider span {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        /* ── Alt login methods ── */
+        .alt-logins {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .alt-btn {
+            padding: 10px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            color: var(--muted);
+            font-family: var(--font-main);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: all 0.2s;
+        }
+        .alt-btn:hover {
+            border-color: var(--accent2);
+            color: var(--text);
+            background: rgba(0,119,255,0.06);
+        }
+
+        /* ── Threat indicator ── */
+        .threat-bar {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            gap: 10px;
+        }
+        .threat-bar .label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+        .threat-level {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+        .threat-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: blink 1.5s infinite;
+        }
+        .threat-bars {
+            display: flex;
+            gap: 3px;
+            align-items: flex-end;
+        }
+        .threat-bars span {
+            width: 5px;
+            border-radius: 1px;
+            background: var(--muted);
+            opacity: 0.4;
+        }
+        .threat-bars span.active { opacity: 1; background: #00ff88; }
+
+        /* ── Alert messages ── */
+        .alert-msg {
+            padding: 10px 14px;
+            border-radius: 3px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .alert-msg.error {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,60,90,0.08);
+            border: 1px solid rgba(255,60,90,0.3);
+            color: var(--danger);
+        }
+        .alert-msg.success {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,255,136,0.06);
+            border: 1px solid rgba(0,255,136,0.25);
+            color: #00ff88;
+        }
+
+        /* ── Footer ── */
+        .card-footer-info {
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+        .footer-badge .ico { font-size: 13px; }
+        .version-tag {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        /* ── Page footer ── */
+        .page-footer {
+            position: relative;
+            z-index: 10;
+            margin-top: 28px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+            font-family: var(--font-mono);
+        }
+        .page-footer a { color: var(--muted); text-decoration: none; }
+        .page-footer a:hover { color: var(--accent); }
+
+        /* ── Notification toast ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(4,17,30,0.95);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 3px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text);
+            z-index: 200;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast .t-icon { font-size: 16px; }
+        .toast .t-msg { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.5px; }
+
+        /* Tab panels */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; animation: fadeIn 0.3s ease; }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .card { padding: 28px 20px 22px; }
+            .otp-inputs input { width: 36px; height: 42px; font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Glow bg -->
+<div class="glow-bg"></div>
+
+<!-- Particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Top status bar -->
+<div class="top-bar">
+    <div class="brand">CYBERSHIELD // SOC-PLATFORM</div>
+    <div class="status-dots">
+        <div class="dot green" title="System Online"></div>
+        <div class="dot yellow" title="Monitoring Active"></div>
+        <div class="dot red" title="Threat Scanner"></div>
+    </div>
+    <div class="sys-time" id="sysTime">--:--:-- UTC</div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+    <span class="t-icon">🛡️</span>
+    <span class="t-msg" id="toastMsg">Session encrypted</span>
+</div>
+
+<!-- Main wrapper -->
+<div class="wrapper">
+    <div class="card">
+        <!-- Corner decorations -->
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+
+        <!-- Logo -->
+        <div class="logo-area">
+            <div class="shield-icon">🛡️</div>
+            <h1>CyberShield</h1>
+            <div class="subtitle">EMAIL &amp; MOBILE SECURITY PLATFORM</div>
+        </div>
+
+        <!-- Threat status -->
+        <div class="threat-bar">
+            <div>
+                <div class="label">🔍 Threat Intelligence</div>
+            </div>
+            <div class="threat-level">
+                <div class="threat-dot"></div>
+                <span style="color:#00ff88">LOW RISK</span>
+                <div class="threat-bars">
+                    <span style="height:8px" class="active"></span>
+                    <span style="height:14px"></span>
+                    <span style="height:20px"></span>
+                    <span style="height:26px"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth tabs -->
+        <div class="auth-tabs">
+            <button class="tab-btn active" onclick="switchLoginTab('email')">📧 Email Login</button>
+            <button class="tab-btn" onclick="switchLoginTab('mobile')">📱 Mobile Login</button>
+        </div>
+
+        <!-- Alert message area -->
+        <div class="alert-msg" id="alertMsg">
+            <span>⚠</span>
+            <span id="alertText"></span>
+        </div>
+
+        <!-- ── EMAIL LOGIN PANEL ── -->
+        <div class="tab-panel active" id="panel-email">
+
+            <div class="field">
+                <label><span class="ico">📧</span> Email Address</label>
+                <div class="input-wrap">
+                    <input type="email" id="emailInput" placeholder="analyst@cybershield.com" autocomplete="email">
+                    <div class="input-bar"></div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label><span class="ico">🔑</span> Password</label>
+                <div class="input-wrap">
+                    <input type="password" id="pwInput" placeholder="••••••••••••" autocomplete="current-password">
+                    <div class="input-bar"></div>
+                    <button class="toggle-pw" id="togglePw" onclick="togglePassword()" type="button">👁</button>
+                </div>
+            </div>
+
+            <div class="security-options">
+                <label class="check-label">
+                    <input type="checkbox" id="mfaToggle" onchange="toggleMFA()">
+                    <div class="custom-check" id="mfaCheck">✓</div>
+                    <span>Enable 2FA / MFA</span>
+                </label>
+                <a href="#" class="forgot-link" onclick="showForgot()">Forgot Password?</a>
+            </div>
+
+            <!-- MFA OTP section -->
+            <div class="mfa-section" id="mfaSection">
+                <div class="mfa-label">🔐 One-Time Password (OTP)</div>
+                <div class="otp-inputs">
+                    <input type="text" maxlength="1" class="otp" id="o1" oninput="otpNext(this,'o2')">
+                    <input type="text" maxlength="1" class="otp" id="o2" oninput="otpNext(this,'o3')">
+                    <input type="text" maxlength="1" class="otp" id="o3" oninput="otpNext(this,'o4')">
+                    <input type="text" maxlength="1" class="otp" id="o4" oninput="otpNext(this,'o5')">
+                    <input type="text" maxlength="1" class="otp" id="o5" oninput="otpNext(this,'o6')">
+                    <input type="text" maxlength="1" class="otp" id="o6" oninput="otpNext(this,null)">
+                </div>
+            </div>
+
+            <div class="security-options" style="margin-bottom:18px">
+                <label class="check-label">
+                    <input type="checkbox" id="rememberMe">
+                    <div class="custom-check" id="remCheck">✓</div>
+                    <span>Remember this device</span>
+                </label>
+                <span style="font-size:11px;color:var(--muted);font-family:var(--font-mono);">Session: 256-bit AES</span>
+            </div>
+
+            <button class="btn-login" id="loginBtn" onclick="doLogin()">
+                <span class="btn-text">🔓 AUTHENTICATE</span>
+                <div class="spinner"></div>
+            </button>
+
+            <div class="divider">
+                <hr><span>OR ACCESS VIA</span><hr>
+            </div>
+
+            <div class="alt-logins">
+                <button class="alt-btn" onclick="altLogin('SSO')">🏢 SSO Login</button>
+                <button class="alt-btn" onclick="altLogin('Certificate')">📜 Cert Auth</button>
+            </div>
+
+        </div>
+
+        <!-- ── MOBILE LOGIN PANEL ── -->
+        <div class="tab-panel" id="panel-mobile">
+
+            <div class="field">
+                <label><span class="ico">📱</span> Mobile Number</label>
+                <div class="input-wrap">
+                    <input type="tel" id="mobileInput" placeholder="+91 98765 43210" autocomplete="tel">
+                    <div class="input-bar"></div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label><span class="ico">🔒</span> Security PIN</label>
+                <div class="input-wrap">
+                    <input type="password" id="pinInput" placeholder="••••••" maxlength="6" autocomplete="current-password">
+                    <div class="input-bar"></div>
+                    <button class="toggle-pw" onclick="togglePin()" type="button">👁</button>
+                </div>
+            </div>
+
+            <!-- SMS OTP section for mobile -->
+            <div class="mfa-section show" id="smsOtpSection">
+                <div class="mfa-label">💬 SMS Verification Code</div>
+                <div class="otp-inputs">
+                    <input type="text" maxlength="1" class="otp" id="s1" oninput="otpNext(this,'s2')">
+                    <input type="text" maxlength="1" class="otp" id="s2" oninput="otpNext(this,'s3')">
+                    <input type="text" maxlength="1" class="otp" id="s3" oninput="otpNext(this,'s4')">
+                    <input type="text" maxlength="1" class="otp" id="s4" oninput="otpNext(this,'s5')">
+                    <input type="text" maxlength="1" class="otp" id="s5" oninput="otpNext(this,'s6')">
+                    <input type="text" maxlength="1" class="otp" id="s6" oninput="otpNext(this,null)">
+                </div>
+                <div style="text-align:center;margin-top:10px;">
+                    <button onclick="resendOTP()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font-mono);letter-spacing:1px;" id="resendBtn">
+                        📤 Resend OTP (<span id="otpTimer">60</span>s)
+                    </button>
+                </div>
+            </div>
+
+            <button class="btn-login" id="mobileLoginBtn" onclick="doMobileLogin()">
+                <span class="btn-text">📱 VERIFY &amp; LOGIN</span>
+                <div class="spinner"></div>
+            </button>
+
+            <div class="divider">
+                <hr><span>OR</span><hr>
+            </div>
+
+            <div class="alt-logins">
+                <button class="alt-btn" onclick="altLogin('Biometric')">🫆 Biometric</button>
+                <button class="alt-btn" onclick="altLogin('QR Code')">📷 QR Scan</button>
+            </div>
+
+        </div>
+
+        <!-- Card footer -->
+        <div class="card-footer-info">
+            <div class="footer-badge">
+                <span class="ico">🔒</span>
+                <span>TLS 1.3 Encrypted</span>
+            </div>
+            <div class="footer-badge">
+                <span class="ico">🛡️</span>
+                <span>SOC 2 Certified</span>
+            </div>
+            <div class="version-tag">v4.2.1</div>
+        </div>
+    </div>
+</div>
+
+<!-- Page footer -->
+<div class="page-footer">
+    © 2026 CYBERSHIELD SOC &nbsp;|&nbsp; EMAIL &amp; MOBILE SECURITY PLATFORM
+    &nbsp;|&nbsp; <a href="#">Privacy</a> &nbsp;|&nbsp; <a href="#">Terms</a>
+</div>
+
+
+<div id="toast-container" style="position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;"></div>
+<script src="js/script.js"></script>
+</body>
+</html>

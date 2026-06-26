@@ -1,0 +1,7 @@
+[
+  {"id": "DEV001", "name": "Rahul's iPhone 15", "os": "iOS 18.2", "type": "corporate", "status": "healthy", "health_score": 96, "last_scan": "2026-06-11T08:00:00Z", "apps_installed": 42, "jailbroken": false, "encrypted": true, "vpn_active": true, "patch_level": "2026-06"},
+  {"id": "DEV002", "name": "Priya's Galaxy S24", "os": "Android 14", "type": "BYOD", "status": "warning", "health_score": 74, "last_scan": "2026-06-11T07:30:00Z", "apps_installed": 68, "rooted": false, "encrypted": true, "vpn_active": false, "patch_level": "2026-04"},
+  {"id": "DEV003", "name": "Amit's Pixel 8", "os": "Android 15", "type": "corporate", "status": "healthy", "health_score": 92, "last_scan": "2026-06-11T06:45:00Z", "apps_installed": 35, "rooted": false, "encrypted": true, "vpn_active": true, "patch_level": "2026-06"},
+  {"id": "DEV004", "name": "Sneha's iPad Air", "os": "iPadOS 18.2", "type": "corporate", "status": "healthy", "health_score": 98, "last_scan": "2026-06-10T22:00:00Z", "apps_installed": 28, "jailbroken": false, "encrypted": true, "vpn_active": true, "patch_level": "2026-06"},
+  {"id": "DEV005", "name": "Vikram's OnePlus 12", "os": "Android 14", "type": "BYOD", "status": "critical", "health_score": 45, "last_scan": "2026-06-11T05:00:00Z", "apps_installed": 95, "rooted": true, "encrypted": false, "vpn_active": false, "patch_level": "2026-02"}
+]

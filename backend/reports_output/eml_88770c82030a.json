@@ -1,0 +1,27 @@
+{
+  "headers": {
+    "From": "attacker@evil.com",
+    "To": "victim@company.com",
+    "Subject": "Urgent: Verify your account",
+    "Date": "Wed, 24 Jun 2026 10:00:00 +0000",
+    "Reply-To": "phishing@evil.com",
+    "MIME-Version": "1.0",
+    "Content-Type": "multipart/mixed; boundary=\"---boundary\""
+  },
+  "body_preview": "",
+  "has_html": false,
+  "attachments": [],
+  "attachment_count": 0,
+  "received_hops": 0,
+  "phishing_score": 25,
+  "findings": [
+    "Encoding: mime",
+    "Spoof risk: Reply-To (phishing@evil.com) != From (attacker@evil.com)"
+  ],
+  "urls_found": [],
+  "verdict": "SAFE",
+  "message_size": 528,
+  "analysis_id": "88770c82030a",
+  "filename": "test.eml",
+  "analyzed_at": "2026-06-24T17:53:47.463897Z"
+}

@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CyberShield SOC — Email & Mobile Security</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cyan:    #00f5ff;
+      --green:   #00ff88;
+      --red:     #ff3355;
+      --orange:  #ff9900;
+      --bg:      #050b14;
+      --bg2:     #091525;
+      --bg3:     #0d1f33;
+      --border:  rgba(0,245,255,0.18);
+      --text:    #c8e6f5;
+      --mono:    'Share Tech Mono', monospace;
+      --head:    'Exo 2', sans-serif;
+      --body:    'Rajdhani', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--body);
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* ── GRID BACKGROUND ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── SCAN LINE ── */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -100%; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      animation: scan 6s linear infinite;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.4;
+    }
+    @keyframes scan { to { top: 110%; } }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 3rem;
+      height: 64px;
+      background: rgba(5,11,20,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--head);
+      font-weight: 900;
+      font-size: 1.4rem;
+      color: var(--cyan);
+      letter-spacing: 2px;
+      text-shadow: 0 0 18px var(--cyan);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: .95rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: color .25s;
+    }
+    .nav-links a:hover { color: var(--cyan); }
+    .nav-status {
+      display: flex; align-items: center; gap: .5rem;
+      font-family: var(--mono);
+      font-size: .8rem;
+      color: var(--green);
+    }
+    .pulse-dot {
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.5s ease-in-out infinite;
+      box-shadow: 0 0 8px var(--green);
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 8rem 2rem 4rem;
+      position: relative;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .6rem;
+      border: 1px solid var(--border);
+      background: rgba(0,245,255,0.06);
+      padding: .4rem 1.2rem;
+      border-radius: 100px;
+      font-family: var(--mono);
+      font-size: .78rem;
+      color: var(--cyan);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      animation: fadeUp .8s ease both;
+    }
+    .hero h1 {
+      font-family: var(--head);
+      font-weight: 900;
+      font-size: clamp(2.8rem, 7vw, 6rem);
+      line-height: 1.0;
+      letter-spacing: -1px;
+      animation: fadeUp .8s .15s ease both;
+    }
+    .hero h1 .line1 { color: #fff; display: block; }
+    .hero h1 .line2 {
+      display: block;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 22px rgba(0,245,255,.4));
+    }
+    .hero-sub {
+      max-width: 640px;
+      font-size: 1.15rem;
+      font-weight: 400;
+      line-height: 1.7;
+      color: rgba(200,230,245,0.7);
+      margin: 1.6rem auto 0;
+      animation: fadeUp .8s .3s ease both;
+    }
+
+    /* ── LIVE TICKER ── */
+    .ticker-wrap {
+      margin-top: 2.5rem;
+      width: 100%;
+      max-width: 700px;
+      background: rgba(0,245,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: var(--mono);
+      font-size: .78rem;
+      display: flex;
+      animation: fadeUp .8s .45s ease both;
+    }
+    .ticker-label {
+      background: var(--cyan);
+      color: #000;
+      padding: .5rem 1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+    .ticker-inner {
+      flex: 1; overflow: hidden;
+      display: flex; align-items: center;
+      padding: 0 1rem;
+    }
+    .ticker-text {
+      white-space: nowrap;
+      animation: ticker 20s linear infinite;
+      color: var(--green);
+    }
+    @keyframes ticker {
+      0%   { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* ── HERO BUTTONS ── */
+    .hero-cta {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 2.5rem;
+      animation: fadeUp .8s .55s ease both;
+    }
+    .btn-primary-cs {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .85rem 2.2rem;
+      background: linear-gradient(135deg, var(--cyan), #0077ff);
+      color: #000;
+      font-family: var(--head);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 1px;
+      text-decoration: none;
+      border-radius: 6px;
+      border: none; cursor: pointer;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 0 22px rgba(0,245,255,.3);
+      text-transform: uppercase;
+    }
+    .btn-primary-cs:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 35px rgba(0,245,255,.55);
+    }
+    .btn-outline-cs {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .85rem 2.2rem;
+      background: transparent;
+      color: var(--cyan);
+      font-family: var(--head);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 1px;
+      text-decoration: none;
+      border-radius: 6px;
+      border: 1px solid var(--cyan);
+      cursor: pointer;
+      transition: background .2s, box-shadow .2s;
+      text-transform: uppercase;
+    }
+    .btn-outline-cs:hover {
+      background: rgba(0,245,255,0.1);
+      box-shadow: 0 0 18px rgba(0,245,255,.2);
+    }
+
+    /* ── STAT BAR ── */
+    .stat-bar {
+      display: flex; flex-wrap: wrap;
+      justify-content: center;
+      gap: 1px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--border);
+      margin-top: 5rem;
+    }
+    .stat-item {
+      flex: 1; min-width: 160px;
+      background: var(--bg2);
+      padding: 1.5rem 2rem;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: var(--mono);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--cyan);
+      text-shadow: 0 0 14px var(--cyan);
+    }
+    .stat-label {
+      font-size: .8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(200,230,245,0.5);
+      margin-top: .3rem;
+    }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(28px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ── SECTIONS ── */
+    section { padding: 6rem 2rem; position: relative; z-index: 1; }
+    .section-label {
+      font-family: var(--mono);
+      font-size: .75rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      display: flex; align-items: center; gap: .8rem;
+      margin-bottom: 1rem;
+    }
+    .section-label::before {
+      content: '';
+      display: inline-block;
+      width: 32px; height: 1px;
+      background: var(--cyan);
+    }
+    .section-title {
+      font-family: var(--head);
+      font-weight: 900;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    .section-desc {
+      font-size: 1.05rem;
+      color: rgba(200,230,245,0.65);
+      max-width: 560px;
+      line-height: 1.7;
+    }
+
+    /* ── MODULE STATS BAR ── */
+    .module-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      max-width: 1100px;
+      margin: 0 auto 4rem;
+    }
+    .module-stat {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.4rem 1rem;
+      text-align: center;
+      transition: border-color .3s;
+    }
+    .module-stat:hover { border-color: var(--cyan); }
+    .ms-num {
+      font-family: var(--head); font-weight: 900;
+      font-size: 1.6rem; color: var(--cyan);
+      text-shadow: 0 0 12px var(--cyan);
+    }
+    .ms-label {
+      font-family: var(--mono); font-size: .7rem;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: rgba(200,230,245,.5); margin-top: .2rem;
+    }
+    .ms-sub {
+      font-size: .7rem; color: rgba(200,230,245,.3);
+      margin-top: .15rem;
+    }
+
+    /* ── FEATURES GRID ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.2rem;
+      max-width: 1200px;
+      margin: 3.5rem auto 0;
+    }
+    .feature-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform .25s, border-color .25s, box-shadow .25s;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity .25s;
+    }
+    .feature-card.email::before  { background: linear-gradient(90deg, var(--cyan), #0077ff); }
+    .feature-card.mobile::before { background: linear-gradient(90deg, var(--green), #00c853); }
+    .feature-card.threat::before { background: linear-gradient(90deg, var(--red), var(--orange)); }
+    .feature-card.soc::before    { background: linear-gradient(90deg, var(--orange), #ffdd00); }
+    .feature-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(0,245,255,0.35);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+    .feature-card:hover::before { opacity: 1; }
+
+    .card-icon {
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .card-title {
+      font-family: var(--head);
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #fff;
+      margin-bottom: .6rem;
+    }
+    .card-desc {
+      font-size: .95rem;
+      color: rgba(200,230,245,0.6);
+      line-height: 1.6;
+    }
+    .card-tags {
+      display: flex; flex-wrap: wrap; gap: .4rem;
+      margin-top: 1.2rem;
+    }
+    .tag {
+      font-family: var(--mono);
+      font-size: .7rem;
+      padding: .2rem .6rem;
+      border-radius: 4px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .tag-cyan   { background: rgba(0,245,255,0.1);  color: var(--cyan); }
+    .tag-green  { background: rgba(0,255,136,0.1);  color: var(--green); }
+    .tag-red    { background: rgba(255,51,85,0.1);  color: var(--red); }
+    .tag-orange { background: rgba(255,153,0,0.1);  color: var(--orange); }
+
+    /* ── THREAT MONITOR ── */
+    .threat-panel {
+      max-width: 1200px;
+      margin: 3.5rem auto 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media(max-width:768px) { .threat-panel { grid-template-columns: 1fr; } }
+
+    .monitor-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .monitor-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.2rem;
+    }
+    .monitor-title {
+      font-family: var(--mono);
+      font-size: .82rem;
+      color: var(--cyan);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .live-badge {
+      background: rgba(255,51,85,0.15);
+      color: var(--red);
+      border: 1px solid rgba(255,51,85,0.3);
+      font-family: var(--mono);
+      font-size: .65rem;
+      padding: .2rem .6rem;
+      border-radius: 4px;
+      letter-spacing: 2px;
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .live-badge .dot {
+      width: 6px; height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    /* Threat log */
+    .threat-log { display: flex; flex-direction: column; gap: .6rem; }
+    .log-entry {
+      display: flex; align-items: center; gap: .8rem;
+      padding: .6rem .8rem;
+      background: var(--bg3);
+      border-radius: 6px;
+      border-left: 3px solid transparent;
+      font-family: var(--mono);
+      font-size: .75rem;
+      animation: logIn .5s ease both;
+    }
+    @keyframes logIn {
+      from { opacity:0; transform:translateX(-10px); }
+      to   { opacity:1; transform:translateX(0); }
+    }
+    .log-entry.high   { border-color: var(--red); }
+    .log-entry.medium { border-color: var(--orange); }
+    .log-entry.low    { border-color: var(--green); }
+    .log-sev {
+      font-size: .65rem; padding: .15rem .5rem;
+      border-radius: 3px; letter-spacing: 1px;
+      text-transform: uppercase; min-width: 56px;
+      text-align: center;
+    }
+    .sev-high   { background:rgba(255,51,85,0.2);   color:var(--red); }
+    .sev-medium { background:rgba(255,153,0,0.2);   color:var(--orange); }
+    .sev-low    { background:rgba(0,255,136,0.2);   color:var(--green); }
+    .log-msg  { flex:1; color:var(--text); }
+    .log-time { color:rgba(200,230,245,.4); font-size:.68rem; }
+
+    /* Gauge bars */
+    .gauge-list { display:flex; flex-direction:column; gap:1rem; }
+    .gauge-row label {
+      display:flex; justify-content:space-between;
+      font-size:.82rem; margin-bottom:.35rem;
+      color:rgba(200,230,245,0.75);
+    }
+    .gauge-row label span { font-family:var(--mono); font-size:.78rem; }
+    .gauge-track {
+      height:6px; background:rgba(255,255,255,0.06);
+      border-radius:100px; overflow:hidden;
+    }
+    .gauge-fill {
+      height:100%; border-radius:100px;
+      transition: width 1.5s cubic-bezier(.25,.8,.25,1);
+    }
+    .fill-cyan   { background:linear-gradient(90deg,#0077ff,var(--cyan)); box-shadow:0 0 8px var(--cyan); }
+    .fill-green  { background:linear-gradient(90deg,#00c853,var(--green)); box-shadow:0 0 8px var(--green); }
+    .fill-orange { background:linear-gradient(90deg,#ff5500,var(--orange)); box-shadow:0 0 8px var(--orange); }
+    .fill-red    { background:linear-gradient(90deg,#cc0022,var(--red)); box-shadow:0 0 8px var(--red); }
+
+    /* ── EMAIL SECURITY DEEP DIVE ── */
+    .email-grid {
+      max-width:1200px; margin:3.5rem auto 0;
+      display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;
+    }
+    @media(max-width:768px){ .email-grid { grid-template-columns:1fr; } }
+
+    .email-card {
+      background:var(--bg2); border:1px solid var(--border);
+      border-radius:12px; padding:1.8rem;
+    }
+    .email-card h4 {
+      font-family:var(--head); font-weight:700; font-size:1.1rem;
+      color:#fff; margin-bottom:1rem;
+      display:flex; align-items:center; gap:.6rem;
+    }
+    .check-list { list-style:none; display:flex; flex-direction:column; gap:.5rem; }
+    .check-list li {
+      display:flex; align-items:flex-start; gap:.7rem;
+      font-size:.92rem; color:rgba(200,230,245,.7);
+    }
+    .check-list li::before {
+      content:'▸'; color:var(--cyan); font-size:.85rem; flex-shrink:0; margin-top:1px;
+    }
+
+    /* inbox mock */
+    .inbox-mock { display:flex; flex-direction:column; gap:.5rem; }
+    .mail-row {
+      display:flex; align-items:center; gap:.8rem;
+      padding:.7rem .9rem; border-radius:8px;
+      background:var(--bg3); cursor:pointer;
+      transition:background .2s;
+      position:relative;
+    }
+    .mail-row:hover { background:rgba(0,245,255,0.06); }
+    .mail-avatar {
+      width:34px; height:34px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.85rem; flex-shrink:0;
+    }
+    .mail-info { flex:1; min-width:0; }
+    .mail-sender { font-size:.82rem; color:#fff; font-weight:600; }
+    .mail-subject { font-size:.75rem; color:rgba(200,230,245,.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mail-badge {
+      font-family:var(--mono); font-size:.62rem;
+      padding:.15rem .5rem; border-radius:3px;
+      text-transform:uppercase; letter-spacing:1px;
+    }
+    .mb-safe    { background:rgba(0,255,136,0.12); color:var(--green); }
+    .mb-phish   { background:rgba(255,51,85,0.15); color:var(--red); }
+    .mb-spam    { background:rgba(255,153,0,0.15); color:var(--orange); }
+    .mb-malware { background:rgba(255,51,85,0.2);  color:var(--red); }
+
+    /* ── MOBILE SECURITY ── */
+    .mobile-grid {
+      max-width:1200px; margin:3.5rem auto 0;
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:1.5rem;
+    }
+    .mobile-card {
+      background:var(--bg2); border:1px solid var(--border);
+      border-radius:12px; padding:1.8rem; text-align:center;
+      transition:transform .25s, border-color .25s;
+    }
+    .mobile-card:hover { transform:translateY(-5px); border-color:rgba(0,255,136,.35); }
+    .mc-icon { font-size:2.5rem; margin-bottom:1rem; display:block; }
+    .mc-title {
+      font-family:var(--head); font-weight:700; font-size:1.05rem;
+      color:#fff; margin-bottom:.5rem;
+    }
+    .mc-desc { font-size:.88rem; color:rgba(200,230,245,.6); line-height:1.6; }
+    .mc-metric {
+      margin-top:1rem;
+      font-family:var(--mono); font-size:1.5rem;
+      color:var(--green); text-shadow:0 0 12px var(--green);
+    }
+    .mc-metric-label { font-size:.72rem; color:rgba(200,230,245,.4); letter-spacing:2px; text-transform:uppercase; }
+
+    /* ── INPUT SCANNER ── */
+    .scanner-wrap {
+      max-width:700px; margin:3.5rem auto 0;
+    }
+    .scanner-box {
+      background:var(--bg2); border:1px solid var(--border);
+      border-radius:12px; padding:2rem;
+    }
+    .scan-tabs {
+      display:flex; gap:1px; background:var(--border);
+      border-radius:8px; overflow:hidden; margin-bottom:1.5rem;
+    }
+    .scan-tab {
+      flex:1; padding:.6rem; text-align:center;
+      font-family:var(--head); font-size:.88rem; font-weight:600;
+      letter-spacing:1px; text-transform:uppercase;
+      cursor:pointer; background:var(--bg3);
+      color:rgba(200,230,245,.5);
+      border:none; transition:all .2s;
+    }
+    .scan-tab.active {
+      background:var(--bg2);
+      color:var(--cyan);
+      box-shadow:inset 0 -2px 0 var(--cyan);
+    }
+    .scan-input {
+      width:100%; padding:1rem 1.2rem;
+      background:var(--bg3); border:1px solid var(--border);
+      border-radius:8px; color:#fff;
+      font-family:var(--mono); font-size:.9rem;
+      outline:none; transition:border-color .2s;
+      margin-bottom:1rem;
+    }
+    .scan-input:focus { border-color:var(--cyan); box-shadow:0 0 0 3px rgba(0,245,255,.08); }
+    .scan-input::placeholder { color:rgba(200,230,245,.3); }
+    .scan-btn {
+      width:100%; padding:.85rem;
+      background:linear-gradient(135deg,var(--cyan),#0077ff);
+      color:#000; border:none; border-radius:8px;
+      font-family:var(--head); font-weight:700; font-size:1rem;
+      letter-spacing:1px; text-transform:uppercase;
+      cursor:pointer; transition:box-shadow .2s, transform .2s;
+    }
+    .scan-btn:hover {
+      box-shadow:0 0 25px rgba(0,245,255,.4);
+      transform:translateY(-2px);
+    }
+    .scan-result {
+      margin-top:1.2rem; padding:1rem 1.2rem;
+      border-radius:8px; font-family:var(--mono); font-size:.82rem;
+      display:none;
+    }
+    .scan-result.show { display:block; }
+    .result-safe    { background:rgba(0,255,136,.08); border:1px solid rgba(0,255,136,.25); color:var(--green); }
+    .result-danger  { background:rgba(255,51,85,.08);  border:1px solid rgba(255,51,85,.25);  color:var(--red); }
+    .result-warning { background:rgba(255,153,0,.08);  border:1px solid rgba(255,153,0,.25);  color:var(--orange); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top:1px solid var(--border);
+      background:var(--bg2);
+      padding:3rem 2rem;
+      text-align:center;
+      position:relative; z-index:1;
+    }
+    .footer-logo {
+      font-family:var(--head); font-weight:900; font-size:1.3rem;
+      color:var(--cyan); letter-spacing:2px;
+      margin-bottom:.5rem;
+    }
+    .footer-tagline { font-size:.85rem; color:rgba(200,230,245,.4); margin-bottom:1.5rem; }
+    .footer-links { display:flex; justify-content:center; gap:2rem; flex-wrap:wrap; }
+    .footer-links a {
+      color:rgba(200,230,245,.5); text-decoration:none;
+      font-size:.85rem; transition:color .2s;
+    }
+    .footer-links a:hover { color:var(--cyan); }
+    .footer-copy { margin-top:2rem; font-size:.78rem; color:rgba(200,230,245,.25); }
+
+    /* ── UTILS ── */
+    .max-center { max-width:1200px; margin:0 auto; }
+    @media(max-width:600px){
+      nav { padding:0 1.2rem; }
+      .nav-links { display:none; }
+    }
+
+    /* scroll reveal */
+    .reveal { opacity:0; transform:translateY(30px); transition:opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════ NAV ═══════════════════════ -->
+<nav>
+  <div class="nav-logo">🛡️ CyberShield SOC</div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#email">Email Security</a></li>
+    <li><a href="#mobile">Mobile Security</a></li>
+    <li><a href="#threats">Threats</a></li>
+    <li><a href="#scanner">Scanner</a></li>
+  </ul>
+  <div class="nav-status">
+    <span class="pulse-dot"></span>
+    ALL SYSTEMS OPERATIONAL
+  </div>
+</nav>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<section class="hero" id="top">
+  <div class="hero-badge">⚡ Next-Gen Security Platform v3.1</div>
+  <h1>
+    <span class="line1">Protect Every</span>
+    <span class="line2">Email & Device</span>
+  </h1>
+  <p class="hero-sub">
+    CyberShield SOC delivers real-time threat intelligence, AI-powered phishing detection,
+    mobile device management, and 24/7 SOC monitoring — all in one unified platform.
+  </p>
+
+  <div class="ticker-wrap">
+    <span class="ticker-label">LIVE THREAT FEED</span>
+    <div class="ticker-inner">
+      <span class="ticker-text" id="tickerText">
+        ⚠ PHISHING ATTEMPT blocked — user@corp.com &nbsp;&nbsp;|&nbsp;&nbsp;
+        🔴 MALWARE signature detected — mobile device #4821 &nbsp;&nbsp;|&nbsp;&nbsp;
+        ✅ EMAIL SCAN complete — 142 messages clean &nbsp;&nbsp;|&nbsp;&nbsp;
+        🔵 MFA login verified — admin console access &nbsp;&nbsp;|&nbsp;&nbsp;
+        ⚠ SUSPICIOUS URL intercepted — redirect chain detected &nbsp;&nbsp;|&nbsp;&nbsp;
+        📱 DEVICE POLICY violation — iOS jailbreak attempt blocked
+      </span>
+    </div>
+  </div>
+
+  <div class="hero-cta">
+    <a href="login.html" class="btn-primary-cs">🚀 Enter Dashboard</a>
+    <a href="#scanner" class="btn-outline-cs">🔍 Quick Scan</a>
+  </div>
+
+  <!-- Stat bar -->
+  <div class="stat-bar" style="width:100%;margin-top:5rem;">
+    <div class="stat-item">
+      <div class="stat-num" id="cnt1">0</div>
+      <div class="stat-label">Threats Blocked Today</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="cnt2">0</div>
+      <div class="stat-label">Emails Scanned</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="cnt3">0</div>
+      <div class="stat-label">Devices Protected</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="cnt4">0</div>
+      <div class="stat-label">Uptime Hours</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 50 FEATURES OVERVIEW ═══════════════════════ -->
+<section id="modules" style="padding:3rem 2rem;">
+  <div class="max-center">
+    <div class="reveal" style="text-align:center;">
+      <div class="section-label" style="justify-content:center;">50 Security Features</div>
+      <h2 class="section-title" style="text-align:center;">7 Integrated Modules</h2>
+      <p class="section-desc" style="margin:0 auto;">Complete coverage across email, mobile, threat intelligence, AI, sandbox, APK, YARA, UEBA, encryption, integrations, and reporting.</p>
+    </div>
+    <div class="module-stats reveal">
+      <div class="module-stat"><div class="ms-num">27</div><div class="ms-label">Email Security</div><div class="ms-sub">SPF to EML</div></div>
+      <div class="module-stat"><div class="ms-num">37</div><div class="ms-label">Mobile Security</div><div class="ms-sub">SS7 to Wipe</div></div>
+      <div class="module-stat"><div class="ms-num">6</div><div class="ms-label">AI Engine</div><div class="ms-sub">LLM Analysis</div></div>
+      <div class="module-stat"><div class="ms-num">5</div><div class="ms-label">Threat Intel</div><div class="ms-sub">IOC Feeds</div></div>
+      <div class="module-stat"><div class="ms-num">4</div><div class="ms-label">Sandbox</div><div class="ms-sub">Dynamic Analysis</div></div>
+      <div class="module-stat"><div class="ms-num">5</div><div class="ms-label">APK Analyzer</div><div class="ms-sub">Decompile &amp; Scan</div></div>
+      <div class="module-stat"><div class="ms-num">6</div><div class="ms-label">YARA Rules</div><div class="ms-sub">Threat Matching</div></div>
+      <div class="module-stat"><div class="ms-num">9</div><div class="ms-label">Integrations</div><div class="ms-sub">Gmail &amp; Graph</div></div>
+      <div class="module-stat"><div class="ms-num">4</div><div class="ms-label">UEBA</div><div class="ms-sub">Anomaly Detect</div></div>
+      <div class="module-stat"><div class="ms-num">5</div><div class="ms-label">Encryption</div><div class="ms-sub">AES/TLS/PGP</div></div>
+      <div class="module-stat"><div class="ms-num">7</div><div class="ms-label">Reports</div><div class="ms-sub">PDF/CSV/JSON</div></div>
+      <div class="module-stat"><div class="ms-num">11</div><div class="ms-label">Auth &amp; IAM</div><div class="ms-sub">MFA/SSO/OAuth</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ FEATURES ═══════════════════════ -->
+<section id="features">
+  <div class="max-center">
+    <div class="reveal">
+      <div class="section-label">Core Capabilities</div>
+      <h2 class="section-title">All 50 Features, One Platform</h2>
+      <p class="section-desc">Comprehensive coverage from inbox to mobile endpoint — no blind spots. 23 email + 35 mobile + threat intel + UEBA + encryption.</p>
+    </div>
+    <div class="features-grid reveal">
+      <div class="feature-card email">
+        <span class="card-icon">📧</span>
+        <div class="card-title">Advanced Email Protection</div>
+        <div class="card-desc">AI-powered phishing detection, spoofing prevention, DMARC/SPF/DKIM enforcement, and real-time sandboxing of attachments.</div>
+        <div class="card-tags">
+          <span class="tag tag-cyan">Phishing AI</span>
+          <span class="tag tag-cyan">Sandbox</span>
+          <span class="tag tag-cyan">DMARC</span>
+        </div>
+      </div>
+      <div class="feature-card mobile">
+        <span class="card-icon">📱</span>
+        <div class="card-title">Mobile Device Security</div>
+        <div class="card-desc">MDM integration, app vetting, jailbreak/root detection, mobile malware scanning, and remote wipe capabilities for iOS and Android.</div>
+        <div class="card-tags">
+          <span class="tag tag-green">MDM</span>
+          <span class="tag tag-green">Android</span>
+          <span class="tag tag-green">iOS</span>
+        </div>
+      </div>
+      <div class="feature-card threat">
+        <span class="card-icon">🧠</span>
+        <div class="card-title">AI Threat Intelligence</div>
+        <div class="card-desc">Machine learning models trained on 50B+ indicators. Real-time IOC matching, behavioural analysis, and zero-day detection.</div>
+        <div class="card-tags">
+          <span class="tag tag-red">Zero-Day</span>
+          <span class="tag tag-red">IOC</span>
+          <span class="tag tag-red">ML</span>
+        </div>
+      </div>
+      <div class="feature-card soc">
+        <span class="card-icon">🖥️</span>
+        <div class="card-title">24/7 SOC Monitoring</div>
+        <div class="card-desc">Dedicated security analysts, automated SOAR playbooks, SIEM integration, and SLA-backed incident response.</div>
+        <div class="card-tags">
+          <span class="tag tag-orange">SOAR</span>
+          <span class="tag tag-orange">SIEM</span>
+          <span class="tag tag-orange">IR</span>
+        </div>
+      </div>
+      <div class="feature-card email">
+        <span class="card-icon">🔗</span>
+        <div class="card-title">URL & Link Shield</div>
+        <div class="card-desc">Every link in every email rewritten and checked at click-time. Malicious redirects, newly-registered domains, and typosquatting blocked instantly.</div>
+        <div class="card-tags">
+          <span class="tag tag-cyan">Click-Time</span>
+          <span class="tag tag-cyan">Rewrite</span>
+        </div>
+      </div>
+      <div class="feature-card mobile">
+        <span class="card-icon">🔐</span>
+        <div class="card-title">Identity & MFA</div>
+        <div class="card-desc">Adaptive multi-factor authentication, device trust scoring, SSO federation, and continuous identity verification for every access request.</div>
+        <div class="card-tags">
+          <span class="tag tag-green">MFA</span>
+          <span class="tag tag-green">SSO</span>
+          <span class="tag tag-green">Zero Trust</span>
+        </div>
+      </div>
+      <div class="feature-card email">
+        <span class="card-icon">🛡️</span>
+        <div class="card-title">SPF / DKIM / DMARC</div>
+        <div class="card-desc">Full email authentication stack — verify sender identity, prevent spoofing, and enforce DMARC quarantine/reject policies.</div>
+        <div class="card-tags"><span class="tag tag-cyan">SPF</span><span class="tag tag-cyan">DKIM</span><span class="tag tag-cyan">DMARC</span></div>
+      </div>
+      <div class="feature-card email">
+        <span class="card-icon">🏖️</span>
+        <div class="card-title">Attachment Sandbox</div>
+        <div class="card-desc">Detonate suspicious attachments in isolated sandboxes — detect malware, exploits, and zero-day threats before delivery.</div>
+        <div class="card-tags"><span class="tag tag-cyan">Sandbox</span><span class="tag tag-cyan">CDR</span></div>
+      </div>
+      <div class="feature-card email">
+        <span class="card-icon">💼</span>
+        <div class="card-title">BEC & Impersonation</div>
+        <div class="card-desc">AI-driven Business Email Compromise detection — executive spoofing, payment fraud, and vendor impersonation.</div>
+        <div class="card-tags"><span class="tag tag-red">BEC</span><span class="tag tag-red">Impersonation</span></div>
+      </div>
+      <div class="feature-card email">
+        <span class="card-icon">👀</span>
+        <div class="card-title">Lookalike Domain Detection</div>
+        <div class="card-desc">Detect typosquatting, homograph attacks, and lookalike domains targeting your brand and employees.</div>
+        <div class="card-tags"><span class="tag tag-cyan">Typosquat</span><span class="tag tag-cyan">Homograph</span></div>
+      </div>
+      <div class="feature-card email">
+        <span class="card-icon">🔒</span>
+        <div class="card-title">Outbound Encryption</div>
+        <div class="card-desc">Auto-encrypt sensitive outbound emails with S/MIME, PGP, or forced TLS — prevent data leakage.</div>
+        <div class="card-tags"><span class="tag tag-cyan">S/MIME</span><span class="tag tag-cyan">PGP</span><span class="tag tag-cyan">TLS</span></div>
+      </div>
+      <div class="feature-card email">
+        <span class="card-icon">📊</span>
+        <div class="card-title">SIEM Integration</div>
+        <div class="card-desc">Forward email security events to Splunk, QRadar, Sentinel in CEF/LEEF format for correlation.</div>
+        <div class="card-tags"><span class="tag tag-cyan">Splunk</span><span class="tag tag-cyan">QRadar</span><span class="tag tag-cyan">Sentinel</span></div>
+      </div>
+      <div class="feature-card mobile">
+        <span class="card-icon">📡</span>
+        <div class="card-title">SS7 & IMSI Protection</div>
+        <div class="card-desc">Detect SS7 attacks, IMSI catchers, and fake base stations — prevent location tracking and call/SMS interception.</div>
+        <div class="card-tags"><span class="tag tag-green">SS7</span><span class="tag tag-green">IMSI</span><span class="tag tag-green">Stingray</span></div>
+      </div>
+      <div class="feature-card mobile">
+        <span class="card-icon">📞</span>
+        <div class="card-title">STIR/SHAKEN Call Auth</div>
+        <div class="card-desc">Validate caller ID attestation to block robocalls, spoofed numbers, and illegal telemarketing.</div>
+        <div class="card-tags"><span class="tag tag-green">STIR</span><span class="tag tag-green">SHAKEN</span></div>
+      </div>
+      <div class="feature-card mobile">
+        <span class="card-icon">💥</span>
+        <div class="card-title">Zero-Click Exploit Shield</div>
+        <div class="card-desc">Detect zero-click attack vectors in SMS, MMS, vCards, and messaging protocols before exploitation.</div>
+        <div class="card-tags"><span class="tag tag-red">Zero-Click</span><span class="tag tag-red">Exploit</span></div>
+      </div>
+      <div class="feature-card mobile">
+        <span class="card-icon">📶</span>
+        <div class="card-title">VoLTE Encryption Audit</div>
+        <div class="card-desc">Verify end-to-end encryption of VoLTE calls — detect downgrade attacks to unencrypted CS calls.</div>
+        <div class="card-tags"><span class="tag tag-green">VoLTE</span><span class="tag tag-green">Encryption</span></div>
+      </div>
+      <div class="feature-card mobile">
+        <span class="card-icon">🗑️</span>
+        <div class="card-title">Remote Lock & Wipe</div>
+        <div class="card-desc">Remotely lock or factory-reset lost/stolen devices. Selective wipe preserves personal data on BYOD.</div>
+        <div class="card-tags"><span class="tag tag-green">Remote Wipe</span><span class="tag tag-green">BYOD</span></div>
+      </div>
+      <div class="feature-card mobile">
+        <span class="card-icon">🔏</span>
+        <div class="card-title">Secure Keyboard Enforcer</div>
+        <div class="card-desc">Enforce secure keyboard input for sensitive fields — block keyloggers and clipboard snooping on mobile.</div>
+        <div class="card-tags"><span class="tag tag-green">Keylogger</span><span class="tag tag-green">Clipboard</span></div>
+      </div>
+      <div class="feature-card threat">
+        <span class="card-icon">🌐</span>
+        <div class="card-title">Threat Intel Feeds</div>
+        <div class="card-desc">Real-time IOC ingestion from 5 sources — AlienVault, VirusTotal, AbuseIPDB, PhishTank, MISP.</div>
+        <div class="card-tags"><span class="tag tag-red">IOC</span><span class="tag tag-red">Feeds</span><span class="tag tag-red">MISP</span></div>
+      </div>
+      <div class="feature-card threat">
+        <span class="card-icon">🧠</span>
+        <div class="card-title">UEBA Risk Scoring</div>
+        <div class="card-desc">User behavior analytics with risk scoring — detect insider threats, account compromise, and anomalous access.</div>
+        <div class="card-tags"><span class="tag tag-orange">UEBA</span><span class="tag tag-orange">Anomaly</span></div>
+      </div>
+      <div class="feature-card soc">
+        <span class="card-icon">🔐</span>
+        <div class="card-title">AES-256 / TLS 1.3</div>
+        <div class="card-desc">Military-grade encryption for data at rest and in transit. Automated key rotation and certificate management.</div>
+        <div class="card-tags"><span class="tag tag-orange">AES-256</span><span class="tag tag-orange">TLS 1.3</span><span class="tag tag-orange">PGP</span></div>
+      </div>
+      <div class="feature-card threat">
+        <span class="card-icon">🤖</span>
+        <div class="card-title">AI-Powered Analysis</div>
+        <div class="card-desc">Local LLM integration (Llama 3, Phi 3) for IOC analysis, email phishing detection, and security report generation.</div>
+        <div class="card-tags"><span class="tag tag-red">LLM</span><span class="tag tag-red">Ollama</span><span class="tag tag-red">NLP</span></div>
+      </div>
+      <div class="feature-card threat">
+        <span class="card-icon">📦</span>
+        <div class="card-title">Dynamic Sandbox</div>
+        <div class="card-desc">Isolated Windows sandbox for detonating suspicious files. Behavioral analysis, registry monitoring, and network capture.</div>
+        <div class="card-tags"><span class="tag tag-red">Sandbox</span><span class="tag tag-red">Dynamic</span><span class="tag tag-red">Isolation</span></div>
+      </div>
+      <div class="feature-card mobile">
+        <span class="card-icon">📱</span>
+        <div class="card-title">APK Malware Analysis</div>
+        <div class="card-desc">Decompile and statically analyze Android APKs. Detect malware, hardcoded secrets, and suspicious permissions with 72 engine scans.</div>
+        <div class="card-tags"><span class="tag tag-green">APK</span><span class="tag tag-green">JADX</span><span class="tag tag-green">Decompile</span></div>
+      </div>
+      <div class="feature-card threat">
+        <span class="card-icon">📜</span>
+        <div class="card-title">YARA Rule Engine</div>
+        <div class="card-desc">Create and manage custom YARA rules. Scan IPs, domains, and files against rule sets for C2, brute force, and malware patterns.</div>
+        <div class="card-tags"><span class="tag tag-red">YARA</span><span class="tag tag-red">IOC</span><span class="tag tag-red">Patterns</span></div>
+      </div>
+      <div class="feature-card email">
+        <span class="card-icon">🔗</span>
+        <div class="card-title">Gmail &amp; Graph Integration</div>
+        <div class="card-desc">Connect Gmail API and Microsoft Graph to scan inboxes, search emails, retrieve audit logs, and enforce security policies.</div>
+        <div class="card-tags"><span class="tag tag-cyan">Gmail</span><span class="tag tag-cyan">Graph</span><span class="tag tag-cyan">OAuth</span></div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:2.5rem;" class="reveal">
+      <a href="login.html" class="btn-primary-cs">🚀 Access All 50 Features</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ EMAIL SECURITY ═══════════════════════ -->
+<section id="email" style="background:var(--bg2);">
+  <div class="max-center">
+    <div class="reveal">
+      <div class="section-label">Email Protection</div>
+      <h2 class="section-title">Stop Threats Before They Reach the Inbox</h2>
+      <p class="section-desc">Multi-layer email security with AI-driven analysis that keeps your organisation safe from phishing, BEC, and malware.</p>
+    </div>
+    <div class="email-grid reveal">
+      <div class="email-card">
+        <h4>📬 Inbox Threat Scanner</h4>
+        <div class="inbox-mock">
+          <div class="mail-row">
+            <div class="mail-avatar" style="background:rgba(0,255,136,.1)">👤</div>
+            <div class="mail-info">
+              <div class="mail-sender">finance@partner.com</div>
+              <div class="mail-subject">Q3 invoice attached — please review</div>
+            </div>
+            <span class="mail-badge mb-safe">✓ Safe</span>
+          </div>
+          <div class="mail-row">
+            <div class="mail-avatar" style="background:rgba(255,51,85,.1)">⚠</div>
+            <div class="mail-info">
+              <div class="mail-sender">security@paypa1.com</div>
+              <div class="mail-subject">Urgent: Verify your account immediately</div>
+            </div>
+            <span class="mail-badge mb-phish">🎣 Phish</span>
+          </div>
+          <div class="mail-row">
+            <div class="mail-avatar" style="background:rgba(255,153,0,.1)">📨</div>
+            <div class="mail-info">
+              <div class="mail-sender">promo@deals-best.ru</div>
+              <div class="mail-subject">You've been selected! Claim now</div>
+            </div>
+            <span class="mail-badge mb-spam">Spam</span>
+          </div>
+          <div class="mail-row">
+            <div class="mail-avatar" style="background:rgba(255,51,85,.1)">☠</div>
+            <div class="mail-info">
+              <div class="mail-sender">hr@micros0ft.com</div>
+              <div class="mail-subject">Updated benefits doc.exe</div>
+            </div>
+            <span class="mail-badge mb-malware">🦠 Malware</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="email-card">
+        <h4>🛡️ Protection Layers</h4>
+        <ul class="check-list">
+          <li>SPF, DKIM, and DMARC authentication enforcement</li>
+          <li>AI phishing & Business Email Compromise (BEC) detection</li>
+          <li>Dynamic attachment sandboxing (macros, PDFs, Office)</li>
+          <li>Header analysis for spoofing & impersonation</li>
+          <li>URL rewriting with real-time click-time protection</li>
+          <li>Outbound DLP — prevent sensitive data leakage</li>
+          <li>Encrypted email delivery with S/MIME & PGP support</li>
+          <li>Quarantine management with analyst review queue</li>
+        </ul>
+      </div>
+
+      <div class="email-card">
+        <h4>📊 Email Security Health</h4>
+        <div class="gauge-list">
+          <div class="gauge-row">
+            <label>Phishing Detection Rate <span>99.7%</span></label>
+            <div class="gauge-track"><div class="gauge-fill fill-cyan" style="width:99.7%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>Spam Filter Accuracy <span>98.2%</span></label>
+            <div class="gauge-track"><div class="gauge-fill fill-green" style="width:98.2%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>Malware Block Rate <span>100%</span></label>
+            <div class="gauge-track"><div class="gauge-fill fill-cyan" style="width:100%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>False Positive Rate <span style="color:var(--green)">0.08%</span></label>
+            <div class="gauge-track"><div class="gauge-fill fill-green" style="width:0.8%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>DMARC Compliance <span>96.4%</span></label>
+            <div class="gauge-track"><div class="gauge-fill fill-orange" style="width:96.4%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="email-card">
+        <h4>⚙️ Supported Integrations</h4>
+        <ul class="check-list">
+          <li>Microsoft 365 / Exchange Online</li>
+          <li>Google Workspace (Gmail)</li>
+          <li>Proofpoint & Mimecast migration</li>
+          <li>Salesforce, Slack, Teams email workflows</li>
+          <li>SIEM export (Splunk, QRadar, Sentinel)</li>
+          <li>API-based custom mail gateway</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ MOBILE SECURITY ═══════════════════════ -->
+<section id="mobile">
+  <div class="max-center">
+    <div class="reveal">
+      <div class="section-label">Mobile Security</div>
+      <h2 class="section-title">Secure Every Device, Everywhere</h2>
+      <p class="section-desc">End-to-end mobile security for iOS and Android — from enrollment to threat response in seconds.</p>
+    </div>
+    <div class="mobile-grid reveal">
+      <div class="mobile-card">
+        <span class="mc-icon">📲</span>
+        <div class="mc-title">MDM Enrollment</div>
+        <div class="mc-desc">Zero-touch bulk enrollment, policy push, and compliance checks for corporate and BYOD devices.</div>
+        <div class="mc-metric">4,291</div>
+        <div class="mc-metric-label">Devices Enrolled</div>
+      </div>
+      <div class="mobile-card">
+        <span class="mc-icon">🦠</span>
+        <div class="mc-title">Mobile Malware Scan</div>
+        <div class="mc-desc">App vetting at install time, sideloaded APK detection, and behavioural anomaly analysis.</div>
+        <div class="mc-metric">99.9%</div>
+        <div class="mc-metric-label">Detection Rate</div>
+      </div>
+      <div class="mobile-card">
+        <span class="mc-icon">🔓</span>
+        <div class="mc-title">Jailbreak / Root Detection</div>
+        <div class="mc-desc">Real-time detection of rooted Android and jailbroken iOS with automatic policy enforcement.</div>
+        <div class="mc-metric">38</div>
+        <div class="mc-metric-label">Blocked This Week</div>
+      </div>
+      <div class="mobile-card">
+        <span class="mc-icon">📡</span>
+        <div class="mc-title">Network Threat Defense</div>
+        <div class="mc-desc">Rogue Wi-Fi, MITM, and SSL stripping detection. Automatic VPN fallback on untrusted networks.</div>
+        <div class="mc-metric">127</div>
+        <div class="mc-metric-label">Threats Intercepted</div>
+      </div>
+      <div class="mobile-card">
+        <span class="mc-icon">🗑️</span>
+        <div class="mc-title">Remote Wipe</div>
+        <div class="mc-desc">Selective or full remote wipe of lost/stolen devices. Corporate data removed, personal data preserved (BYOD).</div>
+        <div class="mc-metric">&lt;90s</div>
+        <div class="mc-metric-label">Avg Wipe Time</div>
+      </div>
+      <div class="mobile-card">
+        <span class="mc-icon">🔒</span>
+        <div class="mc-title">App Containerization</div>
+        <div class="mc-desc">Secure work container isolates corporate apps and data from personal apps on BYOD devices.</div>
+        <div class="mc-metric">2,104</div>
+        <div class="mc-metric-label">Containers Active</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ THREAT MONITOR ═══════════════════════ -->
+<section id="threats" style="background:var(--bg2);">
+  <div class="max-center">
+    <div class="reveal">
+      <div class="section-label">Live Operations</div>
+      <h2 class="section-title">Real-Time Threat Monitor</h2>
+      <p class="section-desc">SOC analysts watch every alert 24/7. Live feed updated every second.</p>
+    </div>
+    <div class="threat-panel reveal">
+      <div class="monitor-box">
+        <div class="monitor-header">
+          <span class="monitor-title">// LIVE THREAT LOG</span>
+          <span class="live-badge"><span class="dot"></span> LIVE</span>
+        </div>
+        <div class="threat-log" id="threatLog">
+          <div class="log-entry high">
+            <span class="log-sev sev-high">HIGH</span>
+            <span class="log-msg">Phishing email to ceo@corp.com — blocked</span>
+            <span class="log-time">00:01s</span>
+          </div>
+          <div class="log-entry medium">
+            <span class="log-sev sev-medium">MED</span>
+            <span class="log-msg">Suspicious APK install attempt — Device #4821</span>
+            <span class="log-time">00:14s</span>
+          </div>
+          <div class="log-entry low">
+            <span class="log-sev sev-low">LOW</span>
+            <span class="log-msg">Spam cluster detected — 42 messages quarantined</span>
+            <span class="log-time">00:32s</span>
+          </div>
+          <div class="log-entry high">
+            <span class="log-sev sev-high">HIGH</span>
+            <span class="log-msg">Credential stuffing attack — 200 attempts/min</span>
+            <span class="log-time">00:47s</span>
+          </div>
+          <div class="log-entry medium">
+            <span class="log-sev sev-medium">MED</span>
+            <span class="log-msg">Rogue Wi-Fi detected — Device User#112</span>
+            <span class="log-time">01:03s</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="monitor-box">
+        <div class="monitor-header">
+          <span class="monitor-title">// SECURITY HEALTH SCORE</span>
+        </div>
+        <div class="gauge-list">
+          <div class="gauge-row">
+            <label>Email Security Score <span>94%</span></label>
+            <div class="gauge-track"><div class="gauge-fill fill-cyan" style="width:94%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>Mobile Compliance <span>88%</span></label>
+            <div class="gauge-track"><div class="gauge-fill fill-green" style="width:88%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>Endpoint Coverage <span>96%</span></label>
+            <div class="gauge-track"><div class="gauge-fill fill-cyan" style="width:96%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>Patch Compliance <span style="color:var(--orange)">72%</span></label>
+            <div class="gauge-track"><div class="gauge-fill fill-orange" style="width:72%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>MFA Enforcement <span>100%</span></label>
+            <div class="gauge-track"><div class="gauge-fill fill-green" style="width:100%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <label>Active Vulnerabilities <span style="color:var(--red)">3 Open</span></label>
+            <div class="gauge-track"><div class="gauge-fill fill-red" style="width:12%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ QUICK SCANNER ═══════════════════════ -->
+<section id="scanner">
+  <div class="max-center">
+    <div class="reveal" style="text-align:center;">
+      <div class="section-label" style="justify-content:center;">Security Tool</div>
+      <h2 class="section-title">Quick Security Scanner</h2>
+      <p class="section-desc" style="margin:0 auto;">Instantly check an email address, phone number, or URL for known threats, breach records, and risk indicators.</p>
+    </div>
+    <div class="scanner-wrap reveal">
+      <div class="scanner-box">
+        <div class="scan-tabs">
+          <button class="scan-tab active" onclick="switchTab(this,'email-scan')">📧 Email</button>
+          <button class="scan-tab" onclick="switchTab(this,'mobile-scan')">📱 Phone</button>
+          <button class="scan-tab" onclick="switchTab(this,'url-scan')">🔗 URL</button>
+        </div>
+        <div id="email-scan">
+          <input class="scan-input" type="email" id="emailInput" placeholder="Enter email address to scan…">
+        </div>
+        <div id="mobile-scan" style="display:none;">
+          <input class="scan-input" type="tel" id="phoneInput" placeholder="Enter mobile number (e.g. +91 9876543210)…">
+        </div>
+        <div id="url-scan" style="display:none;">
+          <input class="scan-input" type="url" id="urlInput" placeholder="Enter URL to check (e.g. https://example.com)…">
+        </div>
+        <button class="scan-btn" onclick="runScan()">🔍 Run Security Scan</button>
+        <div class="scan-result" id="scanResult"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<footer>
+  <div class="footer-logo">🛡️ CyberShield SOC</div>
+  <div class="footer-tagline">Advanced Email & Mobile Security Platform — Always On, Always Protecting.</div>
+  <div class="footer-links">
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms of Service</a>
+    <a href="#">Documentation</a>
+    <a href="#">API Reference</a>
+    <a href="#">Status Page</a>
+    <a href="#">Contact SOC</a>
+  </div>
+  <div class="footer-copy">© 2025 CyberShield SOC. All rights reserved. Platform v3.1.0</div>
+</footer>
+
+<script src="js/script.js"></script>
+
+</body>
+</html>

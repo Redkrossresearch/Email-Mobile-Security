@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield SOC — Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050a0f;
+            --panel: #0a1520;
+            --border: #0d2d40;
+            --accent: #00e5ff;
+            --green: #00ff88;
+            --red: #ff3355;
+            --yellow: #ffcc00;
+            --text: #c8dde8;
+            --dim: #4a7a90;
+            --glow: 0 0 18px rgba(0,229,255,0.25);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 15px;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Animated grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 220px;
+            min-height: 100vh;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            padding: 0 20px 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-logo h2 {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--accent);
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-shadow: var(--glow);
+        }
+
+        .sidebar-logo span {
+            font-size: 11px;
+            color: var(--dim);
+            letter-spacing: 1px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            color: var(--dim);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 1px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: var(--accent);
+            border-left-color: var(--accent);
+            background: rgba(0,229,255,0.05);
+        }
+
+        .nav-item .icon { font-size: 16px; width: 20px; }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 0 16px;
+        }
+
+        .btn-logout {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,51,85,0.1);
+            border: 1px solid rgba(255,51,85,0.3);
+            color: var(--red);
+            text-align: center;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,51,85,0.2);
+            border-color: var(--red);
+        }
+
+        /* ===== MAIN ===== */
+        .main {
+            margin-left: 220px;
+            flex: 1;
+            padding: 28px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== TOP BAR ===== */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .topbar h1 {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 20px;
+            color: var(--accent);
+            letter-spacing: 3px;
+            text-shadow: var(--glow);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(0,255,136,0.08);
+            border: 1px solid rgba(0,255,136,0.25);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--green);
+            letter-spacing: 1px;
+        }
+
+        .pulse {
+            width: 8px; height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,255,136,0.4); }
+            50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(0,255,136,0); }
+        }
+
+        .clock {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 13px;
+            color: var(--dim);
+        }
+
+    /* ===== STAT CARDS ===== */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+    @media(max-width:1200px){ .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media(max-width:600px){ .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+
+        .stat-card.blue::before { background: var(--accent); }
+        .stat-card.red::before { background: var(--red); }
+        .stat-card.green::before { background: var(--green); }
+        .stat-card.yellow::before { background: var(--yellow); }
+
+        .stat-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--dim);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-card.blue .stat-value { color: var(--accent); }
+        .stat-card.red .stat-value { color: var(--red); }
+        .stat-card.green .stat-value { color: var(--green); }
+        .stat-card.yellow .stat-value { color: var(--yellow); }
+
+        .stat-sub {
+            font-size: 11px;
+            color: var(--dim);
+        }
+
+        /* ===== GRID LAYOUT ===== */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        /* ===== PANEL ===== */
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .panel-title {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 13px;
+            color: var(--accent);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ===== THREAT ROWS ===== */
+        .threat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 11px 0;
+            border-bottom: 1px solid rgba(13,45,64,0.6);
+        }
+
+        .threat-row:last-child { border-bottom: none; }
+
+        .threat-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .threat-bar-wrap {
+            flex: 1;
+            margin: 0 16px;
+            height: 4px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .threat-bar {
+            height: 100%;
+            border-radius: 2px;
+            animation: growBar 1s ease forwards;
+        }
+
+        @keyframes growBar {
+            from { width: 0; }
+        }
+
+        .threat-count {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            min-width: 30px;
+            text-align: right;
+        }
+
+        /* ===== SECURITY FEATURES ===== */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: rgba(0,255,136,0.05);
+            border: 1px solid rgba(0,255,136,0.1);
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--green);
+        }
+
+        /* ===== EMAIL SCANNER ===== */
+        .scanner-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .file-drop {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .file-drop:hover, .file-drop.dragover {
+            border-color: var(--accent);
+            background: rgba(0,229,255,0.04);
+        }
+
+        .file-drop input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .file-drop-icon { font-size: 28px; margin-bottom: 6px; }
+        .file-drop-text { font-size: 13px; color: var(--dim); }
+        .file-drop-text span { color: var(--accent); }
+
+        #fileName {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--green);
+            margin-top: 4px;
+        }
+
+        .btn-scan {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(0,229,255,0.05));
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            width: 100%;
+        }
+
+        .btn-scan:hover:not(:disabled) {
+            background: rgba(0,229,255,0.2);
+            box-shadow: var(--glow);
+        }
+
+        .btn-scan:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ===== RESULT ===== */
+        #resultBox {
+            display: none;
+            background: rgba(0,10,20,0.8);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 14px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11.5px;
+            color: var(--green);
+            max-height: 220px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .scanning-msg {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(0,229,255,0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== QUICK ACTIONS ===== */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .qa-btn {
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .qa-btn.blue { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,0.05); }
+        .qa-btn.red { border-color: var(--red); color: var(--red); background: rgba(255,51,85,0.05); }
+        .qa-btn.green { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.05); }
+        .qa-btn.yellow { border-color: var(--yellow); color: var(--yellow); background: rgba(255,204,0,0.05); }
+
+        .qa-btn:hover { opacity: 0.8; transform: translateY(-1px); }
+
+        /* ===== ERROR / SUCCESS ===== */
+        .alert-bar {
+            display: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .alert-bar.error { background: rgba(255,51,85,0.1); border: 1px solid rgba(255,51,85,0.3); color: var(--red); }
+        .alert-bar.success { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2); color: var(--green); }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        /* ===== FOOTER ===== */
+        footer {
+            text-align: center;
+            padding: 20px 0 0;
+            font-size: 11px;
+            color: var(--dim);
+            letter-spacing: 1px;
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="sidebar-logo">
+        <h2>⚡ CYBERSHIELD</h2>
+        <span>SOC PLATFORM v2.6</span>
+    </div>
+
+    <a href="dashboard.html" class="nav-item active">
+        <span class="icon">🖥️</span> DASHBOARD
+    </a>
+    <a href="email-security.html" class="nav-item">
+        <span class="icon">📧</span> EMAIL SECURITY
+    </a>
+    <a href="mobile-security.html" class="nav-item">
+        <span class="icon">📱</span> MOBILE SECURITY
+    </a>
+    <a href="reports.html" class="nav-item">
+        <span class="icon">📊</span> REPORTS
+    </a>
+    <a href="threat-intel.html" class="nav-item">
+        <span class="icon">🌐</span> THREAT INTEL
+    </a>
+    <a href="ai-engine.html" class="nav-item">
+        <span class="icon">🤖</span> AI ENGINE
+    </a>
+    <a href="sandbox.html" class="nav-item">
+        <span class="icon">📦</span> SANDBOX
+    </a>
+    <a href="apk-analyzer.html" class="nav-item">
+        <span class="icon">📱</span> APK ANALYZER
+    </a>
+    <a href="yara-rules.html" class="nav-item">
+        <span class="icon">📜</span> YARA RULES
+    </a>
+    <a href="integrations.html" class="nav-item">
+        <span class="icon">🔗</span> INTEGRATIONS
+    </a>
+    <a href="encryption.html" class="nav-item">
+        <span class="icon">🔐</span> ENCRYPTION
+    </a>
+    <a href="ueba.html" class="nav-item">
+        <span class="icon">🧠</span> UEBA
+    </a>
+    <a href="auth-enhanced.html" class="nav-item">
+        <span class="icon">🛡️</span> AUTH ENHANCED
+    </a>
+    <div class="sidebar-bottom">
+        <a href="login.html" class="btn-logout">🚪 LOGOUT</a>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <h1>SECURITY DASHBOARD</h1>
+        <div class="topbar-right">
+            <div class="status-badge">
+                <div class="pulse"></div>
+                SYSTEM SECURE
+            </div>
+            <div class="clock" id="clock">--:--:--</div>
+        </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+        <div class="stat-card blue">
+            <div class="stat-label">Emails Scanned</div>
+            <div class="stat-value" id="dash-emails">2,500</div>
+            <div class="stat-sub">↑ 12% this week</div>
+        </div>
+        <div class="stat-card red">
+            <div class="stat-label">Threats Detected</div>
+            <div class="stat-value" id="dash-threats">120</div>
+            <div class="stat-sub">↓ 3 since yesterday</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">Devices Monitored</div>
+            <div class="stat-value" id="dash-devices">35</div>
+            <div class="stat-sub">All secure</div>
+        </div>
+        <div class="stat-card yellow">
+            <div class="stat-label">Security Score</div>
+            <div class="stat-value" id="dash-score">98%</div>
+            <div class="stat-sub">Updated 5 min ago</div>
+        </div>
+        <div class="stat-card" style="border-top:2px solid var(--accent);">
+            <div class="stat-label">IOCs Blocked</div>
+            <div class="stat-value" style="color:var(--accent)" id="dash-iocs">847</div>
+            <div class="stat-sub">From 5 intel feeds</div>
+        </div>
+        <div class="stat-card" style="border-top:2px solid var(--yellow);">
+            <div class="stat-label">UEBA Alerts</div>
+            <div class="stat-value" style="color:var(--yellow)" id="dash-ueba">12</div>
+            <div class="stat-sub">Anomalous behaviors</div>
+        </div>
+    </div>
+
+    <!-- THREAT MONITOR + FEATURES -->
+    <div class="grid-2">
+        <!-- Threat Monitor -->
+        <div class="panel">
+            <div class="panel-title">⚠️ Live Threat Monitor</div>
+
+            <div class="threat-row">
+                <div class="threat-label">🎣 Phishing Attempts</div>
+                <div class="threat-bar-wrap">
+                    <div class="threat-bar" style="width:54%;background:var(--red);"></div>
+                </div>
+                <div class="threat-count" style="color:var(--red)" id="mon-phish">15</div>
+            </div>
+
+            <div class="threat-row">
+                <div class="threat-label">🦠 Malware Blocked</div>
+                <div class="threat-bar-wrap">
+                    <div class="threat-bar" style="width:42%;background:var(--yellow);"></div>
+                </div>
+                <div class="threat-count" style="color:var(--yellow)" id="mon-malware">42</div>
+            </div>
+
+            <div class="threat-row">
+                <div class="threat-label">📧 Suspicious Emails</div>
+                <div class="threat-bar-wrap">
+                    <div class="threat-bar" style="width:67%;background:var(--accent);"></div>
+                </div>
+                <div class="threat-count" style="color:var(--accent)" id="mon-email">28</div>
+            </div>
+
+            <div class="threat-row">
+                <div class="threat-label">📱 Mobile Threats</div>
+                <div class="threat-bar-wrap">
+                    <div class="threat-bar" style="width:25%;background:var(--green);"></div>
+                </div>
+                <div class="threat-count" style="color:var(--green)" id="mon-mobile">7</div>
+            </div>
+
+            <div class="threat-row">
+                <div class="threat-label">🌐 IOC Matches</div>
+                <div class="threat-bar-wrap">
+                    <div class="threat-bar" style="width:33%;background:var(--accent);"></div>
+                </div>
+                <div class="threat-count" style="color:var(--accent)" id="mon-ioc">33</div>
+            </div>
+
+            <div class="threat-row">
+                <div class="threat-label">🧠 UEBA Anomalies</div>
+                <div class="threat-bar-wrap">
+                    <div class="threat-bar" style="width:18%;background:var(--yellow);"></div>
+                </div>
+                <div class="threat-count" style="color:var(--yellow)" id="mon-ueba">12</div>
+            </div>
+        </div>
+
+        <!-- Security Features -->
+        <div class="panel">
+            <div class="panel-title">🔒 Active Protections (50 Features)</div>
+            <div class="feature-grid">
+                <div class="feature-item">✅ SPF Check</div>
+                <div class="feature-item">✅ DKIM Verify</div>
+                <div class="feature-item">✅ DMARC Enforce</div>
+                <div class="feature-item">✅ URL Scanner</div>
+                <div class="feature-item">✅ Sandbox</div>
+                <div class="feature-item">✅ CDR</div>
+                <div class="feature-item">✅ BEC Detect</div>
+                <div class="feature-item">✅ Lookalike</div>
+                <div class="feature-item">✅ Heuristic</div>
+                <div class="feature-item">✅ Attachment Block</div>
+                <div class="feature-item">✅ OCR DLP</div>
+                <div class="feature-item">✅ RBI</div>
+                <div class="feature-item">✅ SS7 Protect</div>
+                <div class="feature-item">✅ IMSI Detect</div>
+                <div class="feature-item">✅ Crypto Sign</div>
+                <div class="feature-item">✅ SMS Sandbox</div>
+                <div class="feature-item">✅ STIR/SHAKEN</div>
+                <div class="feature-item">✅ Remote Wipe</div>
+                <div class="feature-item">✅ VoLTE Check</div>
+                <div class="feature-item">✅ WebRTC Leak</div>
+                <div class="feature-item">✅ UEBA</div>
+                <div class="feature-item">✅ Threat Intel</div>
+                <div class="feature-item">✅ SIEM Ingest</div>
+                <div class="feature-item">✅ Auto-Remediate</div>
+            </div>
+
+            <div style="margin-top:18px;">
+                <div class="panel-title" style="margin-bottom:12px;">⚡ Quick Actions</div>
+                <div class="quick-actions">
+                    <a href="email-security.html" class="qa-btn blue">📧 Email Security</a>
+                    <a href="email-security.html" class="qa-btn red">🔗 URL Scan</a>
+                    <a href="mobile-security.html" class="qa-btn green">📱 Mobile Scan</a>
+                    <a href="reports.html" class="qa-btn yellow">📊 Reports</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>© 2026 CyberShield SOC | Email & Mobile Security Platform</footer>
+</div>
+
+
+<script src="js/script.js"></script>
+<script>
+// ══ DASHBOARD LIVE STATS ══
+async function loadAllStats(){
+  try{
+    // Mobile dashboard stats
+    const mob=await apiGet("/mobile/dashboard-stats");
+    if(mob.success){
+      setText("dash-devices",mob.stats.devices_monitored);
+      setText("dash-threats",mob.stats.threats_blocked);
+      setText("mon-mobile",mob.stats.threats_blocked);
+      setText("mon-email",mob.stats.sms_phishing+mob.stats.calls_blocked);
+    }
+    // Email stats via SPF/DKIM/DMARC calls
+    const spf=await apiPost("/email/check-spf",{domain:"cybershield.com"});
+    if(spf.success) setText("dash-emails",spf.emails_scanned||"2,500");
+  }catch(e){}
+}
+document.addEventListener("DOMContentLoaded",()=>{
+  setTimeout(loadAllStats,1000);
+});
+</script>
+</body>
+</html>
