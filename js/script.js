@@ -29,6 +29,8 @@ function showAlert(msg){
   if(el&&t){el.style.display="flex";t.textContent=msg;}
 }
 
+let loginEmail = null;
+
 async function doLogin(){
   const email=document.getElementById("emailInput")?.value.trim();
   const pw=document.getElementById("pwInput")?.value;
@@ -38,12 +40,42 @@ async function doLogin(){
   try{
     const res=await apiPost("/auth/login",{email,password:pw});
     if(res.success){
+      if(res.requires2FA || res.user?.mfa_enabled){
+        loginEmail = email;
+        if(res.qrCode){
+          const qrDiv = document.getElementById("qrSetup");
+          if(qrDiv) qrDiv.innerHTML = `<img src="${res.qrCode}" alt="TOTP QR" style="width:140px;height:140px;margin:8px auto;display:block;border-radius:8px;"><p style="font-size:11px;color:var(--muted);text-align:center;word-break:break-all;">Secret: ${res.qrCode.split('secret=')[1]?.split('&')[0] || ''}</p>`;
+        }
+        document.getElementById("mfaSection").classList.add("show");
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("verifyOtpBtn").style.display = "flex";
+        showToast("MFA Required","Enter your TOTP code to continue","info");
+        btn?.classList.remove("loading");
+        return;
+      }
       AUTH_TOKEN=res.token;
       localStorage.setItem("cybershield_token",res.token);
       showToast("Login Successful",`Welcome ${res.user.name}`,"safe");
       setTimeout(()=>{window.location.href="dashboard.html";},500);
     } else showAlert(res.message||"Login failed");
   }catch(e){showAlert("Connection error. Is the backend running?");}
+  btn?.classList.remove("loading");
+}
+
+async function verifyOtpAndLogin(){
+  const otp = Array.from({length:6}, (_,i) => document.getElementById(`o${i+1}`)?.value).join("");
+  const btn = document.getElementById("verifyOtpBtn");
+  if(otp.length !== 6){showAlert("Please enter all 6 OTP digits");return;}
+  btn?.classList.add("loading");
+  try{
+    const res=await apiPost("/auth/verify-mfa",{email:loginEmail,otp});
+    if(res.success){
+      AUTH_TOKEN=res.token;
+      localStorage.setItem("cybershield_token",res.token);
+      showToast("Login Successful","MFA verified — redirecting","safe");
+      setTimeout(()=>{window.location.href="dashboard.html";},500);
+    } else showAlert(res.message||"OTP verification failed");
+  }catch(e){showAlert("Connection error");}
   btn?.classList.remove("loading");
 }
 
@@ -321,36 +353,6 @@ async function checkDecrypt(){
 }
 
 /* ════════════════════════════════════════════
-   AUTH ENHANCED (Double Auth, Password Reset, OAuth, Sessions, Argon2)
-   ════════════════════════════════════════════ */
-
-async function checkDoubleAuth(){
-  showLoading("res-doubleauth");
-  const r=await apiPost("/auth-enhanced/double-auth",{step:1,email:"admin@cybershield.com",password:"admin123"});
-  showResult("res-doubleauth",r,"Double Auth");
-}
-async function checkPasswordReset(){
-  showLoading("res-pwreset");
-  const r=await apiPost("/auth-enhanced/password-reset",{email:"admin@cybershield.com"});
-  showResult("res-pwreset",r,"PW Reset");
-}
-async function checkOAuth(){
-  showLoading("res-oauth");
-  const r=await apiPost("/auth-enhanced/oauth-initiate",{provider:"google"});
-  showResult("res-oauth",r,"OAuth");
-}
-async function checkSession(){
-  showLoading("res-session");
-  const r=await apiPost("/auth-enhanced/session-create",{user_id:"admin@cybershield.com",device:"Windows Workstation"});
-  showResult("res-session",r,"Session");
-}
-async function checkArgon2(){
-  showLoading("res-argon2");
-  const r=await apiGet("/auth-enhanced/argon2-status");
-  showResult("res-argon2",r,"Argon2");
-}
-
-/* ════════════════════════════════════════════
    AI ENGINE (IOC, Email, Search, Report, Models)
    ════════════════════════════════════════════ */
 
@@ -450,6 +452,11 @@ async function checkGmailConnect(){
   if(r.auth_url){
     document.getElementById("res-gmail-connect").innerHTML+='<br><a href="'+r.auth_url+'" target="_blank" style="color:var(--cyan)">Open Auth URL →</a>';
   }
+  if(r.success&&r.connection_status==="CONNECTED"){
+    const card=document.getElementById("gmail-status");
+    if(card){card.querySelector(".sc-value").innerHTML="Connected";card.querySelector(".sc-value").style.color="var(--green)";card.querySelector(".sc-sub").textContent="Gmail API connected";}
+    const banner=document.getElementById("alertBanner"); if(banner)banner.querySelector(".alert-text").innerHTML="<strong>INTEGRATIONS STATUS:</strong> Gmail connected. Microsoft 365 is disconnected. SIEM forwarding is active. 3 webhooks configured.";
+  }
 }
 async function checkGmailScan(){
   showLoading("res-gmail-scan");
@@ -471,6 +478,31 @@ async function checkGraphConnect(){
   }
   const r=await apiPost("/integration/graph/connect",{...creds,access_token:creds.access_token||""});
   showResult("res-graph-connect",r,"Graph");
+  if(r.success&&r.connection_status==="CONNECTED"){
+    const card=document.getElementById("graph-status");
+    if(card){card.querySelector(".sc-value").innerHTML="Connected";card.querySelector(".sc-value").style.color="var(--green)";card.querySelector(".sc-sub").textContent="Microsoft Graph connected";}
+    const banner=document.getElementById("alertBanner"); if(banner)banner.querySelector(".alert-text").innerHTML="<strong>INTEGRATIONS STATUS:</strong> Gmail connected. Microsoft 365 connected. SIEM forwarding is active. 3 webhooks configured.";
+  }
+}
+async function checkGmailDisconnect(){
+  showLoading("res-gmail-connect");
+  const r=await apiPost("/integration/gmail/disconnect",{});
+  showResult("res-gmail-connect",r,"Gmail");
+  if(r.success){
+    const card=document.getElementById("gmail-status");
+    if(card){card.querySelector(".sc-value").innerHTML="Disconnected";card.querySelector(".sc-value").style.color="var(--red)";card.querySelector(".sc-sub").textContent="Click to connect";}
+    const banner=document.getElementById("alertBanner"); if(banner)banner.querySelector(".alert-text").innerHTML="<strong>INTEGRATIONS STATUS:</strong> Gmail and Microsoft 365 are disconnected. SIEM forwarding is active. 3 webhooks configured.";
+  }
+}
+async function checkGraphDisconnect(){
+  showLoading("res-graph-connect");
+  const r=await apiPost("/integration/graph/disconnect",{});
+  showResult("res-graph-connect",r,"Graph");
+  if(r.success){
+    const card=document.getElementById("graph-status");
+    if(card){card.querySelector(".sc-value").innerHTML="Disconnected";card.querySelector(".sc-value").style.color="var(--red)";card.querySelector(".sc-sub").textContent="Click to connect";}
+    const banner=document.getElementById("alertBanner"); if(banner)banner.querySelector(".alert-text").innerHTML="<strong>INTEGRATIONS STATUS:</strong> Gmail and Microsoft 365 are disconnected. SIEM forwarding is active. 3 webhooks configured.";
+  }
 }
 async function checkGraphUsers(){
   showLoading("res-graph-users");
@@ -843,56 +875,6 @@ function drawBarChart(){
   });
 }
 
-function checkDoubleAuth(){
-  apiPost("/auth-enhanced/double-auth",{step:1,email:"admin@cybershield.com",password:"admin123",otp:"123456"}).then(r=>{
-    const el=document.getElementById("res-doubleauth");
-    if(r.success){el.className="tc-result show res-pass";el.textContent="Step 1: Password verified. Step 2: "+r.message;}
-    else{el.className="tc-result show res-fail";el.textContent=r.message||"Double auth failed";}
-    if(r.step_complete&&r.next_step==="totp"&&r.session_token){
-      apiPost("/auth-enhanced/double-auth",{step:2,otp:"123456",email:"admin@cybershield.com",session_token:r.session_token}).then(r2=>{
-        const el2=document.getElementById("res-doubleauth");
-        if(r2.success){el2.className="tc-result show res-pass";el2.textContent="✓ Double Auth Complete: "+r2.verdict+" | Session: "+r2.session_id;}
-        else{el2.className="tc-result show res-fail";el2.textContent="OTP step failed: "+(r2.message||"Error");}
-      });
-    }
-  }).catch(e=>{const el=document.getElementById("res-doubleauth");el.className="tc-result show res-fail";el.textContent="Error: "+e.message;});
-}
-function checkPasswordReset(){
-  const email=document.getElementById("resetEmail").value||"admin@cybershield.com";
-  apiPost("/auth-enhanced/password-reset",{email}).then(r=>{
-    const el=document.getElementById("res-pwreset");
-    if(r.success){el.className="tc-result show res-pass";el.textContent="✓ Reset token sent: "+r.reset_token+" (expires "+r.expires_in+")";}
-    else{el.className="tc-result show res-fail";el.textContent=r.message||"Reset failed";}
-  }).catch(e=>{const el=document.getElementById("res-pwreset");el.className="tc-result show res-fail";el.textContent="Error: "+e.message;});
-}
-function checkOAuth(){
-  apiPost("/auth-enhanced/oauth-initiate",{provider:"google"}).then(r=>{
-    const el=document.getElementById("res-oauth");
-    if(r.success){el.className="tc-result show res-info";el.textContent="OAuth URL: "+r.auth_url;}
-    else{el.className="tc-result show res-fail";el.textContent=r.message||"OAuth failed";}
-  }).catch(e=>{const el=document.getElementById("res-oauth");el.className="tc-result show res-fail";el.textContent="Error: "+e.message;});
-}
-function checkSession(){
-  apiPost("/auth-enhanced/session-create",{}).then(r=>{
-    const el=document.getElementById("res-session");
-    if(r.success){el.className="tc-result show res-pass";el.textContent="✓ Session "+r.session_id+" created | Active: "+r.active_sessions;}
-    else{el.className="tc-result show res-fail";el.textContent=r.message||"Session create failed";}
-  }).catch(e=>{const el=document.getElementById("res-session");el.className="tc-result show res-fail";el.textContent="Error: "+e.message;});
-}
-function checkArgon2(){
-  apiGet("/auth-enhanced/argon2-status").then(r=>{
-    const el=document.getElementById("res-argon2");
-    if(r.success){el.className="tc-result show res-"+(r.argon2_available?"pass":"warn");el.textContent=("Argon2: "+(r.argon2_available?"✓ Available":"✗ Not installed (using SHA-256 fallback)")+" | "+r.recommendation);}
-    else{el.className="tc-result show res-fail";el.textContent=r.message||"Argon2 check failed";}
-  }).catch(e=>{const el=document.getElementById("res-argon2");el.className="tc-result show res-fail";el.textContent="Error: "+e.message;});
-}
-function checkSessionsList(){
-  apiGet("/auth-enhanced/sessions-list").then(r=>{
-    const el=document.getElementById("res-sessions-list");
-    if(r.success){el.className="tc-result show res-info";el.textContent="Active sessions: "+r.active+"/"+r.total+" | IDs: "+(r.sessions||[]).map(s=>s.session_id).join(", ");}
-    else{el.className="tc-result show res-fail";el.textContent=r.message||"List failed";}
-  }).catch(e=>{const el=document.getElementById("res-sessions-list");el.className="tc-result show res-fail";el.textContent="Error: "+e.message;});
-}
 function validateToken(){
   if(!AUTH_TOKEN) return;
   fetch(apiUrl("/mobile/dashboard-stats"),{headers:authHeaders()}).then(r=>{

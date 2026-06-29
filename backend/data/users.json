@@ -5,6 +5,7 @@
     "role": "admin",
     "mfa_enabled": false,
     "mfa_method": "totp",
+    "totp_secret": "JBSWY3DPEHPK3PXP",
     "sso_enabled": false,
     "created": "2026-01-01T00:00:00Z",
     "last_login": "2026-06-11T08:00:00Z"
@@ -15,6 +16,7 @@
     "role": "analyst",
     "mfa_enabled": true,
     "mfa_method": "totp",
+    "totp_secret": "K5X4Y3DZPEHPK3PX",
     "sso_enabled": true,
     "created": "2026-01-15T00:00:00Z",
     "last_login": "2026-06-11T07:30:00Z"
@@ -25,6 +27,7 @@
     "role": "compliance",
     "mfa_enabled": true,
     "mfa_method": "totp",
+    "totp_secret": "GXX4Y3DZOBKHK3PX",
     "sso_enabled": false,
     "created": "2026-02-01T00:00:00Z",
     "last_login": "2026-06-10T16:00:00Z"
@@ -35,6 +38,7 @@
     "role": "admin",
     "mfa_enabled": true,
     "mfa_method": "totp",
+    "totp_secret": "MFXG4YLZNB2HI3PX",
     "sso_enabled": true,
     "created": "2026-01-20T00:00:00Z",
     "last_login": "2026-06-11T06:45:00Z"

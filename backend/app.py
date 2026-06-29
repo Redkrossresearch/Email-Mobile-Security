@@ -11,7 +11,7 @@ from routes.report_routes import report_bp
 from routes.threat_intel_routes import threat_intel_bp
 from routes.ueba_routes import ueba_bp
 from routes.encryption_routes import encryption_bp
-from routes.auth_enhanced_routes import auth_enhanced_bp
+
 from routes.ai_routes import ai_bp
 from routes.apk_routes import apk_bp
 from routes.yara_routes import yara_bp
@@ -32,7 +32,6 @@ app.register_blueprint(report_bp, url_prefix="/api/reports")
 app.register_blueprint(threat_intel_bp, url_prefix="/api/threat-intel")
 app.register_blueprint(ueba_bp, url_prefix="/api/ueba")
 app.register_blueprint(encryption_bp, url_prefix="/api/encryption")
-app.register_blueprint(auth_enhanced_bp, url_prefix="/api/auth-enhanced")
 app.register_blueprint(ai_bp, url_prefix="/api/ai")
 app.register_blueprint(apk_bp, url_prefix="/api/apk")
 app.register_blueprint(yara_bp, url_prefix="/api/yara")

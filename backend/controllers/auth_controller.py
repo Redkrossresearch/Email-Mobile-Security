@@ -1,6 +1,7 @@
 import json
 import hashlib
 import uuid
+import pyotp
 from datetime import datetime
 from flask import request, jsonify
 from config.settings import DATA_DIR
@@ -36,12 +37,19 @@ def login():
     LOGIN_ATTEMPTS.pop(email, None)
     user = users[email]
     token = create_token(email, user["name"], user["role"])
-    return jsonify({
+    resp = {
         "success": True,
         "token": token,
         "user": {"email": email, "name": user["name"], "role": user["role"], "mfa_enabled": user["mfa_enabled"]},
         "message": "Login successful"
-    })
+    }
+    if user.get("mfa_enabled") and user.get("totp_secret"):
+        resp.update({
+            "requires2FA": True,
+            "userId": email,
+            "qrCode": f"otpauth://totp/CyberShield:{email}?secret={user['totp_secret']}&issuer=CyberShield"
+        })
+    return jsonify(resp)
 
 def mobile_login():
     data = request.get_json()
@@ -68,12 +76,17 @@ def verify_mfa():
     data = request.get_json()
     email = data.get("email", "").strip().lower()
     otp = data.get("otp", "")
-    if otp == "123456":
-        users = load_users()
-        user = users.get(email)
-        if user:
-            token = create_token(email, user["name"], user["role"])
-            return jsonify({"success": True, "token": token, "message": "MFA verified"})
+    users = load_users()
+    user = users.get(email)
+    if not user or not user.get("mfa_enabled"):
+        return jsonify({"success": False, "message": "MFA not enabled for this user"}), 400
+    secret = user.get("totp_secret")
+    if not secret:
+        return jsonify({"success": False, "message": "TOTP not configured"}), 400
+    totp = pyotp.TOTP(secret)
+    if totp.verify(otp, valid_window=1):
+        token = create_token(email, user["name"], user["role"])
+        return jsonify({"success": True, "token": token, "message": "MFA verified"})
     return jsonify({"success": False, "message": "Invalid OTP"}), 401
 
 def sso_login():
@@ -132,6 +145,25 @@ def oauth_token():
             "scope": "openid profile email"
         })
     return jsonify({"error": "invalid_grant", "message": "Invalid authorization code"}), 400
+
+def generate_totp(current_user=None):
+    data = request.get_json() or {}
+    email = data.get("email", current_user or "").strip().lower()
+    users = load_users()
+    if email not in users:
+        return jsonify({"success": False, "message": "User not found"}), 404
+    secret = pyotp.random_base32()
+    users[email]["totp_secret"] = secret
+    users[email]["mfa_enabled"] = True
+    with open(f"{DATA_DIR}/users.json", "w") as f:
+        json.dump(users, f, indent=2)
+    provisioning_uri = pyotp.totp.TOTP(secret).provisioning_uri(name=email, issuer_name="CyberShield")
+    return jsonify({
+        "success": True,
+        "secret": secret,
+        "qrCode": provisioning_uri,
+        "message": "TOTP secret generated. Scan QR with authenticator app."
+    })
 
 def account_recovery():
     data = request.get_json() or {}
