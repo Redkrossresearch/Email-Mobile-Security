@@ -750,6 +750,7 @@
 
             <!-- MFA OTP section -->
             <div class="mfa-section" id="mfaSection">
+                <div id="qrSetup"></div>
                 <div class="mfa-label">🔐 One-Time Password (OTP)</div>
                 <div class="otp-inputs">
                     <input type="text" maxlength="1" class="otp" id="o1" oninput="otpNext(this,'o2')">
@@ -772,6 +773,10 @@
 
             <button class="btn-login" id="loginBtn" onclick="doLogin()">
                 <span class="btn-text">🔓 AUTHENTICATE</span>
+                <div class="spinner"></div>
+            </button>
+            <button class="btn-login" id="verifyOtpBtn" onclick="verifyOtpAndLogin()" style="display:none;">
+                <span class="btn-text">🔐 VERIFY OTP &amp; LOGIN</span>
                 <div class="spinner"></div>
             </button>
 
