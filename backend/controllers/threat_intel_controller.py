@@ -197,6 +197,49 @@ def scan_hash(current_user=None):
     detections = 0
     total_engines = 72
     vt_result = None
+SINKHOLED_DOMAINS = {}
+
+def dns_sinkhole(current_user=None):
+    data = request.get_json() or {}
+    domain = data.get("domain", "").strip().lower()
+    if not domain:
+        return jsonify({"success": False, "message": "Domain required"}), 400
+    SINKHOLED_DOMAINS[domain] = {
+        "sinkholed_at": datetime.utcnow().isoformat() + "Z",
+        "sinkhole_ip": "10.0.0.1",
+        "action": "redirect_to_sinkhole",
+        "status": "active"
+    }
+    return jsonify({
+        "success": True,
+        "domain": domain,
+        "sinkhole_ip": "10.0.0.1",
+        "total_sinkholed": len(SINKHOLED_DOMAINS),
+        "verdict": f"{domain} sinkholed successfully"
+    })
+
+def trigger_soar(current_user=None):
+    data = request.get_json() or {}
+    alert_id = data.get("alert_id", "ALERT-" + uuid.uuid4().hex[:8].upper())
+    playbook = data.get("playbook", "default_playbook")
+    playbooks = {
+        "default_playbook": {"steps": 4, "duration": "30s"},
+        "ransomware_response": {"steps": 6, "duration": "45s"},
+        "phishing_takedown": {"steps": 3, "duration": "20s"},
+        "malware_isolation": {"steps": 5, "duration": "35s"}
+    }
+    pb = playbooks.get(playbook, playbooks["default_playbook"])
+    return jsonify({
+        "success": True,
+        "alert_id": alert_id,
+        "playbook": playbook,
+        "status": "executing",
+        "steps": pb["steps"],
+        "estimated_duration": pb["duration"],
+        "triggered_at": datetime.utcnow().isoformat() + "Z",
+        "verdict": f"SOAR playbook '{playbook}' triggered for alert {alert_id}"
+    })
+
     if VT_API_KEY:
         try:
             r = requests.get(f"https://www.virustotal.com/api/v3/files/{file_hash}", headers={"x-apikey": VT_API_KEY}, timeout=10)

@@ -3,7 +3,8 @@ from controllers.mobile_controller import (
     get_devices, get_device_detail, scan_apps, analyze_sms,
     malware_scan, get_sms_logs, get_call_logs,
     device_health, get_dashboard_stats,
-    app_reputation, caller_scan, caller_feed
+    app_reputation, caller_scan, caller_feed,
+    volte_status
 )
 from middleware.auth import token_required
 
@@ -21,3 +22,4 @@ mobile_bp.route("/dashboard-stats", methods=["GET"])(token_required(get_dashboar
 mobile_bp.route("/app-reputation", methods=["POST"])(token_required(app_reputation))
 mobile_bp.route("/caller-scan", methods=["POST"])(token_required(caller_scan))
 mobile_bp.route("/caller-feed", methods=["GET"])(token_required(caller_feed))
+mobile_bp.route("/volte-status", methods=["GET"])(token_required(volte_status))
