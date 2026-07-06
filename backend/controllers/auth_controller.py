@@ -6,6 +6,10 @@ from datetime import datetime
 from flask import request, jsonify
 from config.settings import DATA_DIR
 from middleware.auth import create_token
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+
+ph = PasswordHasher()
 
 USER_DB = None
 LOGIN_ATTEMPTS = {}
@@ -28,7 +32,11 @@ def login():
         attempts = LOGIN_ATTEMPTS[email]
         if attempts["count"] >= 5 and (datetime.utcnow() - attempts["first_attempt"]).seconds < 900:
             return jsonify({"success": False, "message": "Account locked due to multiple failed attempts. Try again in 15 min."}), 423
-    if email not in users or users[email]["password"] != password:
+    try:
+        if email not in users:
+            raise VerifyMismatchError
+        ph.verify(users[email]["password"], password)
+    except VerifyMismatchError:
         if email not in LOGIN_ATTEMPTS:
             LOGIN_ATTEMPTS[email] = {"count": 0, "first_attempt": datetime.utcnow()}
         LOGIN_ATTEMPTS[email]["count"] += 1
@@ -55,20 +63,32 @@ def mobile_login():
     data = request.get_json()
     phone = data.get("phone", "").strip()
     pin = data.get("pin", "")
-    if pin != "123456":
+    users = load_users()
+    mobile_key = f"{phone}@mobile.user"
+    if mobile_key not in users:
+        return jsonify({"success": False, "message": "Mobile user not registered"}), 401
+    try:
+        ph.verify(users[mobile_key]["pin"], pin)
+    except VerifyMismatchError:
         return jsonify({"success": False, "message": "Invalid PIN"}), 401
-    token = create_token(f"{phone}@mobile.user", "Mobile User", "analyst")
+    token = create_token(mobile_key, users[mobile_key]["name"], users[mobile_key]["role"])
     return jsonify({
         "success": True,
         "token": token,
-        "user": {"name": "Mobile User", "role": "analyst", "phone": phone},
+        "user": {"name": users[mobile_key]["name"], "role": users[mobile_key]["role"], "phone": phone},
         "message": "Mobile login successful"
     })
 
 def verify_otp():
     data = request.get_json()
     otp = data.get("otp", "")
-    if otp == "123456":
+    email = data.get("email", "").strip().lower()
+    users = load_users()
+    user = users.get(email)
+    if not user or not user.get("totp_secret"):
+        return jsonify({"success": False, "message": "OTP not configured"}), 400
+    totp = pyotp.TOTP(user["totp_secret"])
+    if totp.verify(otp, valid_window=1):
         return jsonify({"success": True, "message": "OTP verified"})
     return jsonify({"success": False, "message": "Invalid OTP"}), 401
 

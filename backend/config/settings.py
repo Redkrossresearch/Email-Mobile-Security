@@ -4,7 +4,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 REPORTS_DIR = os.path.join(BASE_DIR, "reports_output")
 
-JWT_SECRET = os.getenv("JWT_SECRET", "cybershield-soc-secret-key-2026!!")
+JWT_SECRET = os.getenv("JWT_SECRET", "cybershield-soc-secret-key-2026!!!")
 JWT_ALGO = "HS256"
 JWT_EXPIRY_HOURS = 24
 

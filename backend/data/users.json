@@ -1,6 +1,6 @@
 {
   "admin@cybershield.com": {
-    "password": "admin123",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$Te2nNbVDYrUrbOFVGvR21w$mVsHxlBYLbnIhBHuN+j7dyrUG3Y4nex15tuDvT6FNwA",
     "name": "SOC Admin",
     "role": "admin",
     "mfa_enabled": false,
@@ -11,7 +11,7 @@
     "last_login": "2026-06-11T08:00:00Z"
   },
   "analyst@cybershield.com": {
-    "password": "analyst123",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$dsXQz24NgmEA/XSMly6TQg$yGsk1m1SR1D1w5aUROT2uWVCqiYbaOBnnBStGysEHd0",
     "name": "Security Analyst",
     "role": "analyst",
     "mfa_enabled": true,
@@ -22,7 +22,7 @@
     "last_login": "2026-06-11T07:30:00Z"
   },
   "compliance@cybershield.com": {
-    "password": "compliance123",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$cBu4PolgicOlqo84UdrQAg$nKGRxzInxnWmDa76ly7OwdhoXUkij89oHAtij7zIpkg",
     "name": "Compliance Officer",
     "role": "compliance",
     "mfa_enabled": true,
@@ -33,7 +33,7 @@
     "last_login": "2026-06-10T16:00:00Z"
   },
   "itadmin@cybershield.com": {
-    "password": "itadmin123",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$XHR+If2iEyHUMEvNDK3yDA$HBMMe3kv7+YB80JD8l0pXzqnvkYMo3ILNFIYbCO8mhk",
     "name": "IT System Admin",
     "role": "admin",
     "mfa_enabled": true,
@@ -42,5 +42,14 @@
     "sso_enabled": true,
     "created": "2026-01-20T00:00:00Z",
     "last_login": "2026-06-11T06:45:00Z"
+  },
+  "+919876543210@mobile.user": {
+    "pin": "$argon2id$v=19$m=65536,t=3,p=4$z2Zz9d4efI+VFGhVkLArQw$X4/laekjqLedoXptca2oID3BKB507C5Bjuwnv/H9ICE",
+    "name": "Mobile User",
+    "role": "analyst",
+    "mfa_enabled": false,
+    "phone": "+919876543210",
+    "created": "2026-06-01T00:00:00Z",
+    "last_login": "2026-06-11T12:00:00Z"
   }
 }

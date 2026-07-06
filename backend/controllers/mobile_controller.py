@@ -272,3 +272,17 @@ def caller_feed(current_user=None):
         "total_blocked": len([c for c in CALL_FEED if c["status"] == "blocked"]),
         "verdict": "CALL_FEED_UPDATED"
     })
+
+def volte_status(current_user=None):
+    return jsonify({
+        "success": True,
+        "volte_encryption": "AES-256",
+        "volte_status": "active",
+        "sip_tls": "TLS 1.3",
+        "srtp_enabled": True,
+        "cipher": "AES_CM_128_HMAC_SHA1_32",
+        "calls_encrypted": 1472,
+        "calls_total": 1520,
+        "encryption_rate": "96.8%",
+        "recommendation": "VoLTE encryption is active and compliant"
+    })

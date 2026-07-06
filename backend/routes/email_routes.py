@@ -3,7 +3,8 @@ from controllers.email_controller import (
     check_spf, check_dkim, check_dmarc, sandbox_analysis, url_analysis,
     lookalike_domain, bec_scan, heuristic_scan, attachment_block,
     outbound_encrypt, analyze_header, sender_scan,
-    analyze_eml_file, generate_eml_pdf, generate_eml_xlsx
+    analyze_eml_file, generate_eml_pdf, generate_eml_xlsx,
+    content_disarm, auto_remediate
 )
 from middleware.auth import token_required
 
@@ -24,3 +25,5 @@ email_bp.route("/sender-scan", methods=["POST"])(token_required(sender_scan))
 email_bp.route("/analyze-eml-file", methods=["POST"])(token_required(analyze_eml_file))
 email_bp.route("/eml-report/pdf", methods=["GET"])(token_required(generate_eml_pdf))
 email_bp.route("/eml-report/xlsx", methods=["GET"])(token_required(generate_eml_xlsx))
+email_bp.route("/content-disarm", methods=["POST"])(token_required(content_disarm))
+email_bp.route("/auto-remediate", methods=["POST"])(token_required(auto_remediate))
