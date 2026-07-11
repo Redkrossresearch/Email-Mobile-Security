@@ -1,6 +1,8 @@
 import os
+from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 REPORTS_DIR = os.path.join(BASE_DIR, "reports_output")
 
@@ -24,3 +26,9 @@ GRAPH_CLIENT_ID = os.getenv("GRAPH_CLIENT_ID", "")
 GRAPH_CLIENT_SECRET = os.getenv("GRAPH_CLIENT_SECRET", "")
 
 OMIT_EMAIL_DOMAINS = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "protonmail.com", "icloud.com"]
+
+SMTP_HOST = os.getenv("SMTP_HOST", "")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASS = os.getenv("SMTP_PASS", "")
+SMTP_FROM = os.getenv("SMTP_FROM", "noreply@cybershield.com")

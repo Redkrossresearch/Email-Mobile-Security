@@ -8,6 +8,7 @@ from config.settings import DATA_DIR
 from middleware.auth import create_token
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from services.otp_service import generate_otp, store_otp, verify_otp as verify_stored_otp, send_email_otp, send_sms_otp, cleanup_expired
 
 ph = PasswordHasher()
 
@@ -26,7 +27,6 @@ def login():
     data = request.get_json()
     email = data.get("email", "").strip().lower()
     password = data.get("password", "")
-    ip = request.remote_addr or "unknown"
     users = load_users()
     if email in LOGIN_ATTEMPTS:
         attempts = LOGIN_ATTEMPTS[email]
@@ -44,20 +44,28 @@ def login():
         return jsonify({"success": False, "message": f"Invalid credentials. {max(0, remaining)} attempts remaining"}), 401
     LOGIN_ATTEMPTS.pop(email, None)
     user = users[email]
-    token = create_token(email, user["name"], user["role"])
-    resp = {
-        "success": True,
-        "token": token,
-        "user": {"email": email, "name": user["name"], "role": user["role"], "mfa_enabled": user["mfa_enabled"]},
-        "message": "Login successful"
-    }
-    if user.get("mfa_enabled") and user.get("totp_secret"):
-        resp.update({
+
+    if user.get("mfa_enabled"):
+        otp = generate_otp()
+        store_otp(f"otp:{email}", otp)
+        sent, msg = send_email_otp(email, otp)
+        if not sent:
+            return jsonify({"success": False, "message": f"Failed to send OTP: {msg}"}), 500
+        return jsonify({
+            "success": True,
             "requires2FA": True,
             "userId": email,
-            "qrCode": f"otpauth://totp/CyberShield:{email}?secret={user['totp_secret']}&issuer=CyberShield"
+            "delivery": "email",
+            "message": "OTP sent to your email"
         })
-    return jsonify(resp)
+
+    token = create_token(email, user["name"], user["role"])
+    return jsonify({
+        "success": True,
+        "token": token,
+        "user": {"email": email, "name": user["name"], "role": user["role"], "mfa_enabled": False},
+        "message": "Login successful"
+    })
 
 def mobile_login():
     data = request.get_json()
@@ -71,43 +79,70 @@ def mobile_login():
         ph.verify(users[mobile_key]["pin"], pin)
     except VerifyMismatchError:
         return jsonify({"success": False, "message": "Invalid PIN"}), 401
-    token = create_token(mobile_key, users[mobile_key]["name"], users[mobile_key]["role"])
+
+    otp = generate_otp()
+    store_otp(f"otp:{phone}", otp)
+    sent, msg = send_sms_otp(phone, otp)
+    if not sent:
+        return jsonify({"success": False, "message": f"Failed to send OTP: {msg}"}), 500
     return jsonify({
         "success": True,
-        "token": token,
-        "user": {"name": users[mobile_key]["name"], "role": users[mobile_key]["role"], "phone": phone},
-        "message": "Mobile login successful"
+        "requires2FA": True,
+        "userId": phone,
+        "delivery": "sms",
+        "message": "OTP sent to your phone"
     })
 
 def verify_otp():
     data = request.get_json()
     otp = data.get("otp", "")
     email = data.get("email", "").strip().lower()
-    users = load_users()
-    user = users.get(email)
-    if not user or not user.get("totp_secret"):
-        return jsonify({"success": False, "message": "OTP not configured"}), 400
-    totp = pyotp.TOTP(user["totp_secret"])
-    if totp.verify(otp, valid_window=1):
+    phone = data.get("phone", "").strip()
+    user_id = data.get("userId", email or phone)
+    cleanup_expired()
+    key = f"otp:{user_id}"
+    entry = verify_stored_otp(key, otp)
+    if entry:
         return jsonify({"success": True, "message": "OTP verified"})
-    return jsonify({"success": False, "message": "Invalid OTP"}), 401
+    return jsonify({"success": False, "message": "Invalid or expired OTP"}), 401
 
 def verify_mfa():
     data = request.get_json()
     email = data.get("email", "").strip().lower()
     otp = data.get("otp", "")
+    phone = data.get("phone", "").strip()
+    user_id = data.get("userId", email or phone)
     users = load_users()
-    user = users.get(email)
-    if not user or not user.get("mfa_enabled"):
-        return jsonify({"success": False, "message": "MFA not enabled for this user"}), 400
-    secret = user.get("totp_secret")
-    if not secret:
-        return jsonify({"success": False, "message": "TOTP not configured"}), 400
-    totp = pyotp.TOTP(secret)
-    if totp.verify(otp, valid_window=1):
-        token = create_token(email, user["name"], user["role"])
+    cleanup_expired()
+    key = f"otp:{user_id}"
+    if verify_stored_otp(key, otp):
+        user = users.get(email) if email else None
+        if not user and phone:
+            mobile_key = f"{phone}@mobile.user"
+            user = users.get(mobile_key)
+        if user:
+            token = create_token(email or mobile_key, user["name"], user["role"])
+            return jsonify({"success": True, "token": token, "user": {"email": email, "name": user["name"], "role": user["role"]}, "message": "MFA verified"})
+        token = create_token(user_id, "User", "analyst")
         return jsonify({"success": True, "token": token, "message": "MFA verified"})
-    return jsonify({"success": False, "message": "Invalid OTP"}), 401
+    return jsonify({"success": False, "message": "Invalid or expired OTP"}), 401
+
+def send_otp():
+    data = request.get_json() or {}
+    email = data.get("email", "").strip().lower()
+    phone = data.get("phone", "").strip()
+    if not email and not phone:
+        return jsonify({"success": False, "message": "Email or phone required"}), 400
+    otp = generate_otp()
+    if email:
+        store_otp(f"otp:{email}", otp)
+        sent, msg = send_email_otp(email, otp)
+    else:
+        store_otp(f"otp:{phone}", otp)
+        sent, msg = send_sms_otp(phone, otp)
+    if sent:
+        return jsonify({"success": True, "message": msg, "delivery": "email" if email else "sms"})
+    return jsonify({"success": False, "message": msg}), 500
 
 def sso_login():
     data = request.get_json() or {}

@@ -44,7 +44,7 @@
     "last_login": "2026-06-11T06:45:00Z"
   },
   "+919876543210@mobile.user": {
-    "pin": "$argon2id$v=19$m=65536,t=3,p=4$z2Zz9d4efI+VFGhVkLArQw$X4/laekjqLedoXptca2oID3BKB507C5Bjuwnv/H9ICE",
+    "pin": "$argon2id$v=19$m=65536,t=3,p=4$u31Vho+l93eTVOgLSSdeCw$us9o+cMjs/0gqmL2oLD+eyaJeUrHKFf0T4ZzxAaSE4M",
     "name": "Mobile User",
     "role": "analyst",
     "mfa_enabled": false,
