@@ -750,7 +750,7 @@
 
             <!-- MFA OTP section -->
             <div class="mfa-section" id="mfaSection">
-                <div id="qrSetup"></div>
+                <div id="otpDeliveryMsg" style="font-size:13px;color:var(--cyan);text-align:center;margin-bottom:12px;font-family:var(--mono);"></div>
                 <div class="mfa-label">🔐 One-Time Password (OTP)</div>
                 <div class="otp-inputs">
                     <input type="text" maxlength="1" class="otp" id="o1" oninput="otpNext(this,'o2')">
@@ -759,6 +759,9 @@
                     <input type="text" maxlength="1" class="otp" id="o4" oninput="otpNext(this,'o5')">
                     <input type="text" maxlength="1" class="otp" id="o5" oninput="otpNext(this,'o6')">
                     <input type="text" maxlength="1" class="otp" id="o6" oninput="otpNext(this,null)">
+                </div>
+                <div id="resendOtpLink" style="display:none;text-align:center;margin-top:10px;">
+                    <a href="#" onclick="resendOTP();return false;" style="color:var(--muted);font-size:12px;font-family:var(--font-mono);letter-spacing:1px;">📤 Resend OTP</a>
                 </div>
             </div>
 

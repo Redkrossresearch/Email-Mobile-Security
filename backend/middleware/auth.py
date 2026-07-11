@@ -1,9 +1,7 @@
-import jwt
-import json
 import time
 from functools import wraps
 from flask import request, jsonify
-from config.settings import JWT_SECRET, JWT_ALGO, DATA_DIR
+from services._shared.jwt_middleware import verify_token, create_token as rs_create_token
 
 RATE_LIMIT_MAP = {}
 
@@ -25,17 +23,14 @@ def token_required(f):
         token = None
         auth = request.headers.get("Authorization")
         if auth and auth.startswith("Bearer "):
-            token = auth.split(" ")[1]
+            token = auth[7:]
         if not token:
             return jsonify({"error": "Token missing", "message": "Authorization required"}), 401
-        try:
-            data = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGO])
-            current_user = data.get("email")
-            user_role = data.get("role", "analyst")
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "Token expired"}), 401
-        except Exception:
-            return jsonify({"error": "Invalid token"}), 401
+        payload = verify_token(token)
+        if not payload:
+            return jsonify({"error": "Invalid or expired token"}), 401
+        current_user = payload.get("sub")
+        user_role = payload.get("roles", ["analyst"])[0] if payload.get("roles") else "analyst"
         return f(current_user, *args, **kwargs)
     return decorated
 
@@ -45,25 +40,17 @@ def admin_required(f):
         token = None
         auth = request.headers.get("Authorization")
         if auth and auth.startswith("Bearer "):
-            token = auth.split(" ")[1]
+            token = auth[7:]
         if not token:
             return jsonify({"error": "Token missing"}), 401
-        try:
-            data = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGO])
-            if data.get("role") != "admin":
-                return jsonify({"error": "Admin access required"}), 403
-        except Exception:
+        payload = verify_token(token)
+        if not payload:
             return jsonify({"error": "Invalid token"}), 401
+        if "admin" not in payload.get("roles", []):
+            return jsonify({"error": "Admin access required"}), 403
         return f(*args, **kwargs)
     return decorated
 
 def create_token(email, name, role):
-    import datetime
-    payload = {
-        "email": email,
-        "name": name,
-        "role": role,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=7),
-        "iat": datetime.datetime.utcnow()
-    }
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGO)
+    token, _ = rs_create_token(email, name, [role])
+    return token

@@ -4,8 +4,8 @@ let AUTH_TOKEN = localStorage.getItem("cybershield_token") || null;
 function apiUrl(p) { return `${API_BASE}${p}`; }
 function authHeaders() { const h = {"Content-Type":"application/json"}; if(AUTH_TOKEN) h["Authorization"]=`Bearer ${AUTH_TOKEN}`; return h; }
 function authHeadersNoType() { const h = {}; if(AUTH_TOKEN) h["Authorization"]=`Bearer ${AUTH_TOKEN}`; return h; }
-async function apiGet(p) { const r=await fetch(apiUrl(p),{headers:authHeaders()}); if(r.status===401){localStorage.removeItem("cybershield_token");AUTH_TOKEN=null;showToast("Session Expired","Redirecting to login","danger");setTimeout(()=>{window.location.href="login.html"},1500);return{error:"Token expired"}}; return r.json(); }
-async function apiPost(p,b) { const r=await fetch(apiUrl(p),{method:"POST",headers:authHeaders(),body:JSON.stringify(b)}); if(r.status===401){localStorage.removeItem("cybershield_token");AUTH_TOKEN=null;showToast("Session Expired","Redirecting to login","danger");setTimeout(()=>{window.location.href="login.html"},1500);return{error:"Token expired"}}; return r.json(); }
+async function apiGet(p) { const r=await fetch(apiUrl(p),{headers:authHeaders()}); if(r.status===401 && !window.location.pathname.includes("login")){localStorage.removeItem("cybershield_token");AUTH_TOKEN=null;showToast("Session Expired","Redirecting to login","danger");setTimeout(()=>{window.location.href="login.html"},1500);return{error:"Token expired"}}; return r.json(); }
+async function apiPost(p,b) { const r=await fetch(apiUrl(p),{method:"POST",headers:authHeaders(),body:JSON.stringify(b)}); if(r.status===401 && !window.location.pathname.includes("login")){localStorage.removeItem("cybershield_token");AUTH_TOKEN=null;showToast("Session Expired","Redirecting to login","danger");setTimeout(()=>{window.location.href="login.html"},1500);return{error:"Token expired"}}; return r.json(); }
 async function apiDownload(p,fn) {
   const r=await fetch(apiUrl(p),{headers:authHeaders()});
   if(!r.ok){showToast("Download Failed","Try again","danger");return;}
@@ -29,7 +29,8 @@ function showAlert(msg){
   if(el&&t){el.style.display="flex";t.textContent=msg;}
 }
 
-let loginEmail = null;
+let loginUserId = null;
+let loginDelivery = "email";
 
 async function doLogin(){
   const email=document.getElementById("emailInput")?.value.trim();
@@ -40,16 +41,15 @@ async function doLogin(){
   try{
     const res=await apiPost("/auth/login",{email,password:pw});
     if(res.success){
-      if(res.requires2FA || res.user?.mfa_enabled){
-        loginEmail = email;
-        if(res.qrCode){
-          const qrDiv = document.getElementById("qrSetup");
-          if(qrDiv) qrDiv.innerHTML = `<img src="${res.qrCode}" alt="TOTP QR" style="width:140px;height:140px;margin:8px auto;display:block;border-radius:8px;"><p style="font-size:11px;color:var(--muted);text-align:center;word-break:break-all;">Secret: ${res.qrCode.split('secret=')[1]?.split('&')[0] || ''}</p>`;
-        }
+      if(res.requires2FA){
+        loginUserId = email;
+        loginDelivery = res.delivery || "email";
+        document.getElementById("otpDeliveryMsg").textContent = `📧 OTP sent to ${email}`;
         document.getElementById("mfaSection").classList.add("show");
         document.getElementById("loginBtn").style.display = "none";
         document.getElementById("verifyOtpBtn").style.display = "flex";
-        showToast("MFA Required","Enter your TOTP code to continue","info");
+        document.getElementById("resendOtpLink").style.display = "block";
+        showToast("OTP Sent",`Check your ${res.delivery} for the code`,"info");
         btn?.classList.remove("loading");
         return;
       }
@@ -62,13 +62,45 @@ async function doLogin(){
   btn?.classList.remove("loading");
 }
 
+async function doMobileLogin(){
+  const phone=document.getElementById("mobileInput")?.value.trim();
+  const pin=document.getElementById("pinInput")?.value;
+  const btn=document.getElementById("mobileLoginBtn");
+  if(!phone||!pin){showAlert("Please enter phone and PIN");return;}
+  btn?.classList.add("loading");
+  try{
+    const res=await apiPost("/auth/mobile-login",{phone,pin});
+    if(res.success){
+      if(res.requires2FA){
+        loginUserId = phone;
+        loginDelivery = "sms";
+        document.getElementById("otpDeliveryMsg").textContent = `📱 OTP sent to ${phone}`;
+        document.getElementById("mfaSection").classList.add("show");
+        document.getElementById("mobileLoginBtn").style.display = "none";
+        document.getElementById("verifyOtpBtn").style.display = "flex";
+        document.getElementById("resendOtpLink").style.display = "block";
+        showToast("OTP Sent",`Check your phone for the code`,"info");
+        btn?.classList.remove("loading");
+        return;
+      }
+      AUTH_TOKEN=res.token; localStorage.setItem("cybershield_token",res.token);
+      showToast("Mobile Login Successful","Welcome","safe");
+      setTimeout(()=>{window.location.href="dashboard.html";},500);
+    } else showAlert(res.message||"Login failed");
+  }catch(e){showAlert("Connection error");}
+  btn?.classList.remove("loading");
+}
+
 async function verifyOtpAndLogin(){
   const otp = Array.from({length:6}, (_,i) => document.getElementById(`o${i+1}`)?.value).join("");
   const btn = document.getElementById("verifyOtpBtn");
   if(otp.length !== 6){showAlert("Please enter all 6 OTP digits");return;}
   btn?.classList.add("loading");
   try{
-    const res=await apiPost("/auth/verify-mfa",{email:loginEmail,otp});
+    const payload = loginDelivery === "sms"
+      ? {otp, phone: loginUserId}
+      : {otp, email: loginUserId};
+    const res=await apiPost("/auth/verify-2fa", payload);
     if(res.success){
       AUTH_TOKEN=res.token;
       localStorage.setItem("cybershield_token",res.token);
@@ -79,21 +111,15 @@ async function verifyOtpAndLogin(){
   btn?.classList.remove("loading");
 }
 
-async function doMobileLogin(){
-  const phone=document.getElementById("mobileInput")?.value.trim();
-  const pin=document.getElementById("pinInput")?.value;
-  const btn=document.getElementById("mobileLoginBtn");
-  if(!phone||!pin){showAlert("Please enter phone and PIN");return;}
-  btn?.classList.add("loading");
+async function resendOTP(){
+  const payload = loginDelivery === "sms"
+    ? {phone: loginUserId}
+    : {email: loginUserId};
   try{
-    const res=await apiPost("/auth/mobile-login",{phone,pin});
-    if(res.success){
-      AUTH_TOKEN=res.token; localStorage.setItem("cybershield_token",res.token);
-      showToast("Mobile Login Successful","Welcome","safe");
-      setTimeout(()=>{window.location.href="dashboard.html";},500);
-    } else showAlert(res.message||"Login failed");
+    const res=await apiPost("/auth/send-otp", payload);
+    if(res.success) showToast("OTP Resent",res.message,"info");
+    else showAlert(res.message||"Failed to resend OTP");
   }catch(e){showAlert("Connection error");}
-  btn?.classList.remove("loading");
 }
 
 /* ════════════════════════════════════════════
@@ -793,7 +819,6 @@ function togglePassword(){const inp=document.getElementById("pwInput");if(inp)in
 function togglePin(){const inp=document.getElementById("pinInput");if(inp)inp.type=inp.type==="password"?"text":"password";}
 function toggleMFA(){const section=document.getElementById("mfaSection");const check=document.getElementById("mfaCheck");if(section&&check){section.classList.toggle("show");check.textContent=section.classList.contains("show")?"✓":"";}}
 function otpNext(el,nextId){if(el.value.length>=1&&nextId)document.getElementById(nextId)?.focus();}
-function resendOTP(){showToast("OTP Sent","New verification code sent","info");}
 function altLogin(method){showToast("Alternative Login",`${method} authentication initiated`,"info");}
 function showForgot(){showToast("Password Reset","Reset link sent to your email","info");}
 
@@ -882,8 +907,15 @@ function validateToken(){
   }).catch(()=>{});
 }
 document.addEventListener("DOMContentLoaded",()=>{
-  validateToken();initClock();initReveal();initThreatLog();
-  drawRadar();drawBarChart();
-  loadDashboardStats();loadBatteryData();loadDeviceHealth();loadCallData();
-  setTimeout(animateCounters,500);
+  const isLogin = window.location.pathname.includes("login");
+  const isIndex = window.location.pathname === "/" || window.location.pathname.includes("index");
+  validateToken();
+  if(!isLogin){
+    initClock();initReveal();initThreatLog();
+    drawRadar();drawBarChart();
+  }
+  if(!isLogin && !isIndex){
+    loadDashboardStats();loadBatteryData();loadDeviceHealth();loadCallData();
+    setTimeout(animateCounters,500);
+  }
 });
