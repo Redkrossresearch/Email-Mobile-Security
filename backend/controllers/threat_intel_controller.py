@@ -12,6 +12,7 @@ ALERT_DB = []
 
 VT_API_KEY = os.environ.get("VT_API_KEY", "")
 ABUSEIPDB_API_KEY = os.environ.get("ABUSEIPDB_API_KEY", "")
+SINKHOLED_DOMAINS = {}
 
 try:
     import dns.resolver
@@ -197,49 +198,6 @@ def scan_hash(current_user=None):
     detections = 0
     total_engines = 72
     vt_result = None
-SINKHOLED_DOMAINS = {}
-
-def dns_sinkhole(current_user=None):
-    data = request.get_json() or {}
-    domain = data.get("domain", "").strip().lower()
-    if not domain:
-        return jsonify({"success": False, "message": "Domain required"}), 400
-    SINKHOLED_DOMAINS[domain] = {
-        "sinkholed_at": datetime.utcnow().isoformat() + "Z",
-        "sinkhole_ip": "10.0.0.1",
-        "action": "redirect_to_sinkhole",
-        "status": "active"
-    }
-    return jsonify({
-        "success": True,
-        "domain": domain,
-        "sinkhole_ip": "10.0.0.1",
-        "total_sinkholed": len(SINKHOLED_DOMAINS),
-        "verdict": f"{domain} sinkholed successfully"
-    })
-
-def trigger_soar(current_user=None):
-    data = request.get_json() or {}
-    alert_id = data.get("alert_id", "ALERT-" + uuid.uuid4().hex[:8].upper())
-    playbook = data.get("playbook", "default_playbook")
-    playbooks = {
-        "default_playbook": {"steps": 4, "duration": "30s"},
-        "ransomware_response": {"steps": 6, "duration": "45s"},
-        "phishing_takedown": {"steps": 3, "duration": "20s"},
-        "malware_isolation": {"steps": 5, "duration": "35s"}
-    }
-    pb = playbooks.get(playbook, playbooks["default_playbook"])
-    return jsonify({
-        "success": True,
-        "alert_id": alert_id,
-        "playbook": playbook,
-        "status": "executing",
-        "steps": pb["steps"],
-        "estimated_duration": pb["duration"],
-        "triggered_at": datetime.utcnow().isoformat() + "Z",
-        "verdict": f"SOAR playbook '{playbook}' triggered for alert {alert_id}"
-    })
-
     if VT_API_KEY:
         try:
             r = requests.get(f"https://www.virustotal.com/api/v3/files/{file_hash}", headers={"x-apikey": VT_API_KEY}, timeout=10)
@@ -267,4 +225,47 @@ def trigger_soar(current_user=None):
         "source": vt_result,
         "verdict": "MALICIOUS" if detections >= 5 else "SUSPICIOUS" if detections >= 2 else "CLEAN",
         "scan_date": datetime.utcnow().isoformat() + "Z"
+    })
+
+def dns_sinkhole(current_user=None):
+    data = request.get_json() or {}
+    domain = data.get("domain", "").strip().lower()
+    action = data.get("action", "sinkhole")
+    if not domain:
+        return jsonify({"success": False, "message": "Domain required"}), 400
+    if action == "sinkhole":
+        SINKHOLED_DOMAINS[domain] = {"sinkholed_at": datetime.utcnow().isoformat() + "Z", "sinkholed_by": current_user, "redirect_ip": "0.0.0.0"}
+        return jsonify({"success": True, "domain": domain, "action": "SINKHOLED", "redirect_ip": "0.0.0.0", "total_sinkholed": len(SINKHOLED_DOMAINS), "verdict": "DNS_SINKHOLE_ACTIVE"})
+    elif action == "release":
+        SINKHOLED_DOMAINS.pop(domain, None)
+        return jsonify({"success": True, "domain": domain, "action": "RELEASED", "verdict": "DNS_SINKHOLE_REMOVED"})
+    elif action == "list":
+        return jsonify({"success": True, "sinkholed_domains": SINKHOLED_DOMAINS, "total": len(SINKHOLED_DOMAINS)})
+    return jsonify({"success": False, "message": "Invalid action"}), 400
+
+def trigger_soar(current_user=None):
+    data = request.get_json() or {}
+    alert_id = data.get("alert_id", "")
+    playbook = data.get("playbook", "default-response")
+    severity = data.get("severity", "medium")
+    if not alert_id:
+        return jsonify({"success": False, "message": "alert_id required"}), 400
+    playbooks = {
+        "phishing-response": ["Block sender", "Quarantine email", "Alert SOC team", "Run sandbox analysis"],
+        "malware-response": ["Isolate endpoint", "Kill process", "Collect forensics", "Notify IR team"],
+        "brute-force-response": ["Lock account", "Reset password", "Enable MFA", "Alert admin"],
+        "default-response": ["Log incident", "Assign analyst", "Generate report"]
+    }
+    steps = playbooks.get(playbook, playbooks["default-response"])
+    return jsonify({
+        "success": True,
+        "alert_id": alert_id,
+        "playbook": playbook,
+        "severity": severity,
+        "steps_executed": steps,
+        "execution_time_ms": 342,
+        "status": "COMPLETED",
+        "triggered_by": current_user,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "verdict": "SOAR_PLAYBOOK_EXECUTED"
     })
