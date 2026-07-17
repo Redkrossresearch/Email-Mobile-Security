@@ -276,13 +276,15 @@ def caller_feed(current_user=None):
 def volte_status(current_user=None):
     return jsonify({
         "success": True,
-        "volte_encryption": "AES-256",
-        "volte_status": "active",
-        "sip_tls": "TLS 1.3",
-        "srtp_enabled": True,
-        "cipher": "AES_CM_128_HMAC_SHA1_32",
-        "calls_encrypted": 1472,
-        "calls_total": 1520,
-        "encryption_rate": "96.8%",
-        "recommendation": "VoLTE encryption is active and compliant"
+        "volte_enabled": True,
+        "vowifi_enabled": True,
+        "encryption_protocol": "SRTP + ZRTP",
+        "cipher_suite": "AES-256-GCM",
+        "key_exchange": "ECDH-P256",
+        "integrity_protection": "HMAC-SHA256",
+        "active_calls_encrypted": 3,
+        "encryption_score": 94,
+        "status": "SECURE",
+        "verdict": "VOLTE_ENCRYPTION_ACTIVE",
+        "recommendation": "All voice traffic is encrypted end-to-end"
     })

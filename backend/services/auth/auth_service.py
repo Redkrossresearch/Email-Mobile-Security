@@ -88,6 +88,17 @@ def verify_2fa(user_id, otp):
         return {"success": True, "token": token, "refreshToken": refresh, "user": {"email": user_id, "name": user.get("name", user_id), "role": user.get("role", "analyst")}}, 200
     users = load_users()
     user = users.get(user_id)
+    phone = user.get("phone") if user else None
+    if user and check_otp(f"otp:{user_id}", otp):
+        roles = ["admin"] if user.get("role") == "admin" else ["analyst"] if user.get("role") == "analyst" else ["compliance"]
+        token, refresh = create_token(user_id, user.get("name", user_id), roles)
+        log_event("MFA_VERIFIED", "INFO", "auth", {"user_id": user_id, "method": "otp"}, user_id)
+        return {"success": True, "token": token, "refreshToken": refresh, "user": {"email": user_id, "name": user.get("name", user_id), "role": user.get("role", "analyst")}}, 200
+    if phone and check_otp(f"otp:{phone}", otp):
+        roles = ["admin"] if user.get("role") == "admin" else ["analyst"] if user.get("role") == "analyst" else ["compliance"]
+        token, refresh = create_token(user_id, user.get("name", user_id), roles)
+        log_event("MFA_VERIFIED", "INFO", "auth", {"user_id": user_id, "method": "otp_sms"}, user_id)
+        return {"success": True, "token": token, "refreshToken": refresh, "user": {"email": user_id, "name": user.get("name", user_id), "role": user.get("role", "analyst")}}, 200
     if user and user.get("totp_secret"):
         totp = pyotp.TOTP(user["totp_secret"])
         if totp.verify(otp, valid_window=1):
@@ -208,7 +219,11 @@ def mobile_login(phone, pin):
     except (VerifyMismatchError, KeyError):
         log_event("MOBILE_LOGIN_FAILED", "INFO", "auth", {"phone": phone}, user_key)
         return {"success": False, "message": "Invalid phone or PIN"}, 401
-    log_event("MOBILE_LOGIN_SUCCESS", "INFO", "auth", {"phone": phone}, user_key)
+    from services.auth.otp_service import generate_otp, store_otp, send_sms_otp
+    otp = generate_otp()
+    store_otp(f"otp:{phone}", otp)
+    sent, msg = send_sms_otp(phone, otp)
+    log_event("MOBILE_LOGIN_SUCCESS", "INFO", "auth", {"phone": phone, "otp_sent": sent}, user_key)
     return {"success": True, "requires2FA": True, "userId": user_key, "user": {"email": user_key, "name": user["name"], "role": user["role"], "phone": user.get("phone")}, "delivery": "sms"}, 200
 
 def refresh_token(refresh_token_str):

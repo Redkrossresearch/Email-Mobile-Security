@@ -1,6 +1,6 @@
 {
   "admin@cybershield.com": {
-    "password": "$argon2id$v=19$m=65536,t=3,p=4$Te2nNbVDYrUrbOFVGvR21w$mVsHxlBYLbnIhBHuN+j7dyrUG3Y4nex15tuDvT6FNwA",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$+mGDb8KKFVApaddQLKn9TA$HiPRo/+puAlpg2vJLDXovIscka6oAYaRS+Vt1pyawJU",
     "name": "SOC Admin",
     "role": "admin",
     "mfa_enabled": false,
@@ -11,7 +11,7 @@
     "last_login": "2026-06-11T08:00:00Z"
   },
   "analyst@cybershield.com": {
-    "password": "$argon2id$v=19$m=65536,t=3,p=4$dsXQz24NgmEA/XSMly6TQg$yGsk1m1SR1D1w5aUROT2uWVCqiYbaOBnnBStGysEHd0",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$QTdmeTpBAgIzYdOBKtX9Dg$/x62lJPaoBjQCsq2S/enPZXC8JEn2GYk9nPbFpY5SE8",
     "name": "Security Analyst",
     "role": "analyst",
     "mfa_enabled": true,
@@ -22,7 +22,7 @@
     "last_login": "2026-06-11T07:30:00Z"
   },
   "compliance@cybershield.com": {
-    "password": "$argon2id$v=19$m=65536,t=3,p=4$cBu4PolgicOlqo84UdrQAg$nKGRxzInxnWmDa76ly7OwdhoXUkij89oHAtij7zIpkg",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$Oob3UwBO90WF7cc7Vo0GWg$bKvDH+y4o927Pw578ZahhqrU07TEsFH67kLgCQumNPE",
     "name": "Compliance Officer",
     "role": "compliance",
     "mfa_enabled": true,
@@ -33,7 +33,7 @@
     "last_login": "2026-06-10T16:00:00Z"
   },
   "itadmin@cybershield.com": {
-    "password": "$argon2id$v=19$m=65536,t=3,p=4$XHR+If2iEyHUMEvNDK3yDA$HBMMe3kv7+YB80JD8l0pXzqnvkYMo3ILNFIYbCO8mhk",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$MgdyH+yWzLtdPNfELdOFUg$9NGENqskG1XoETaNCNicWgrk4KTbYxin544HIFGEASc",
     "name": "IT System Admin",
     "role": "admin",
     "mfa_enabled": true,
@@ -49,6 +49,15 @@
     "role": "analyst",
     "mfa_enabled": false,
     "phone": "+919876543210",
+    "created": "2026-06-01T00:00:00Z",
+    "last_login": "2026-06-11T12:00:00Z"
+  },
+  "+911234567890@mobile.user": {
+    "pin": "$argon2id$v=19$m=65536,t=3,p=4$k4jrQFo00570ZCfRTbxEvg$TRcfYCC75ADq8nnhdKTdb0PhjyULmOzNZpRfzxMAxEE",
+    "name": "Mobile User",
+    "role": "analyst",
+    "mfa_enabled": false,
+    "phone": "+911234567890",
     "created": "2026-06-01T00:00:00Z",
     "last_login": "2026-06-11T12:00:00Z"
   }

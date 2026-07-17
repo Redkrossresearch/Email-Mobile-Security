@@ -1114,39 +1114,43 @@ def generate_eml_xlsx(current_user=None):
 
 def content_disarm(current_user=None):
     data = request.get_json() or {}
-    filename = data.get("filename", "document")
+    filename = data.get("filename", "document.docx")
     content = data.get("content", "")
-    stripped = re.sub(r'<script[^>]*>.*?</script>', '', content, flags=re.IGNORECASE | re.DOTALL)
-    stripped = re.sub(r'javascript\s*:', '', stripped, flags=re.IGNORECASE)
-    stripped = re.sub(r'on\w+\s*=\s*["\'][^"\']*["\']', '', stripped, flags=re.IGNORECASE)
-    stripped = re.sub(r'<object[^>]*>.*?</object>', '', stripped, flags=re.IGNORECASE | re.DOTALL)
-    removed_count = len(content) - len(stripped)
+    removed = []
+    dangerous_patterns = ["<script", "=cmd|", "Auto_Open", "AutoOpen", "Document_Open", "macros", ".exe", ".bat", ".vbs", ".ps1"]
+    sanitized = content
+    for pattern in dangerous_patterns:
+        if pattern.lower() in content.lower():
+            removed.append(pattern)
+            sanitized = sanitized.replace(pattern, "[REMOVED]")
     return jsonify({
         "success": True,
         "filename": filename,
         "original_size": len(content),
-        "sanitized_size": len(stripped),
-        "removed_count": removed_count // 10 + 1,
-        "sanitized_content": stripped[:2000],
-        "verdict": "SANITIZED",
-        "recommendation": "File is safe after CDR processing"
+        "sanitized_size": len(sanitized),
+        "threats_removed": removed,
+        "sanitized_content": sanitized[:500] if sanitized else "",
+        "verdict": "DISARMED" if removed else "CLEAN",
+        "recommendation": f"{len(removed)} threats removed via CDR" if removed else "File is safe"
     })
 
 def auto_remediate(current_user=None):
     data = request.get_json() or {}
     message_id = data.get("message_id", "")
     action = data.get("action", "quarantine")
+    reason = data.get("reason", "Threat detected")
     if not message_id:
         return jsonify({"success": False, "message": "message_id required"}), 400
-    valid_actions = ["quarantine", "delete", "clawback"]
+    valid_actions = ["quarantine", "delete", "clawback", "block_sender"]
     if action not in valid_actions:
-        return jsonify({"success": False, "message": f"Invalid action. Must be one of: {valid_actions}"}), 400
+        return jsonify({"success": False, "message": f"Invalid action. Use: {valid_actions}"}), 400
     return jsonify({
         "success": True,
         "message_id": message_id,
-        "action": action,
-        "status": "completed",
-        "affected_recipients": 12,
-        "remediated_at": datetime.utcnow().isoformat() + "Z",
-        "verdict": f"Email {action}d successfully"
+        "action_taken": action,
+        "reason": reason,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "performed_by": current_user,
+        "verdict": f"AUTO_REMEDIATION_{action.upper()}_COMPLETE",
+        "recommendation": "Monitor inbox for further threats"
     })

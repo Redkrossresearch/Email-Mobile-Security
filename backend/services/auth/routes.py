@@ -35,7 +35,16 @@ def register_route():
 @auth_bp.route("/verify-2fa", methods=["POST"])
 def verify_2fa_route():
     data = request.get_json() or {}
-    result, status = verify_2fa(data.get("userId", data.get("email", "")), data.get("otp", ""))
+    user_id = data.get("userId", data.get("email", ""))
+    if not user_id:
+        phone = data.get("phone", "").strip()
+        if phone:
+            users = __import__("json").load(open("data/users.json"))
+            for k, v in users.items():
+                if v.get("phone", "").replace(" ", "") == phone.replace(" ", ""):
+                    user_id = k
+                    break
+    result, status = verify_2fa(user_id, data.get("otp", ""))
     return jsonify(result), status
 
 @auth_bp.route("/send-otp", methods=["POST"])

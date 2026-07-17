@@ -97,14 +97,15 @@ def verify_otp():
     data = request.get_json()
     otp = data.get("otp", "")
     email = data.get("email", "").strip().lower()
-    phone = data.get("phone", "").strip()
-    user_id = data.get("userId", email or phone)
-    cleanup_expired()
-    key = f"otp:{user_id}"
-    entry = verify_stored_otp(key, otp)
-    if entry:
+    users = load_users()
+    user = users.get(email)
+    if not user or not user.get("totp_secret"):
+        return jsonify({"success": False, "message": "OTP not configured for this user"}), 400
+    import pyotp
+    totp = pyotp.TOTP(user["totp_secret"])
+    if totp.verify(otp, valid_window=1):
         return jsonify({"success": True, "message": "OTP verified"})
-    return jsonify({"success": False, "message": "Invalid or expired OTP"}), 401
+    return jsonify({"success": False, "message": "Invalid OTP"}), 401
 
 def verify_mfa():
     data = request.get_json()
