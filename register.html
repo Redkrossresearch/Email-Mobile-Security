@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — CyberShield SOC</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3064/3064197.png">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep:    #020b14;
+            --bg-panel:   #04111e;
+            --accent:     #00ffe7;
+            --accent2:    #0077ff;
+            --danger:     #ff3c5a;
+            --warn:       #ffc107;
+            --good:       #00ff88;
+            --text:       #c9e8f5;
+            --muted:      #4a7a96;
+            --border:     rgba(0,255,231,0.15);
+            --glow:       0 0 18px rgba(0,255,231,0.25);
+            --glow-strong:0 0 32px rgba(0,255,231,0.5);
+            --font-mono:  'Share Tech Mono', monospace;
+            --font-main:  'Rajdhani', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg-deep);
+            color: var(--text);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0 30px;
+        }
+
+        /* ── Animated grid background ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,255,231,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,231,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridPan 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gridPan {
+            0%   { background-position: 0 0; }
+            100% { background-position: 40px 40px; }
+        }
+
+        /* ── Radial glow behind card ── */
+        .glow-bg {
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 550px;
+            background: radial-gradient(ellipse, rgba(0,119,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; transform: translate(-50%,-50%) scale(1); }
+            50%       { opacity: 1;   transform: translate(-50%,-50%) scale(1.1); }
+        }
+
+        /* ── Floating particles ── */
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: float linear infinite;
+            opacity: 0;
+        }
+        @keyframes float {
+            0%   { transform: translateY(100vh) translateX(0);   opacity: 0; }
+            10%  { opacity: 0.6; }
+            90%  { opacity: 0.3; }
+            100% { transform: translateY(-20px) translateX(60px); opacity: 0; }
+        }
+
+        /* ── Header bar ── */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 44px;
+            background: rgba(2,11,20,0.9);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .top-bar .brand {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--accent);
+            letter-spacing: 2px;
+        }
+        .status-dots {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            animation: blink 2s ease-in-out infinite;
+        }
+        .dot.green  { background: #00ff88; animation-delay: 0s; }
+        .dot.yellow { background: var(--warn); animation-delay: 0.7s; }
+        .dot.red    { background: var(--danger); animation-delay: 1.4s; }
+        @keyframes blink {
+            0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+        }
+        .sys-time {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* ── Main wrapper ── */
+        .wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 520px;
+            padding: 0 20px;
+            animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        @keyframes slideUp {
+            from { opacity:0; transform: translateY(30px); }
+            to   { opacity:1; transform: translateY(0); }
+        }
+
+        /* ── Card ── */
+        .card {
+            background: linear-gradient(160deg, rgba(4,17,30,0.97) 0%, rgba(2,11,20,0.99) 100%);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 40px 36px 32px;
+            box-shadow: var(--glow), inset 0 1px 0 rgba(0,255,231,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+            animation: scanLine 3s linear infinite;
+        }
+        @keyframes scanLine {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        /* Corner decorations */
+        .corner { position: absolute; width: 16px; height: 16px; }
+        .corner.tl { top: 8px; left: 8px;  border-top: 1.5px solid var(--accent); border-left: 1.5px solid var(--accent); }
+        .corner.tr { top: 8px; right: 8px; border-top: 1.5px solid var(--accent); border-right: 1.5px solid var(--accent); }
+        .corner.bl { bottom: 8px; left: 8px;  border-bottom: 1.5px solid var(--accent); border-left: 1.5px solid var(--accent); }
+        .corner.br { bottom: 8px; right: 8px; border-bottom: 1.5px solid var(--accent); border-right: 1.5px solid var(--accent); }
+
+        /* ── Logo section ── */
+        .logo-area {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .shield-icon {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 12px;
+            background: linear-gradient(135deg, rgba(0,255,231,0.1), rgba(0,119,255,0.1));
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            box-shadow: var(--glow);
+            animation: rotateBorder 6s linear infinite;
+        }
+        @keyframes rotateBorder {
+            0%   { box-shadow: var(--glow), 0 0 0 1px rgba(0,255,231,0.2); }
+            50%  { box-shadow: var(--glow-strong), 0 0 0 2px rgba(0,255,231,0.4); }
+            100% { box-shadow: var(--glow), 0 0 0 1px rgba(0,255,231,0.2); }
+        }
+        .logo-area h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(0,255,231,0.4);
+        }
+        .logo-area .subtitle {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+
+        /* ── Steps indicator ── */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 26px;
+        }
+        .step-indicator .seg {
+            width: 34px;
+            height: 3px;
+            border-radius: 2px;
+            background: var(--border);
+            transition: all 0.3s;
+        }
+        .step-indicator .seg.done { background: var(--accent); box-shadow: 0 0 8px rgba(0,255,231,0.5); }
+
+        /* ── Form fields ── */
+        .field {
+            margin-bottom: 18px;
+        }
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .field label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 7px;
+        }
+        .field label .ico { font-size: 13px; }
+        .field label .req { color: var(--danger); }
+        .input-wrap {
+            position: relative;
+        }
+        .input-wrap input,
+        .input-wrap select {
+            width: 100%;
+            background: rgba(0,255,231,0.03);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 11px 44px 11px 14px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text);
+            outline: none;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+        }
+        .input-wrap select { appearance: none; cursor: pointer; padding-right: 36px; }
+        .input-wrap input::placeholder { color: #2a4a5a; }
+        .input-wrap input:focus,
+        .input-wrap select:focus {
+            border-color: var(--accent);
+            background: rgba(0,255,231,0.05);
+            box-shadow: var(--glow);
+        }
+        .input-wrap input:focus + .input-bar {
+            width: 100%;
+        }
+        .input-bar {
+            position: absolute;
+            bottom: 0; left: 0;
+            height: 2px;
+            width: 0;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border-radius: 0 0 3px 3px;
+            transition: width 0.4s ease;
+        }
+        .toggle-pw {
+            position: absolute;
+            right: 12px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 15px;
+            transition: color 0.2s;
+            z-index: 2;
+        }
+        .toggle-pw:hover { color: var(--accent); }
+        .select-arrow {
+            position: absolute;
+            right: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 11px;
+            pointer-events: none;
+        }
+        .hint {
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            color: var(--muted);
+            margin-top: 6px;
+            letter-spacing: 0.3px;
+        }
+        .hint.match-ok { color: var(--good); }
+        .hint.match-bad { color: var(--danger); }
+
+        /* ── Password strength meter ── */
+        .pw-meter {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .pw-meter span {
+            height: 4px;
+            flex: 1;
+            border-radius: 2px;
+            background: var(--border);
+            transition: all 0.3s;
+        }
+        .pw-strength-label {
+            font-family: var(--font-mono);
+            font-size: 10.5px;
+            color: var(--muted);
+            margin-top: 6px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* ── Security options ── */
+        .security-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .check-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 12.5px;
+            color: var(--muted);
+            letter-spacing: 0.3px;
+            line-height: 1.5;
+        }
+        .check-label input { display: none; }
+        .custom-check {
+            width: 16px; height: 16px;
+            min-width: 16px;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: transparent;
+            transition: all 0.2s;
+            margin-top: 1px;
+        }
+        .check-label input:checked ~ .custom-check {
+            background: rgba(0,255,231,0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .check-label a { color: var(--accent2); text-decoration: none; }
+        .check-label a:hover { color: var(--accent); text-decoration: underline; }
+
+        /* ── Register button ── */
+        .btn-login {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(90deg, rgba(0,255,231,0.12), rgba(0,119,255,0.12));
+            border: 1px solid var(--accent);
+            border-radius: 3px;
+            color: var(--accent);
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            margin-bottom: 14px;
+        }
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0,255,231,0.15), transparent);
+            transition: left 0.5s;
+        }
+        .btn-login:hover::before { left: 100%; }
+        .btn-login:hover {
+            background: linear-gradient(90deg, rgba(0,255,231,0.2), rgba(0,119,255,0.2));
+            box-shadow: var(--glow-strong);
+            transform: translateY(-1px);
+        }
+        .btn-login:active { transform: translateY(0); }
+        .btn-login:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-login.loading { pointer-events: none; opacity: 0.7; }
+        .btn-login .spinner {
+            display: none;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(0,255,231,0.3);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-login.loading .btn-text { display: none; }
+        .btn-login.loading .spinner { display: block; }
+
+        /* ── Divider ── */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .divider hr { flex: 1; border-color: var(--border); }
+        .divider span {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        /* ── Login redirect ── */
+        .login-redirect {
+            text-align: center;
+            font-size: 13px;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+        }
+        .login-redirect a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .login-redirect a:hover { text-decoration: underline; }
+
+        /* ── Alert messages ── */
+        .alert-msg {
+            padding: 10px 14px;
+            border-radius: 3px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: translateY(0); } }
+        .alert-msg.error {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,60,90,0.08);
+            border: 1px solid rgba(255,60,90,0.3);
+            color: var(--danger);
+        }
+        .alert-msg.success {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,255,136,0.06);
+            border: 1px solid rgba(0,255,136,0.25);
+            color: #00ff88;
+        }
+
+        /* ── Footer ── */
+        .card-footer-info {
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+        .footer-badge .ico { font-size: 13px; }
+        .version-tag {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        /* ── Page footer ── */
+        .page-footer {
+            position: relative;
+            z-index: 10;
+            margin-top: 28px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+            font-family: var(--font-mono);
+        }
+        .page-footer a { color: var(--muted); text-decoration: none; }
+        .page-footer a:hover { color: var(--accent); }
+
+        /* ── Notification toast ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(4,17,30,0.95);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 3px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text);
+            z-index: 200;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast .t-icon { font-size: 16px; }
+        .toast .t-msg { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.5px; }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .card { padding: 28px 20px 22px; }
+            .field-row { grid-template-columns: 1fr; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Glow bg -->
+<div class="glow-bg"></div>
+
+<!-- Particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Top status bar -->
+<div class="top-bar">
+    <div class="brand">CYBERSHIELD // SOC-PLATFORM</div>
+    <div class="status-dots">
+        <div class="dot green" title="System Online"></div>
+        <div class="dot yellow" title="Monitoring Active"></div>
+        <div class="dot red" title="Threat Scanner"></div>
+    </div>
+    <div class="sys-time" id="sysTime">--:--:-- UTC</div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+    <span class="t-icon">🛡️</span>
+    <span class="t-msg" id="toastMsg">Session encrypted</span>
+</div>
+
+<!-- Main wrapper -->
+<div class="wrapper">
+    <div class="card">
+        <!-- Corner decorations -->
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+
+        <!-- Logo -->
+        <div class="logo-area">
+            <div class="shield-icon">🛡️</div>
+            <h1>Create Account</h1>
+            <div class="subtitle">EMAIL &amp; MOBILE SECURITY PLATFORM</div>
+        </div>
+
+        <!-- Step indicator -->
+        <div class="step-indicator">
+            <div class="seg done"></div>
+            <div class="seg done"></div>
+            <div class="seg"></div>
+        </div>
+
+        <!-- Alert message area -->
+        <div class="alert-msg" id="alertMsg">
+            <span>⚠</span>
+            <span id="alertText"></span>
+        </div>
+
+        <!-- ── REGISTER FORM ── -->
+        <form id="registerForm" novalidate>
+
+            <div class="field-row">
+                <div class="field">
+                    <label><span class="ico">👤</span> Full Name</label>
+                    <div class="input-wrap">
+                        <input type="text" id="fullName" placeholder="Analyst Name" autocomplete="name" required>
+                        <div class="input-bar"></div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label><span class="ico">🏢</span> Organization</label>
+                    <div class="input-wrap">
+                        <input type="text" id="orgName" placeholder="CyberShield Inc." autocomplete="organization">
+                        <div class="input-bar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label><span class="ico">📧</span> Email Address <span class="req">*</span></label>
+                <div class="input-wrap">
+                    <input type="email" id="emailInput" placeholder="analyst@cybershield.com" autocomplete="email" required>
+                    <div class="input-bar"></div>
+                </div>
+                <div class="hint" id="emailHint"></div>
+            </div>
+
+            <div class="field">
+                <label><span class="ico">📱</span> Mobile Number <span class="req">*</span></label>
+                <div class="input-wrap">
+                    <input type="tel" id="mobileInput" placeholder="+91 98765 43210" autocomplete="tel" required>
+                    <div class="input-bar"></div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label><span class="ico">🧩</span> Role</label>
+                <div class="input-wrap">
+                    <select id="roleSelect">
+                        <option value="analyst">SOC Analyst</option>
+                        <option value="researcher">Security Researcher</option>
+                        <option value="pentester">Penetration Tester</option>
+                        <option value="admin">Platform Admin</option>
+                        <option value="intern">Intern</option>
+                    </select>
+                    <span class="select-arrow">▼</span>
+                </div>
+            </div>
+
+            <div class="field">
+                <label><span class="ico">🔑</span> Password <span class="req">*</span></label>
+                <div class="input-wrap">
+                    <input type="password" id="pwInput" placeholder="••••••••••••" autocomplete="new-password" required>
+                    <div class="input-bar"></div>
+                    <button class="toggle-pw" id="togglePw" onclick="togglePassword()" type="button">👁</button>
+                </div>
+                <div class="pw-meter" id="pwMeter">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+                <div class="pw-strength-label" id="pwStrengthLabel">MIN 8 CHARS · MIX CASE · NUMBER · SYMBOL</div>
+            </div>
+
+            <div class="field">
+                <label><span class="ico">🔒</span> Confirm Password <span class="req">*</span></label>
+                <div class="input-wrap">
+                    <input type="password" id="pwConfirm" placeholder="••••••••••••" autocomplete="new-password" required>
+                    <div class="input-bar"></div>
+                    <button class="toggle-pw" id="toggleConfirmPw" onclick="toggleConfirmPassword()" type="button">👁</button>
+                </div>
+                <div class="hint" id="matchHint"></div>
+            </div>
+
+            <div class="security-options">
+                <label class="check-label">
+                    <input type="checkbox" id="mfaToggle" checked>
+                    <div class="custom-check">✓</div>
+                    <span>Enable 2FA / MFA on this account</span>
+                </label>
+            </div>
+
+            <div class="security-options">
+                <label class="check-label">
+                    <input type="checkbox" id="termsToggle">
+                    <div class="custom-check">✓</div>
+                    <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+                </label>
+            </div>
+
+            <button class="btn-login" type="submit" id="registerBtn">
+                <span class="btn-text">🛡️ CREATE SECURE ACCOUNT</span>
+                <div class="spinner"></div>
+            </button>
+
+            <div class="divider">
+                <hr><span>OR REGISTER VIA</span><hr>
+            </div>
+
+            <div class="alt-logins" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+                <button class="alt-btn" type="button" onclick="altRegister('SSO')" style="padding:10px;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--muted);font-family:var(--font-main);font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s;">🏢 SSO Signup</button>
+                <button class="alt-btn" type="button" onclick="altRegister('Certificate')" style="padding:10px;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--muted);font-family:var(--font-main);font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s;">📜 Cert Signup</button>
+            </div>
+
+            <div class="login-redirect">
+                Already have an account? <a href="login.html">Sign In →</a>
+            </div>
+
+        </form>
+
+        <!-- Card footer -->
+        <div class="card-footer-info">
+            <div class="footer-badge">
+                <span class="ico">🔒</span>
+                <span>TLS 1.3 Encrypted</span>
+            </div>
+            <div class="footer-badge">
+                <span class="ico">🛡️</span>
+                <span>SOC 2 Certified</span>
+            </div>
+            <div class="version-tag">v4.2.1</div>
+        </div>
+    </div>
+</div>
+
+<!-- Page footer -->
+<div class="page-footer">
+    © 2026 CYBERSHIELD SOC &nbsp;|&nbsp; EMAIL &amp; MOBILE SECURITY PLATFORM
+    &nbsp;|&nbsp; <a href="#">Privacy</a> &nbsp;|&nbsp; <a href="#">Terms</a>
+</div>
+
+<div id="toast-container" style="position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;"></div>
+
+<script>
+    /* ── Particles ── */
+    (function initParticles(){
+        const container = document.getElementById('particles');
+        const count = 30;
+        for (let i = 0; i < count; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDuration = (8 + Math.random() * 10) + 's';
+            p.style.animationDelay = (Math.random() * 10) + 's';
+            container.appendChild(p);
+        }
+    })();
+
+    /* ── System clock ── */
+    function updateClock() {
+        const el = document.getElementById('sysTime');
+        const now = new Date();
+        const utc = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+        el.textContent = utc.toTimeString().split(' ')[0] + ' UTC';
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    /* ── Password visibility toggles ── */
+    function togglePassword() {
+        const input = document.getElementById('pwInput');
+        const btn = document.getElementById('togglePw');
+        const isPw = input.type === 'password';
+        input.type = isPw ? 'text' : 'password';
+        btn.textContent = isPw ? '🙈' : '👁';
+    }
+    function toggleConfirmPassword() {
+        const input = document.getElementById('pwConfirm');
+        const btn = document.getElementById('toggleConfirmPw');
+        const isPw = input.type === 'password';
+        input.type = isPw ? 'text' : 'password';
+        btn.textContent = isPw ? '🙈' : '👁';
+    }
+
+    /* ── Password strength meter ── */
+    const pwInput = document.getElementById('pwInput');
+    const pwMeter = document.getElementById('pwMeter').children;
+    const pwStrengthLabel = document.getElementById('pwStrengthLabel');
+
+    function scorePassword(pw) {
+        let score = 0;
+        if (pw.length >= 8) score++;
+        if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+        if (/\d/.test(pw)) score++;
+        if (/[^A-Za-z0-9]/.test(pw)) score++;
+        return score;
+    }
+
+    pwInput.addEventListener('input', () => {
+        const score = scorePassword(pwInput.value);
+        const colors = ['var(--danger)', 'var(--warn)', '#5ad1ff', 'var(--good)'];
+        const labels = ['WEAK', 'FAIR', 'GOOD', 'STRONG'];
+        for (let i = 0; i < pwMeter.length; i++) {
+            pwMeter[i].style.background = i < score ? colors[score - 1] : 'var(--border)';
+        }
+        pwStrengthLabel.textContent = pwInput.value.length ? labels[Math.max(score - 1, 0)] + ' PASSWORD' : 'MIN 8 CHARS · MIX CASE · NUMBER · SYMBOL';
+        checkMatch();
+    });
+
+    /* ── Confirm password match ── */
+    const pwConfirm = document.getElementById('pwConfirm');
+    const matchHint = document.getElementById('matchHint');
+    function checkMatch() {
+        if (!pwConfirm.value) { matchHint.textContent = ''; matchHint.className = 'hint'; return; }
+        if (pwConfirm.value === pwInput.value) {
+            matchHint.textContent = '✓ Passwords match';
+            matchHint.className = 'hint match-ok';
+        } else {
+            matchHint.textContent = '✗ Passwords do not match';
+            matchHint.className = 'hint match-bad';
+        }
+    }
+    pwConfirm.addEventListener('input', checkMatch);
+
+    /* ── Email hint ── */
+    const emailInput = document.getElementById('emailInput');
+    const emailHint = document.getElementById('emailHint');
+    emailInput.addEventListener('input', () => {
+        const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
+        emailHint.textContent = emailInput.value && !valid ? 'Enter a valid email address' : '';
+        emailHint.className = 'hint match-bad';
+    });
+
+    /* ── Alert helper ── */
+    function showAlert(msg, type) {
+        const alertMsg = document.getElementById('alertMsg');
+        const alertText = document.getElementById('alertText');
+        alertText.textContent = msg;
+        alertMsg.className = 'alert-msg ' + type;
+        alertMsg.style.display = 'flex';
+    }
+    function hideAlert() {
+        document.getElementById('alertMsg').style.display = 'none';
+    }
+
+    /* ── Toast helper ── */
+    function showToast(msg, icon) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.querySelector('.t-icon').textContent = icon || '🛡️';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    /* ── Alt register ── */
+    function altRegister(method) {
+        showToast(method + ' signup coming soon', '🔐');
+    }
+
+    /* ── Form submit ── */
+    const form = document.getElementById('registerForm');
+    const registerBtn = document.getElementById('registerBtn');
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        hideAlert();
+
+        const fullName = document.getElementById('fullName').value.trim();
+        const email = emailInput.value.trim();
+        const mobile = document.getElementById('mobileInput').value.trim();
+        const pw = pwInput.value;
+        const confirm = pwConfirm.value;
+        const terms = document.getElementById('termsToggle').checked;
+
+        if (!fullName || !email || !mobile || !pw || !confirm) {
+            showAlert('Please fill in all required fields.', 'error');
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showAlert('Please enter a valid email address.', 'error');
+            return;
+        }
+        if (scorePassword(pw) < 3) {
+            showAlert('Password is too weak. Use 8+ chars with mixed case, numbers &amp; symbols.', 'error');
+            return;
+        }
+        if (pw !== confirm) {
+            showAlert('Passwords do not match.', 'error');
+            return;
+        }
+        if (!terms) {
+            showAlert('You must accept the Terms of Service to continue.', 'error');
+            return;
+        }
+
+        registerBtn.classList.add('loading');
+        registerBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fullName: fullName,
+                    email: email,
+                    password: pw,
+                    mobile: mobile,
+                    role: document.getElementById('roleSelect').value
+                })
+            });
+            const result = await response.json();
+
+            registerBtn.classList.remove('loading');
+            registerBtn.disabled = false;
+
+            if (result.success) {
+                showAlert('Account created successfully! Redirecting to login…', 'success');
+                showToast('Registration successful', '✅');
+                setTimeout(() => { window.location.href = 'login.html'; }, 1800);
+            } else {
+                showAlert(result.message || 'Registration failed. Please try again.', 'error');
+            }
+        } catch (err) {
+            registerBtn.classList.remove('loading');
+            registerBtn.disabled = false;
+            showAlert('Connection error. Is the backend running?', 'error');
+        }
+    });
+</script>
+
+</body>
+</html>
