@@ -4,26 +4,33 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
-from services.auth.routes import auth_bp
-from services.email_security.routes import email_bp
-from services.mobile_security.routes import mobile_bp
-from services.threat_intel.routes import threat_intel_bp
-from services.behavior_analytics.routes import ueba_bp
-from services.encryption.routes import encryption_bp
+
+from routes.auth_routes import auth_bp
+from routes.mobile_routes import mobile_bp
+from routes.email_routes import email_bp
 from routes.report_routes import report_bp
+from routes.threat_intel_routes import threat_intel_bp
+from routes.ueba_routes import ueba_bp
+from routes.encryption_routes import encryption_bp
 from routes.ai_routes import ai_bp
 from routes.apk_routes import apk_bp
 from routes.yara_routes import yara_bp
 from routes.integration_routes import integration_bp
+
 from middleware.auth import rate_limit_middleware
-from services._shared.siem_logger import log_event, get_events
 
-FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."))
 
-app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
-CORS(app, supports_credentials=True)
+app = Flask(
+    __name__,
+    static_folder=FRONTEND_DIR,
+    static_url_path=""
+)
 
-app.before_request(rate_limit_middleware)
+CORS(app)
+
+# app.before_request(rate_limit_middleware)
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(mobile_bp, url_prefix="/api/mobile")
@@ -37,32 +44,94 @@ app.register_blueprint(apk_bp, url_prefix="/api/apk")
 app.register_blueprint(yara_bp, url_prefix="/api/yara")
 app.register_blueprint(integration_bp, url_prefix="/api/integration")
 
-@app.route("/api/health", methods=["GET"])
-def health_check():
-    return jsonify({"status": "online", "platform": "CyberShield Zero Trust Platform", "version": "6.0.0", "auth": "RS256+OAuth2+SAML+OIDC"})
 
-@app.route("/api/siem/events", methods=["GET"])
-def siem_events():
-    severity = request.args.get("severity")
-    event_type = request.args.get("event_type")
-    limit = int(request.args.get("limit", 100))
-    return jsonify({"success": True, "events": list(get_events(limit, severity, event_type))})
+@app.route("/api/health")
+def health_check():
+    return jsonify({
+        "status": "online",
+        "platform": "CyberShield Email+Mobile Security",
+        "version": "5.0.0",
+        "features": 50
+    })
+
+
+@app.route("/api/features")
+def list_features():
+    return jsonify({
+        "total_features": 116
+    })
+
 
 @app.route("/")
-def serve_index():
-    return send_from_directory(FRONTEND_DIR, "index.html")
+def home():
+    return send_from_directory(FRONTEND_DIR, "login.html")
+
+
+@app.route("/dashboard")
+def dashboard():
+    return send_from_directory(FRONTEND_DIR, "dashboard.html")
+
+
+@app.route("/email-security")
+def email_security():
+    return send_from_directory(FRONTEND_DIR, "email-security.html")
+
+
+@app.route("/mobile-security")
+def mobile_security():
+    return send_from_directory(FRONTEND_DIR, "mobile-security.html")
+
+
+@app.route("/threat-intel")
+def threat_intel():
+    return send_from_directory(FRONTEND_DIR, "threat-intel.html")
+
+
+@app.route("/ai-engine")
+def ai_engine():
+    return send_from_directory(FRONTEND_DIR, "ai-engine.html")
+
+
+@app.route("/apk-analyzer")
+def apk_analyzer():
+    return send_from_directory(FRONTEND_DIR, "apk-analyzer.html")
+
+
+@app.route("/yara")
+def yara():
+    return send_from_directory(FRONTEND_DIR, "yara.html")
+
+
+@app.route("/integrations")
+def integrations():
+    return send_from_directory(FRONTEND_DIR, "integrations.html")
+
+
+@app.route("/encryption")
+def encryption():
+    return send_from_directory(FRONTEND_DIR, "encryption.html")
+
+
+@app.route("/ueba")
+def ueba():
+    return send_from_directory(FRONTEND_DIR, "ueba.html")
+
+
+@app.route("/reports")
+def reports():
+    return send_from_directory(FRONTEND_DIR, "reports.html")
+
 
 @app.route("/<path:filename>")
-def serve_frontend(filename):
+def serve_files(filename):
     return send_from_directory(FRONTEND_DIR, filename)
 
+
 if __name__ == "__main__":
-    print("\n" + "="*65)
-    print("  CyberShield Zero Trust Platform v6.0")
-    print("="*65)
-    print("  Auth (RS256+OAuth2+SAML+OIDC+TOTP) | Email | Mobile")
-    print("  Threat Intel | UEBA | Encryption | AI | APK | YARA")
-    print("-"*65)
-    print("  http://localhost:5000")
-    print("="*65 + "\n")
+    print("\n" + "=" * 65)
+    print("CyberShield SOC v6.0 - Enterprise Security Platform")
+    print("=" * 65)
+    print("Running on: http://localhost:5000")
+    print("=" * 65)
+
     app.run(host="0.0.0.0", port=5000, debug=True)
