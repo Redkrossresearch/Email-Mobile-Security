@@ -2,7 +2,7 @@ from flask import Blueprint
 from controllers.auth_controller import (
     login, mobile_login, verify_otp, verify_mfa,
     sso_login, oauth_authorize, oauth_token, account_recovery, list_users,
-    generate_totp, send_otp
+    generate_totp
 )
 from middleware.auth import token_required, admin_required
 
@@ -18,4 +18,3 @@ auth_bp.route("/oauth/token", methods=["POST"])(oauth_token)
 auth_bp.route("/recovery", methods=["POST"])(account_recovery)
 auth_bp.route("/users", methods=["GET"])(token_required(admin_required(list_users)))
 auth_bp.route("/generate-totp", methods=["POST"])(token_required(generate_totp))
-auth_bp.route("/send-otp", methods=["POST"])(send_otp)
