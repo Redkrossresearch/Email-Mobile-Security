@@ -1,216 +1,77 @@
 WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5000
- * Running on http://192.168.0.104:5000
+ * Running on http://192.168.0.103:5000
 Press CTRL+C to quit
- * Restarting with stat
+ * Restarting with watchdog (windowsapi)
  * Debugger is active!
- * Debugger PIN: 129-348-431
-127.0.0.1 - - [11/Jun/2026 11:46:16] "GET /api/health HTTP/1.1" 200 -
-C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\jwt\api_jwt.py:147: InsecureKeyLengthWarning: The HMAC key is 31 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
-  return self._jws.encode(
-127.0.0.1 - - [11/Jun/2026 11:46:16] "POST /api/auth/login HTTP/1.1" 200 -
-C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\jwt\api_jwt.py:368: InsecureKeyLengthWarning: The HMAC key is 31 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
-  decoded = self.decode_complete(
-127.0.0.1 - - [11/Jun/2026 11:46:16] "GET /api/mobile/dashboard-stats HTTP/1.1" 500 -
+ * Debugger PIN: 128-266-914
+127.0.0.1 - - [11/Aug/2026 21:41:28] "POST /api/auth/register HTTP/1.1" 201 -
+127.0.0.1 - - [11/Aug/2026 21:41:29] "POST /api/auth/login HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 21:43:01] "GET / HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:43:01] "GET /js/script.js HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 21:43:02] "GET /api/mobile/dashboard-stats HTTP/1.1" 401 -
+127.0.0.1 - - [11/Aug/2026 21:43:02] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [11/Aug/2026 21:43:03] "GET /login.html HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:43:04] "GET /js/script.js HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:43:10] "GET / HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:43:10] "GET /js/script.js HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:43:13] "GET /login.html HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:43:13] "GET /js/script.js HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:43:23] "GET /register.html HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:43:51] "POST /api/auth/register HTTP/1.1" 409 -
+127.0.0.1 - - [11/Aug/2026 21:43:55] "POST /api/auth/register HTTP/1.1" 409 -
+127.0.0.1 - - [11/Aug/2026 21:43:56] "POST /api/auth/register HTTP/1.1" 409 -
+127.0.0.1 - - [11/Aug/2026 21:43:57] "POST /api/auth/register HTTP/1.1" 409 -
+127.0.0.1 - - [11/Aug/2026 21:43:58] "POST /api/auth/register HTTP/1.1" 409 -
+127.0.0.1 - - [11/Aug/2026 21:44:13] "GET /login.html HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:44:14] "GET /js/script.js HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:44:38] "POST /api/auth/login HTTP/1.1" 200 -
+ * Detected change in 'C:\\Users\\Bhoomi\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\flask\\app.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 128-266-914
+ * Detected change in 'C:\\Users\\Bhoomi\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\flask_cors\\extension.py', reloading
+ * Restarting with watchdog (windowsapi)
+ * Debugger is active!
+ * Debugger PIN: 128-266-914
+127.0.0.1 - - [11/Aug/2026 21:47:30] "POST /api/auth/verify-email-otp HTTP/1.1" 400 -
+127.0.0.1 - - [11/Aug/2026 21:47:30] "POST /api/auth/send-email-otp HTTP/1.1" 500 -
 Traceback (most recent call last):
-  File "C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 1536, in __call__
+  File "C:\Users\Bhoomi\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 1536, in __call__
     return self.wsgi_app(environ, start_response)
-           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Bhoomi\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
     response = self.handle_exception(e)
-  File "C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask_cors\extension.py", line 206, in wrapped_function
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Bhoomi\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_cors\extension.py", line 206, in wrapped_function
     return cors_after_request(app_any.make_response(f(*args, **kwargs)))
-                                                    ~^^^^^^^^^^^^^^^^^
-  File "C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+                                                    ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Bhoomi\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
     response = self.full_dispatch_request()
-  File "C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Bhoomi\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
     rv = self.handle_user_exception(e)
-  File "C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask_cors\extension.py", line 206, in wrapped_function
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Bhoomi\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask_cors\extension.py", line 206, in wrapped_function
     return cors_after_request(app_any.make_response(f(*args, **kwargs)))
-                                                    ~^^^^^^^^^^^^^^^^^
-  File "C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+                                                    ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Bhoomi\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
     rv = self.dispatch_request()
-  File "C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Bhoomi\AppData\Local\Programs\Python\Python311\Lib\site-packages\flask\app.py", line 902, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
-  File "C:\Users\athar\OneDrive\\ubb38\uc11c\Desktop\Forntend1\backend\middleware\auth.py", line 23, in decorated
-    return f(current_user, *args, **kwargs)
-TypeError: get_dashboard_stats() takes 0 positional arguments but 1 was given
- * Detected change in 'C:\\Users\\athar\\OneDrive\\\ubb38\uc11c\\Desktop\\Forntend1\\backend\\controllers\\mobile_controller.py', reloading
- * Restarting with stat
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Bhoomi\Downloads\Forntend1\Forntend1\backend\services\auth\routes.py", line 45, in send_email_otp_route
+    result, status = send_email_otp(data.get("email", "").strip().lower())
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: send_email_otp() missing 1 required positional argument: 'otp'
+127.0.0.1 - - [11/Aug/2026 21:47:37] "POST /api/auth/verify-email-otp HTTP/1.1" 400 -
+127.0.0.1 - - [11/Aug/2026 21:50:40] "POST /api/auth/verify-email-otp HTTP/1.1" 400 -
+127.0.0.1 - - [11/Aug/2026 21:56:34] "GET /login.html HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:56:34] "GET /js/script.js HTTP/1.1" 304 -
+127.0.0.1 - - [11/Aug/2026 21:56:37] "POST /api/auth/login HTTP/1.1" 200 -
+ * Detected change in 'C:\\Users\\Bhoomi\\Downloads\\Forntend1\\Forntend1\\backend\\utils\\email_service.py', reloading
+ * Restarting with watchdog (windowsapi)
  * Debugger is active!
- * Debugger PIN: 129-348-431
- * Detected change in 'C:\\Users\\athar\\OneDrive\\\ubb38\uc11c\\Desktop\\Forntend1\\backend\\controllers\\email_controller.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 129-348-431
- * Detected change in 'C:\\Users\\athar\\OneDrive\\\ubb38\uc11c\\Desktop\\Forntend1\\backend\\controllers\\email_controller.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 129-348-431
- * Detected change in 'C:\\Users\\athar\\OneDrive\\\ubb38\uc11c\\Desktop\\Forntend1\\backend\\controllers\\email_controller.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 129-348-431
- * Detected change in 'C:\\Users\\athar\\OneDrive\\\ubb38\uc11c\\Desktop\\Forntend1\\backend\\controllers\\email_controller.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 129-348-431
- * Detected change in 'C:\\Users\\athar\\OneDrive\\\ubb38\uc11c\\Desktop\\Forntend1\\backend\\controllers\\reports_controller.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 129-348-431
-127.0.0.1 - - [11/Jun/2026 11:47:35] "GET /api/health HTTP/1.1" 200 -
-C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\jwt\api_jwt.py:147: InsecureKeyLengthWarning: The HMAC key is 31 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
-  return self._jws.encode(
-127.0.0.1 - - [11/Jun/2026 11:47:35] "POST /api/auth/login HTTP/1.1" 200 -
-C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\jwt\api_jwt.py:368: InsecureKeyLengthWarning: The HMAC key is 31 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
-  decoded = self.decode_complete(
-127.0.0.1 - - [11/Jun/2026 11:47:35] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 11:47:35] "GET /api/mobile/devices HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 11:47:36] "GET /api/mobile/malware-scan HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 11:47:36] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 11:47:46] "POST /api/auth/login HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 11:47:46] "POST /api/email/check-spf HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 11:47:46] "POST /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 11:47:46] "POST /api/email/phishing-scan HTTP/1.1" 200 -
- * Detected change in 'C:\\Users\\athar\\OneDrive\\\ubb38\uc11c\\Desktop\\Forntend1\\backend\\app.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 129-348-431
-C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\jwt\api_jwt.py:147: InsecureKeyLengthWarning: The HMAC key is 31 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
-  return self._jws.encode(
-127.0.0.1 - - [11/Jun/2026 12:07:30] "POST /api/auth/login HTTP/1.1" 200 -
-C:\Users\athar\AppData\Local\Programs\Python\Python313\Lib\site-packages\jwt\api_jwt.py:368: InsecureKeyLengthWarning: The HMAC key is 31 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
-  decoded = self.decode_complete(
-127.0.0.1 - - [11/Jun/2026 12:07:30] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:07:30] "GET /api/mobile/scan-apps HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:07:30] "POST /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:07:30] "GET /api/mobile/malware-scan HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:22:45] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:22:45] "GET /api/mobile/dashboard-stats HTTP/1.1" 401 -
-127.0.0.1 - - [11/Jun/2026 12:22:54] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:22:54] "GET /api/mobile/dashboard-stats HTTP/1.1" 401 -
-127.0.0.1 - - [11/Jun/2026 12:23:22] "OPTIONS /api/auth/login HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:23:22] "POST /api/auth/login HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:23:23] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:23:23] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:23:30] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:23:30] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:23:30] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:23:30] "OPTIONS /api/mobile/call-logs HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:23:30] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:23:30] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:23:30] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:23:30] "GET /api/mobile/call-logs HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:01] "OPTIONS /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:01] "POST /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:24] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:25] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:58] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:59] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:59] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:59] "OPTIONS /api/mobile/call-logs HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:59] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:59] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:59] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:25:59] "GET /api/mobile/call-logs HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:07] "OPTIONS /api/mobile/malware-scan HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:08] "GET /api/mobile/malware-scan HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:24] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:24] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:24] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:25] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:25] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:25] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:25] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:25] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:26] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:26] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:26] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:26] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:26] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:26] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:26] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:26] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:29] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:29] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:29] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:26:29] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:27:01] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:27:01] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:27:03] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:27:03] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:27:49] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:27:50] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:28:00] "OPTIONS /api/reports/download-pdf HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:28:06] "GET /api/reports/download-pdf HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:28:56] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:28:57] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:01] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:01] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:01] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:01] "OPTIONS /api/mobile/call-logs HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:01] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:02] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:02] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:02] "GET /api/mobile/call-logs HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:25] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:26] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:26] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:26] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:26] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:26] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:26] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:26] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:34] "OPTIONS /api/mobile/malware-scan HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:29:35] "GET /api/mobile/malware-scan HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:31:00] "OPTIONS /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:31:00] "POST /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:31:41] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:31:42] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:31:43] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:31:43] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:33:11] "OPTIONS /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:33:11] "POST /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:34:14] "OPTIONS /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:34:14] "POST /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:35:36] "OPTIONS /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:35:36] "POST /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:35:59] "OPTIONS /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:35:59] "POST /api/mobile/analyze-sms HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:36:32] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:36:32] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:37:31] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:37:31] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:07] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:07] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:07] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:07] "OPTIONS /api/mobile/call-logs HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:07] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:08] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:08] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:08] "GET /api/mobile/call-logs HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:37] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:38] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:38] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:38] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:38] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:38] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:39] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:39] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:48] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:38:48] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:34] "OPTIONS /api/auth/mobile-login HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:35] "POST /api/auth/mobile-login HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:35] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:36] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:40] "OPTIONS /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:41] "OPTIONS /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:41] "OPTIONS /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:41] "OPTIONS /api/mobile/call-logs HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:41] "GET /api/mobile/dashboard-stats HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:41] "GET /api/mobile/check-battery HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:41] "GET /api/mobile/device-health HTTP/1.1" 200 -
-127.0.0.1 - - [11/Jun/2026 12:40:41] "GET /api/mobile/call-logs HTTP/1.1" 200 -
+ * Debugger PIN: 128-266-914

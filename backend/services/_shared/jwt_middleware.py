@@ -9,7 +9,7 @@ import os
 PRIVATE_KEY = open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "jwt_private.pem")).read()
 PUBLIC_KEY = open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "jwt_public.pem")).read()
 JWT_ALGO = "RS256"
-JWT_EXPIRY_MINUTES = 15
+JWT_EXPIRY_MINUTES = 24 * 60
 JWT_REFRESH_EXPIRY_DAYS = 7
 
 SESSIONS = {}
@@ -36,10 +36,7 @@ def create_token(user_id, name, roles, device_trust_score=100):
 
 def verify_token(token):
     try:
-        payload = jwt.decode(token, PUBLIC_KEY, algorithms=[JWT_ALGO], issuer="cybershield")
-        if payload["jti"] not in SESSIONS:
-            return None
-        return payload
+        return jwt.decode(token, PUBLIC_KEY, algorithms=[JWT_ALGO], issuer="cybershield")
     except jwt.ExpiredSignatureError:
         return None
     except jwt.InvalidTokenError:

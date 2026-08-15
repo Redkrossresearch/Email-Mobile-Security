@@ -24,217 +24,54 @@
       --glow-r: 0 0 18px rgba(255,58,110,0.25);
       --glow-g: 0 0 18px rgba(0,255,136,0.22);
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 15px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-    }
-
-    /* ── SCANLINE OVERLAY ── */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,255,231,0.015) 2px,
-        rgba(0,255,231,0.015) 4px
-      );
-      pointer-events: none; z-index: 9999;
-    }
-
-    /* ── SIDEBAR ── */
-    .sidebar {
-      width: 230px; min-height: 100vh;
-      background: #030810;
-      border-right: 1px solid var(--border);
-      display: flex; flex-direction: column;
-      padding: 24px 16px;
-      position: fixed; top: 0; left: 0; height: 100vh;
-      z-index: 100;
-    }
-
-    .sidebar-logo {
-      font-family: 'Orbitron', monospace;
-      font-size: 14px; font-weight: 900;
-      color: var(--accent);
-      letter-spacing: 1px;
-      padding: 10px 0 18px;
-      border-bottom: 1px solid var(--border);
-      text-shadow: var(--glow);
-    }
-
-    .sidebar-logo span { display: block; font-size: 10px; color: var(--text-dim); font-family: 'Share Tech Mono'; letter-spacing: 2px; margin-top: 4px;}
-
-    .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; margin: 4px 0;
-      color: var(--text-dim);
-      text-decoration: none;
-      font-family: 'Share Tech Mono';
-      font-size: 12px; letter-spacing: 1px;
-      border: 1px solid transparent;
-      border-radius: 4px;
-      transition: all 0.2s;
-      position: relative;
-    }
-    .nav-item:hover, .nav-item.active {
-      color: var(--accent); border-color: var(--border);
-      background: rgba(0,255,231,0.05);
-      text-shadow: var(--glow);
-    }
-    .nav-item.active::before {
-      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
-      width: 2px; background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
-    }
-
-    .sidebar-status {
-      margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border);
-    }
-    .status-dot {
-      display: inline-block; width: 7px; height: 7px;
-      border-radius: 50%; background: var(--safe);
-      box-shadow: 0 0 8px var(--safe); margin-right: 6px;
-      animation: pulse-dot 1.6s infinite;
-    }
+    body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; font-size: 15px; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,231,0.015) 2px, rgba(0,255,231,0.015) 4px); pointer-events: none; z-index: 9999; }
+    .sidebar { width: 230px; min-height: 100vh; background: #030810; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+    .sidebar-logo { font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 900; color: var(--accent); letter-spacing: 1px; padding: 10px 0 18px; border-bottom: 1px solid var(--border); text-shadow: var(--glow); }
+    .sidebar-logo span { display: block; font-size: 10px; color: var(--text-dim); font-family: 'Share Tech Mono'; letter-spacing: 2px; margin-top: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin: 4px 0; color: var(--text-dim); text-decoration: none; font-family: 'Share Tech Mono'; font-size: 12px; letter-spacing: 1px; border: 1px solid transparent; border-radius: 4px; transition: all 0.2s; position: relative; }
+    .nav-item:hover, .nav-item.active { color: var(--accent); border-color: var(--border); background: rgba(0,255,231,0.05); text-shadow: var(--glow); }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 2px; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .sidebar-status { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+    .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 8px var(--safe); margin-right: 6px; animation: pulse-dot 1.6s infinite; }
     @keyframes pulse-dot { 0%,100%{ opacity:1; } 50%{ opacity:0.3; } }
-
-    .logout-btn {
-      display: block; width: 100%; margin-top: 12px;
-      padding: 10px; text-align: center;
-      font-family: 'Share Tech Mono'; font-size: 11px; letter-spacing: 1px;
-      color: var(--danger); border: 1px solid var(--danger);
-      border-radius: 4px; text-decoration: none;
-      transition: all 0.2s;
-    }
+    .logout-btn { display: block; width: 100%; margin-top: 12px; padding: 10px; text-align: center; font-family: 'Share Tech Mono'; font-size: 11px; letter-spacing: 1px; color: var(--danger); border: 1px solid var(--danger); border-radius: 4px; text-decoration: none; transition: all 0.2s; }
     .logout-btn:hover { background: rgba(255,58,110,0.1); box-shadow: var(--glow-r); }
-
-    /* ── MAIN LAYOUT ── */
-    .main {
-      margin-left: 230px;
-      padding: 28px 32px;
-      flex: 1;
-    }
-
-    /* ── HEADER ── */
-    .page-header {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      margin-bottom: 24px;
-    }
-    .page-title {
-      font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900;
-      color: #fff; letter-spacing: 2px;
-      text-shadow: var(--glow);
-    }
+    .main { margin-left: 230px; padding: 28px 32px; flex: 1; }
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+    .page-title { font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900; color: #fff; letter-spacing: 2px; text-shadow: var(--glow); }
     .page-title span { color: var(--accent); }
-
-    .header-meta { font-family: 'Share Tech Mono'; font-size: 11px; color: var(--text-dim); margin-top: 6px;}
-
-    .live-clock {
-      font-family: 'Share Tech Mono'; font-size: 20px; color: var(--accent);
-      text-shadow: var(--glow); letter-spacing: 3px;
-    }
-
-    /* ── ALERT BANNER ── */
-    .threat-banner {
-      background: linear-gradient(90deg, rgba(0,255,231,0.06) 0%, rgba(0,255,231,0.01) 100%);
-      border: 1px solid rgba(0,255,231,0.2);
-      border-left: 3px solid var(--accent);
-      padding: 10px 18px;
-      display: flex; align-items: center; gap: 14px;
-      border-radius: 4px; margin-bottom: 24px;
-      font-family: 'Share Tech Mono'; font-size: 11px; letter-spacing: 1px;
-    }
-    .banner-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 8px var(--safe); animation: pulse-dot 1.2s infinite; flex-shrink: 0;}
+    .header-meta { font-family: 'Share Tech Mono'; font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+    .live-clock { font-family: 'Share Tech Mono'; font-size: 20px; color: var(--accent); text-shadow: var(--glow); letter-spacing: 3px; }
+    .threat-banner { background: linear-gradient(90deg, rgba(0,255,231,0.06) 0%, rgba(0,255,231,0.01) 100%); border: 1px solid rgba(0,255,231,0.2); border-left: 3px solid var(--accent); padding: 10px 18px; display: flex; align-items: center; gap: 14px; border-radius: 4px; margin-bottom: 24px; font-family: 'Share Tech Mono'; font-size: 11px; letter-spacing: 1px; }
+    .banner-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 8px var(--safe); animation: pulse-dot 1.2s infinite; flex-shrink: 0; }
     .banner-item { color: var(--text-dim); }
     .banner-item strong { color: var(--accent); }
-
-    /* ── METRICS ROW ── */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px; margin-bottom: 28px;
-    }
-    .metric-card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 6px; padding: 18px 16px;
-      position: relative; overflow: hidden;
-      transition: border-color 0.25s;
-    }
+    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+    .metric-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 18px 16px; position: relative; overflow: hidden; transition: border-color 0.25s; }
     .metric-card:hover { border-color: var(--accent); box-shadow: var(--glow); }
-    .metric-card::after {
-      content: ''; position: absolute;
-      bottom: 0; left: 0; right: 0; height: 2px;
-    }
+    .metric-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; }
     .metric-card.c-safe::after { background: var(--safe); box-shadow: 0 0 8px var(--safe); }
     .metric-card.c-danger::after { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
     .metric-card.c-warn::after { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
     .metric-card.c-info::after { background: var(--info); box-shadow: 0 0 8px var(--info); }
-
-    .metric-label {
-      font-family: 'Share Tech Mono'; font-size: 10px; color: var(--text-dim);
-      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
-    }
-    .metric-val {
-      font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 900;
-      line-height: 1; margin-bottom: 4px;
-    }
+    .metric-label { font-family: 'Share Tech Mono'; font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+    .metric-val { font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
     .metric-val.safe { color: var(--safe); text-shadow: var(--glow-g); }
     .metric-val.danger { color: var(--danger); text-shadow: var(--glow-r); }
     .metric-val.warn { color: var(--warn); }
     .metric-val.info { color: var(--info); text-shadow: var(--glow); }
     .metric-sub { font-size: 11px; color: var(--text-dim); }
-
-    /* ── SCANNER GRID ── */
-    .section-title {
-      font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 700;
-      letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase;
-      margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
-    }
-    .section-title::after {
-      content: ''; flex: 1; height: 1px; background: var(--border);
-    }
-
-    .scanner-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px; margin-bottom: 28px;
-    }
-
-    .scanner-card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 6px; padding: 20px;
-      position: relative; overflow: hidden;
-      transition: all 0.25s;
-    }
-    .scanner-card:hover { border-color: rgba(0,255,231,0.3); transform: translateY(-2px); box-shadow: var(--glow);}
-
+    .section-title { font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 700; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .scanner-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+    .scanner-card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 20px; position: relative; overflow: hidden; transition: all 0.25s; }
+    .scanner-card:hover { border-color: rgba(0,255,231,0.3); transform: translateY(-2px); box-shadow: var(--glow); }
     .scanner-icon { font-size: 24px; margin-bottom: 10px; }
-    .scanner-name {
-      font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700;
-      letter-spacing: 1px; color: #fff; margin-bottom: 6px;
-    }
+    .scanner-name { font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #fff; margin-bottom: 6px; }
     .scanner-desc { font-size: 12px; color: var(--text-dim); margin-bottom: 14px; line-height: 1.5; }
-
-    .scan-btn {
-      width: 100%; padding: 9px 14px;
-      font-family: 'Share Tech Mono'; font-size: 11px; letter-spacing: 2px;
-      border: 1px solid; border-radius: 4px; cursor: pointer;
-      transition: all 0.2s; background: transparent;
-      text-transform: uppercase;
-    }
+    .scan-btn { width: 100%; padding: 9px 14px; font-family: 'Share Tech Mono'; font-size: 11px; letter-spacing: 2px; border: 1px solid; border-radius: 4px; cursor: pointer; transition: all 0.2s; background: transparent; text-transform: uppercase; }
     .scan-btn.primary { color: var(--accent); border-color: var(--accent); }
     .scan-btn.primary:hover { background: rgba(0,255,231,0.1); box-shadow: var(--glow); }
     .scan-btn.danger { color: var(--danger); border-color: var(--danger); }
@@ -245,51 +82,13 @@
     .scan-btn.success:hover { background: rgba(0,255,136,0.08); box-shadow: var(--glow-g); }
     .scan-btn.info { color: var(--info); border-color: var(--info); }
     .scan-btn.info:hover { background: rgba(0,255,231,0.08); }
-
-    .domain-input {
-      background: rgba(0,10,20,0.6); border: 1px solid var(--border);
-      border-radius: 6px; color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 12px; outline: none; transition: border .2s;
-    }
-    .domain-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,245,255,.06); }
+    .domain-input { background: rgba(0,10,20,0.6); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 12px; outline: none; transition: border .2s; }
+    .domain-input:focus { border-color: var(--info); box-shadow: 0 0 0 3px rgba(0,255,231,.06); }
     .domain-input::placeholder { color: rgba(200,230,245,.25); }
-
-    .scanner-status {
-      position: absolute; top: 12px; right: 14px;
-      font-family: 'Share Tech Mono'; font-size: 9px; letter-spacing: 1px;
-      padding: 3px 8px; border-radius: 2px;
-    }
+    .scanner-status { position: absolute; top: 12px; right: 14px; font-family: 'Share Tech Mono'; font-size: 9px; letter-spacing: 1px; padding: 3px 8px; border-radius: 2px; }
     .scanner-status.ok { color: var(--safe); background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.2); }
     .scanner-status.alert { color: var(--danger); background: rgba(255,58,110,0.1); border: 1px solid rgba(255,58,110,0.2); }
     .scanner-status.idle { color: var(--text-dim); background: rgba(58,96,128,0.15); border: 1px solid var(--border); }
-
-    /* ── TOOL CARDS (from email page) ── */
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-bottom: 28px;
-    }
-    .tool-card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 18px;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.25s;
-    }
-    .tool-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0;
-      height: 2px; opacity: 0; transition: opacity 0.25s;
-    }
-    .tool-card.tc-cyan::before   { background: linear-gradient(90deg, var(--info), #0077ff); }
-    .tool-card.tc-green::before  { background: linear-gradient(90deg, var(--safe), #00c853); }
-    .tool-card.tc-red::before    { background: linear-gradient(90deg, var(--danger), var(--warn)); }
-    .tool-card.tc-orange::before { background: linear-gradient(90deg, var(--warn), var(--accent3)); }
-    .tool-card.tc-blue::before   { background: linear-gradient(90deg, var(--accent4), var(--info)); }
-    .tool-card.tc-yellow::before { background: linear-gradient(90deg, var(--accent3), var(--warn)); }
-    .tool-card:hover { transform: translateY(-3px); border-color: rgba(0,255,231,0.3); box-shadow: var(--glow); }
-    .tool-card:hover::before { opacity: 1; }
     .caller-scanner-box { background: rgba(0,245,255,0.03); border: 1px solid rgba(0,245,255,0.12); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
     .caller-input-row { display: flex; gap: 10px; }
     .caller-feed-box { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 14px; margin-bottom: 20px; }
@@ -304,290 +103,143 @@
     .cf-type { opacity: 0.5; width: 70px; font-size: 9px; }
     .cf-status { width: 80px; text-align: right; }
     .cf-time { opacity: 0.4; width: 70px; text-align: right; font-size: 10px; }
-    .tc-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
-    .tc-icon { font-size: 20px; }
-    .tc-badge {
-      font-family: 'Share Tech Mono'; font-size: 9px; letter-spacing: 1px;
-      padding: 2px 8px; border-radius: 3px; text-transform: uppercase;
-    }
-    .badge-active   { background: rgba(0,255,136,0.12); color: var(--safe); }
-    .badge-warning  { background: rgba(245,196,0,0.12);  color: var(--warn); }
-    .badge-critical { background: rgba(255,58,110,0.12);  color: var(--danger); }
-    .badge-info     { background: rgba(0,255,231,0.12);   color: var(--info); }
-    .tc-title {
-      font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700;
-      color: #fff; margin-bottom: 4px; letter-spacing: 0.5px;
-    }
-    .tc-desc {
-      font-size: 11px; color: var(--text-dim);
-      line-height: 1.5; margin-bottom: 12px;
-    }
-    .card-input {
-      width:100%; padding:10px; margin-bottom:8px;
-      background:var(--bg3); border:1px solid var(--border);
-      border-radius:6px; color:var(--text); font-size:11px;
-      font-family:'Share Tech Mono',monospace; box-sizing:border-box;
-    }
-    .tc-result {
-      font-family: 'Share Tech Mono'; font-size: 10px;
-      padding: 6px 10px; border-radius: 4px;
-      margin-bottom: 10px; display: none; line-height: 1.5;
-    }
-    .tc-result.show { display: block; }
-    .res-pass    { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2); color: var(--safe); }
-    .res-fail    { background: rgba(255,58,110,0.08); border: 1px solid rgba(255,58,110,0.2); color: var(--danger); }
-    .res-warn    { background: rgba(245,196,0,0.08); border: 1px solid rgba(245,196,0,0.2); color: var(--warn); }
-    .res-info    { background: rgba(0,255,231,0.08); border: 1px solid rgba(0,255,231,0.2); color: var(--info); }
-    .res-loading { background: rgba(184,212,232,0.05); border: 1px solid var(--border); color: var(--text-dim); }
-    .tc-btn {
-      width: 100%; padding: 8px;
-      border-radius: 4px; border: 1px solid;
-      font-family: 'Share Tech Mono'; font-size: 10px; letter-spacing: 2px;
-      cursor: pointer; background: transparent; text-transform: uppercase;
-      transition: all 0.2s;
-    }
-    .tc-btn.cyan   { color: var(--info); border-color: var(--info); }
-    .tc-btn.cyan:hover   { background: rgba(0,255,231,0.08); box-shadow: var(--glow); }
-    .tc-btn.green  { color: var(--safe); border-color: var(--safe); }
-    .tc-btn.green:hover  { background: rgba(0,255,136,0.08); box-shadow: var(--glow-g); }
-    .tc-btn.red    { color: var(--danger); border-color: var(--danger); }
-    .tc-btn.red:hover    { background: rgba(255,58,110,0.08); box-shadow: var(--glow-r); }
-    .tc-btn.orange { color: var(--warn); border-color: var(--warn); }
-    .tc-btn.orange:hover { background: rgba(245,196,0,0.08); }
-    .tc-btn.blue   { color: var(--accent4); border-color: var(--accent4); }
-    .tc-btn.blue:hover   { background: rgba(77,159,255,0.08); }
-    .tc-btn.yellow { color: var(--accent3); border-color: var(--accent3); }
-    .tc-btn.yellow:hover { background: rgba(245,196,0,0.08); }
-
-    /* ── PROGRESS BAR ── */
-    .progress-track {
-      width: 100%; height: 3px; background: rgba(255,255,255,0.05);
-      border-radius: 2px; margin-top: 10px; overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%; border-radius: 2px;
-      transition: width 1.5s ease;
-    }
-
-    /* ── STATUS TABLE ── */
-    .status-panel {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 6px; overflow: hidden; margin-bottom: 28px;
-    }
-    .status-panel-header {
-      padding: 14px 20px; border-bottom: 1px solid var(--border);
-      font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700;
-      letter-spacing: 2px; color: var(--accent);
-      display: flex; justify-content: space-between; align-items: center;
-    }
-
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px; }
+    .status-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 28px; }
+    .status-panel-header { padding: 14px 20px; border-bottom: 1px solid var(--border); font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--accent); display: flex; justify-content: space-between; align-items: center; }
     .status-table { width: 100%; border-collapse: collapse; }
-    .status-table th {
-      padding: 10px 20px; text-align: left;
-      font-family: 'Share Tech Mono'; font-size: 10px; letter-spacing: 2px;
-      color: var(--text-dim); text-transform: uppercase;
-      border-bottom: 1px solid var(--border);
-    }
-    .status-table td {
-      padding: 12px 20px;
-      font-family: 'Share Tech Mono'; font-size: 12px;
-      border-bottom: 1px solid rgba(13,42,69,0.4);
-    }
+    .status-table th { padding: 10px 20px; text-align: left; font-family: 'Share Tech Mono'; font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+    .status-table td { padding: 12px 20px; font-family: 'Share Tech Mono'; font-size: 12px; border-bottom: 1px solid rgba(13,42,69,0.4); }
     .status-table tr:last-child td { border-bottom: none; }
     .status-table tr:hover td { background: rgba(0,255,231,0.02); }
-
-    .badge {
-      display: inline-block; padding: 3px 10px; border-radius: 2px;
-      font-size: 10px; letter-spacing: 1px; font-family: 'Share Tech Mono';
-    }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 10px; letter-spacing: 1px; font-family: 'Share Tech Mono'; }
     .badge-safe { color: var(--safe); background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.25); }
     .badge-danger { color: var(--danger); background: rgba(255,58,110,0.1); border: 1px solid rgba(255,58,110,0.25); }
     .badge-warn { color: var(--warn); background: rgba(245,196,0,0.1); border: 1px solid rgba(245,196,0,0.25); }
     .badge-info { color: var(--info); background: rgba(0,255,231,0.1); border: 1px solid rgba(0,255,231,0.25); }
-
-    /* ── LOG PANEL ── */
-    .log-panel {
-      background: #020709; border: 1px solid var(--border);
-      border-radius: 6px; padding: 16px 20px; margin-bottom: 28px;
-      max-height: 230px; overflow-y: auto;
-    }
+    .radar-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 20px; }
+    .radar-panel canvas { display: block; margin: 0 auto; }
+    .log-panel { background: #020709; border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; margin-bottom: 28px; max-height: 230px; overflow-y: auto; }
     .log-panel::-webkit-scrollbar { width: 4px; }
     .log-panel::-webkit-scrollbar-track { background: transparent; }
     .log-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .log-line {
-      font-family: 'Share Tech Mono'; font-size: 11px; line-height: 1.8;
-      letter-spacing: 0.5px; animation: fadeIn 0.4s ease;
-    }
+    .log-line { font-family: 'Share Tech Mono'; font-size: 11px; line-height: 1.8; letter-spacing: 0.5px; animation: fadeIn 0.4s ease; }
     .log-time { color: var(--text-dim); }
     .log-ok { color: var(--safe); }
     .log-warn { color: var(--warn); }
     .log-err { color: var(--danger); }
     .log-info { color: var(--info); }
     @keyframes fadeIn { from { opacity:0; transform: translateX(-8px); } to { opacity:1; transform: none; } }
-
-    /* ── THREAT RADAR ── */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px; }
-    .radar-panel {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 6px; padding: 20px;
-    }
-    .radar-panel canvas { display: block; margin: 0 auto; }
-
-    /* ── MODAL OVERLAY ── */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(4,10,18,0.92);
-      z-index: 9000; display: flex; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none; transition: opacity 0.2s;
-    }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(4,10,18,0.92); z-index: 9000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
-    .modal-box {
-      background: #070f1c; border: 1px solid var(--border);
-      border-top: 2px solid var(--accent);
-      border-radius: 8px; padding: 30px; width: 580px; max-width: 95vw;
-      box-shadow: 0 0 60px rgba(0,0,0,0.8), var(--glow);
-      transform: translateY(20px); transition: transform 0.3s;
-    }
+    .modal-box { background: #070f1c; border: 1px solid var(--border); border-top: 2px solid var(--accent); border-radius: 8px; padding: 30px; width: 580px; max-width: 95vw; box-shadow: 0 0 60px rgba(0,0,0,0.8), var(--glow); transform: translateY(20px); transition: transform 0.3s; }
     .modal-overlay.open .modal-box { transform: none; }
-    .modal-title {
-      font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700;
-      color: var(--accent); letter-spacing: 2px; margin-bottom: 20px;
-      padding-bottom: 14px; border-bottom: 1px solid var(--border);
-    }
-
-    /* ── SCAN ANIMATION ── */
-    .scan-anim {
-      width: 100%; height: 6px; background: rgba(0,255,231,0.06);
-      border-radius: 3px; overflow: hidden; margin: 16px 0;
-    }
-    .scan-fill {
-      height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent4));
-      border-radius: 3px; width: 0%;
-      box-shadow: 0 0 12px var(--accent);
-      transition: width 0.1s linear;
-    }
-    .scan-log-area {
-      font-family: 'Share Tech Mono'; font-size: 11px;
-      min-height: 140px; max-height: 200px; overflow-y: auto;
-      padding: 10px; background: #020709;
-      border: 1px solid var(--border); border-radius: 4px;
-      line-height: 1.8;
-    }
+    .modal-title { font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700; color: var(--accent); letter-spacing: 2px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .scan-anim { width: 100%; height: 6px; background: rgba(0,255,231,0.06); border-radius: 3px; overflow: hidden; margin: 16px 0; }
+    .scan-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent4)); border-radius: 3px; width: 0%; box-shadow: 0 0 12px var(--accent); transition: width 0.1s linear; }
+    .scan-log-area { font-family: 'Share Tech Mono'; font-size: 11px; min-height: 140px; max-height: 200px; overflow-y: auto; padding: 10px; background: #020709; border: 1px solid var(--border); border-radius: 4px; line-height: 1.8; }
     .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
-    .close-btn {
-      padding: 9px 20px; font-family: 'Share Tech Mono'; font-size: 11px;
-      letter-spacing: 2px; background: transparent;
-      color: var(--text-dim); border: 1px solid var(--border);
-      border-radius: 4px; cursor: pointer; transition: all 0.2s;
-    }
+    .close-btn { padding: 9px 20px; font-family: 'Share Tech Mono'; font-size: 11px; letter-spacing: 2px; background: transparent; color: var(--text-dim); border: 1px solid var(--border); border-radius: 4px; cursor: pointer; transition: all 0.2s; }
     .close-btn:hover { color: #fff; border-color: #fff; }
-
-    /* ── SMS CHECKER ── */
-    .sms-input-area {
-      width: 100%; background: #020709; border: 1px solid var(--border);
-      border-radius: 4px; padding: 12px; color: var(--text);
-      font-family: 'Share Tech Mono'; font-size: 12px; resize: vertical;
-      min-height: 90px; outline: none;
-    }
+    .sms-input-area { width: 100%; background: #020709; border: 1px solid var(--border); border-radius: 4px; padding: 12px; color: var(--text); font-family: 'Share Tech Mono'; font-size: 12px; resize: vertical; min-height: 90px; outline: none; }
     .sms-input-area:focus { border-color: var(--accent); }
-    .input-label {
-      font-family: 'Share Tech Mono'; font-size: 10px; letter-spacing: 2px;
-      color: var(--text-dim); margin-bottom: 8px; display: block;
-    }
-
-    /* ── PERMISSION LIST ── */
-    .perm-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 8px 0; border-bottom: 1px solid rgba(13,42,69,0.5);
-      font-family: 'Share Tech Mono'; font-size: 11px;
-      animation: fadeIn 0.3s ease;
-    }
+    .input-label { font-family: 'Share Tech Mono'; font-size: 10px; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 8px; display: block; }
+    .perm-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(13,42,69,0.5); font-family: 'Share Tech Mono'; font-size: 11px; animation: fadeIn 0.3s ease; }
     .perm-item:last-child { border-bottom: none; }
-
-    /* ── DEVICE HEALTH BARS ── */
     .health-bar-row { margin-bottom: 14px; }
-    .health-bar-label {
-      display: flex; justify-content: space-between;
-      font-family: 'Share Tech Mono'; font-size: 11px; margin-bottom: 6px;
-    }
+    .health-bar-label { display: flex; justify-content: space-between; font-family: 'Share Tech Mono'; font-size: 11px; margin-bottom: 6px; }
     .health-bar-track { height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
     .health-bar-fill { height: 100%; border-radius: 3px; transition: width 1.2s ease; }
-
-    /* ── FOOTER ── */
-    footer {
-      margin-left: 230px; padding: 16px 32px;
-      border-top: 1px solid var(--border);
-      font-family: 'Share Tech Mono'; font-size: 10px; color: var(--text-dim);
-      letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center;
-    }
-
-    /* ── TOOLTIP ── */
-    [data-tip] { position: relative; cursor: help; }
-    [data-tip]::after {
-      content: attr(data-tip);
-      position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
-      background: #0a1e33; border: 1px solid var(--border);
-      font-family: 'Share Tech Mono'; font-size: 10px; color: var(--text);
-      padding: 5px 10px; border-radius: 4px; white-space: nowrap;
-      pointer-events: none; opacity: 0; transition: opacity 0.2s; letter-spacing: 1px;
-    }
-    [data-tip]:hover::after { opacity: 1; }
-
-    /* ── NOTIFICATION TOAST ── */
+    .tc-result { font-family: 'Share Tech Mono'; font-size: 10px; padding: 6px 10px; border-radius: 4px; margin-bottom: 10px; display: none; line-height: 1.5; }
+    .tc-result.show { display: block; }
+    .res-pass { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2); color: var(--safe); }
+    .res-fail { background: rgba(255,58,110,0.08); border: 1px solid rgba(255,58,110,0.2); color: var(--danger); }
+    .res-warn { background: rgba(245,196,0,0.08); border: 1px solid rgba(245,196,0,0.2); color: var(--warn); }
+    .res-info { background: rgba(0,255,231,0.08); border: 1px solid rgba(0,255,231,0.2); color: var(--info); }
+    .res-loading { background: rgba(184,212,232,0.05); border: 1px solid var(--border); color: var(--text-dim); }
+    footer { margin-left: 230px; padding: 16px 32px; border-top: 1px solid var(--border); font-family: 'Share Tech Mono'; font-size: 10px; color: var(--text-dim); letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
     #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-    .toast {
-      background: #070f1c; border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      padding: 12px 16px; border-radius: 4px;
-      font-family: 'Share Tech Mono'; font-size: 11px;
-      min-width: 280px; max-width: 380px;
-      animation: slide-in 0.3s ease;
-      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
-    }
+    .toast { background: #070f1c; border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 4px; font-family: 'Share Tech Mono'; font-size: 11px; min-width: 280px; max-width: 380px; animation: slide-in 0.3s ease; box-shadow: 0 4px 30px rgba(0,0,0,0.5); }
     .toast.t-safe { border-left-color: var(--safe); }
     .toast.t-danger { border-left-color: var(--danger); }
     .toast.t-warn { border-left-color: var(--warn); }
     .toast-title { color: #fff; font-size: 12px; margin-bottom: 4px; }
     .toast-msg { color: var(--text-dim); }
     @keyframes slide-in { from { transform: translateX(40px); opacity:0; } to { transform: none; opacity:1; } }
+    .caller-result-card { background: linear-gradient(135deg, rgba(0,10,25,0.95), rgba(4,15,35,0.98)); border: 1px solid rgba(0,255,231,0.15); border-radius: 12px; padding: 0; margin-top: 12px; animation: fadeIn 0.4s ease; overflow: hidden; box-shadow: 0 4px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,255,231,0.05); }
+    .caller-country-hero { display: flex; align-items: center; gap: 16px; padding: 24px 24px 16px; background: linear-gradient(135deg, rgba(0,255,231,0.04), rgba(77,159,255,0.04)); border-bottom: 1px solid rgba(0,255,231,0.06); }
+    .caller-flag-large { font-size: 56px; line-height: 1; filter: drop-shadow(0 0 12px rgba(0,255,231,0.2)); flex-shrink: 0; }
+    .caller-country-info { flex: 1; }
+    .caller-country-name { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 1px; text-shadow: var(--glow); }
+    .caller-country-sub { font-family: 'Share Tech Mono'; font-size: 11px; color: var(--text-dim); letter-spacing: 2px; margin-top: 2px; }
+    .caller-verdict-badge { font-family: 'Share Tech Mono'; font-size: 11px; letter-spacing: 2px; padding: 6px 16px; border-radius: 20px; text-transform: uppercase; font-weight: 700; flex-shrink: 0; }
+    .caller-verdict-badge.spam { background: linear-gradient(135deg, rgba(255,58,110,0.2), rgba(255,58,110,0.05)); color: var(--danger); border: 1px solid rgba(255,58,110,0.3); box-shadow: 0 0 15px rgba(255,58,110,0.15); }
+    .caller-verdict-badge.verified { background: linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,255,136,0.05)); color: var(--safe); border: 1px solid rgba(0,255,136,0.3); box-shadow: 0 0 15px rgba(0,255,136,0.15); }
+    .caller-verdict-badge.caution { background: linear-gradient(135deg, rgba(255,165,0,0.2), rgba(255,165,0,0.05)); color: #ffa500; border: 1px solid rgba(255,165,0,0.3); box-shadow: 0 0 15px rgba(255,165,0,0.15); }
+    .caller-verdict-badge.unknown { background: linear-gradient(135deg, rgba(245,196,0,0.2), rgba(245,196,0,0.05)); color: var(--warn); border: 1px solid rgba(245,196,0,0.3); box-shadow: 0 0 15px rgba(245,196,0,0.15); }
+    .caller-verdict-badge.invalid { background: linear-gradient(135deg, rgba(58,96,128,0.2), rgba(58,96,128,0.05)); color: var(--text-dim); border: 1px solid rgba(58,96,128,0.3); }
+    .caller-phone-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .caller-phone-number { font-family: 'Orbitron', monospace; font-size: 16px; color: var(--accent); letter-spacing: 2px; }
+    .caller-phone-formats { display: flex; gap: 16px; font-family: 'Share Tech Mono'; font-size: 10px; color: var(--text-dim); }
+    .caller-phone-formats span { opacity: 0.7; }
+    .caller-phone-formats strong { color: var(--text); opacity: 1; }
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: 0; background: rgba(255,255,255,0.02); }
+    .result-field { padding: 12px 16px; background: rgba(0,0,0,0.15); transition: background 0.2s; display: flex; flex-direction: column; justify-content: center; }
+    .result-field:hover { background: rgba(0,255,231,0.02); }
+    .result-field-label { font-family: 'Share Tech Mono'; font-size: 9px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+    .result-field-value { font-family: 'Share Tech Mono'; font-size: 13px; color: #fff; letter-spacing: 0.5px; }
+    .result-field-value .verified-yes { color: var(--safe); font-weight: 700; }
+    .result-field-value .verified-no { color: var(--warn); }
+    .risk-progress-section { margin: 0; padding: 16px 24px; background: rgba(0,0,0,0.15); border-top: 1px solid rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .risk-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .risk-progress-label { font-family: 'Share Tech Mono'; font-size: 10px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; }
+    .risk-badge-display { font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700; padding: 2px 12px; border-radius: 3px; }
+    .risk-progress-track { width: 100%; height: 10px; background: rgba(255,255,255,0.04); border-radius: 5px; overflow: hidden; position: relative; }
+    .risk-progress-fill { height: 100%; border-radius: 5px; transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1); position: relative; }
+    .risk-progress-fill::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 30px; background: inherit; filter: brightness(1.6); border-radius: 5px; animation: pulse-glow 1.5s infinite; }
+    @keyframes pulse-glow { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+    .risk-progress-text { font-family: 'Share Tech Mono'; font-size: 10px; color: var(--text-dim); margin-top: 8px; text-align: right; letter-spacing: 1px; }
+    .risk-banner { padding: 10px 24px; text-align: center; font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .risk-banner.dangerous { background: linear-gradient(90deg, rgba(255,58,110,0.15), rgba(255,58,110,0.05)); color: var(--danger); border-bottom: 1px solid rgba(255,58,110,0.2); text-shadow: 0 0 12px rgba(255,58,110,0.3); }
+    .risk-banner.medium { background: linear-gradient(90deg, rgba(245,196,0,0.15), rgba(245,196,0,0.05)); color: var(--warn); border-bottom: 1px solid rgba(245,196,0,0.2); text-shadow: 0 0 12px rgba(245,196,0,0.3); }
+    .risk-banner.safe { background: linear-gradient(90deg, rgba(0,255,136,0.15), rgba(0,255,136,0.05)); color: var(--safe); border-bottom: 1px solid rgba(0,255,136,0.2); text-shadow: 0 0 12px rgba(0,255,136,0.3); }
+    .caller-flashcards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 24px 20px; }
+    .flashcard { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 18px; position: relative; overflow: hidden; transition: all 0.3s; border: 1px solid transparent; }
+    .flashcard:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+    .flashcard.explain { border-color: rgba(0,255,231,0.12); background: linear-gradient(135deg, rgba(0,255,231,0.04), rgba(0,255,231,0.01)); }
+    .flashcard.explain::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--info), transparent); }
+    .flashcard.recommend { border-color: rgba(245,196,0,0.12); background: linear-gradient(135deg, rgba(245,196,0,0.04), rgba(245,196,0,0.01)); }
+    .flashcard.recommend::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--warn), transparent); }
+    .flashcard-icon { font-size: 28px; margin-bottom: 8px; }
+    .flashcard-title { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+    .flashcard.explain .flashcard-title { color: var(--info); }
+    .flashcard.recommend .flashcard-title { color: var(--warn); }
+    .flashcard-text { font-family: 'Share Tech Mono'; font-size: 11px; line-height: 1.7; color: var(--text); letter-spacing: 0.3px; }
+    .flashcard.explain .flashcard-text { color: #7ec8e3; }
+    .flashcard.recommend .flashcard-text { color: #f0d68a; }
   </style>
 </head>
 <body>
-
-<!-- ══════════ SIDEBAR ══════════ -->
 <div class="sidebar">
   <div class="sidebar-logo">
-    🛡️ CYBERSHIELD
+    CYBERSHIELD
     <span>SECURITY OPERATIONS CENTER</span>
   </div>
-
   <div style="margin-top:20px;">
-    <a href="dashboard.html" class="nav-item">⬡ Dashboard</a>
-    <a href="email-security.html" class="nav-item">✉ Email Security</a>
-    <a href="mobile-security.html" class="nav-item active">📱 Mobile Security</a>
-    <a href="reports.html" class="nav-item">📋 Reports</a>
-    <a href="threat-intel.html" class="nav-item">🌐 Threat Intel</a>
-    <a href="ai-engine.html" class="nav-item">🤖 AI Engine</a>
-    <a href="apk-analyzer.html" class="nav-item">📱 APK Analyzer</a>
-    <a href="yara-rules.html" class="nav-item">📜 YARA Rules</a>
-    <a href="integrations.html" class="nav-item">🔗 Integrations</a>
-    <a href="encryption.html" class="nav-item">🔐 Encryption</a>
-    <a href="ueba.html" class="nav-item">🧠 UEBA</a>
+    <a href="dashboard.html" class="nav-item">Dashboard</a>
+    <a href="email-security.html" class="nav-item">Email Security</a>
+    <a href="mobile-security.html" class="nav-item active">Mobile Security</a>
+    <a href="reports.html" class="nav-item">Reports</a>
+    
   </div>
-
   <div class="sidebar-status">
     <div style="font-family:'Share Tech Mono';font-size:10px;letter-spacing:1px;color:var(--text-dim);margin-bottom:8px;">SYSTEM STATUS</div>
     <div style="font-family:'Share Tech Mono';font-size:11px;margin-bottom:4px;"><span class="status-dot"></span> <span style="color:var(--safe)">THREAT SHIELD ACTIVE</span></div>
     <div style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);margin-left:14px;">Device Monitoring ON</div>
     <div style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);margin-left:14px;margin-top:4px;" id="sidebar-scan-time">Last Scan: 5m ago</div>
-    <a href="login.html" class="logout-btn">⬡ LOGOUT</a>
+    <a href="login.html" class="logout-btn">LOGOUT</a>
   </div>
 </div>
-
-<!-- ══════════ MAIN ══════════ -->
 <div class="main">
-
-  <!-- Header -->
   <div class="page-header">
     <div>
       <div class="page-title">MOBILE <span>SECURITY</span></div>
@@ -598,8 +250,6 @@
       <div style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);margin-top:4px;" id="live-date"></div>
     </div>
   </div>
-
- <!-- Threat Banner -->
   <div class="threat-banner">
     <div class="banner-dot"></div>
     <div class="banner-item">STATUS: <strong>PROTECTED</strong></div>
@@ -607,193 +257,106 @@
     <div class="banner-item">DEVICES MONITORED: <strong>3</strong></div>
     <div class="banner-item">NETWORK: <strong style="color:var(--safe);">SECURE</strong></div>
     <div class="banner-item">LAST SCAN: <strong id="last-scan-label">5 MIN AGO</strong></div>
-    <div style="margin-left:auto;"><span class="badge badge-safe">● ONLINE</span></div>
+    <div style="margin-left:auto;"><span class="badge badge-safe">ONLINE</span></div>
   </div>
-
-  <!-- Metrics -->
   <div class="section-title">THREAT OVERVIEW</div>
   <div class="metrics-grid">
-    <div class="metric-card c-danger">
-      <div class="metric-label">THREATS DETECTED</div>
-      <div class="metric-val danger" id="m-threats">12</div>
-      <div class="metric-sub">+3 from yesterday</div>
-    </div>
-    <div class="metric-card c-safe">
-      <div class="metric-label">APPS SCANNED</div>
-      <div class="metric-val safe" id="m-apps">148</div>
-      <div class="metric-sub">All verified</div>
-    </div>
-    <div class="metric-card c-warn">
-      <div class="metric-label">SMS BLOCKED</div>
-      <div class="metric-val warn" id="m-sms">5</div>
-      <div class="metric-sub">Phishing links</div>
-    </div>
-    <div class="metric-card c-info">
-      <div class="metric-label">DEVICE HEALTH</div>
-      <div class="metric-val info">94%</div>
-      <div class="metric-sub">Score: Excellent</div>
-    </div>
+    <div class="metric-card c-danger"><div class="metric-label">THREATS DETECTED</div><div class="metric-val danger" id="m-threats">12</div><div class="metric-sub">+3 from yesterday</div></div>
+    <div class="metric-card c-safe"><div class="metric-label">APPS SCANNED</div><div class="metric-val safe" id="m-apps">148</div><div class="metric-sub">All verified</div></div>
+    <div class="metric-card c-warn"><div class="metric-label">SMS BLOCKED</div><div class="metric-val warn" id="m-sms">5</div><div class="metric-sub">Phishing links</div></div>
+    <div class="metric-card c-info"><div class="metric-label">DEVICE HEALTH</div><div class="metric-val info">94%</div><div class="metric-sub">Score: Excellent</div></div>
   </div>
-
-  <!-- Scanner Grid -->
   <div class="section-title">SECURITY MODULES</div>
   <div class="scanner-grid">
-
-    <!-- App Permission Scanner -->
     <div class="scanner-card">
       <span class="scanner-status ok">READY</span>
-      <div class="scanner-icon">🔐</div>
+      <div class="scanner-icon">APK</div>
       <div class="scanner-name">APP PERMISSION SCANNER</div>
       <div class="scanner-desc">Audit installed apps for dangerous permissions: camera, microphone, location, contacts & SMS access.</div>
-      <button class="scan-btn primary" onclick="openModal('app-modal')">▶ SCAN APPS</button>
+      <button class="scan-btn primary" onclick="openModal('app-modal')">SCAN APPS</button>
       <div class="progress-track"><div class="progress-fill" style="width:78%;background:var(--accent);box-shadow:0 0 6px var(--accent);"></div></div>
     </div>
-
-    <!-- SMS Security -->
     <div class="scanner-card">
       <span class="scanner-status alert">1 ALERT</span>
-      <div class="scanner-icon">📩</div>
+      <div class="scanner-icon">SMS</div>
       <div class="scanner-name">SMS SECURITY ANALYZER</div>
       <div class="scanner-desc">Detect phishing URLs, OTP fraud, smishing attacks, and suspicious sender patterns in SMS messages.</div>
-      <button class="scan-btn warn" onclick="openModal('sms-modal')">▶ ANALYZE SMS</button>
+      <button class="scan-btn warn" onclick="openModal('sms-modal')">ANALYZE SMS</button>
       <div class="progress-track"><div class="progress-fill" style="width:45%;background:var(--danger);box-shadow:0 0 6px var(--danger);"></div></div>
     </div>
-
-    <!-- Malware Detection -->
     <div class="scanner-card">
       <span class="scanner-status ok">CLEAN</span>
-      <div class="scanner-icon">🦠</div>
+      <div class="scanner-icon">MAL</div>
       <div class="scanner-name">MALWARE DETECTION</div>
       <div class="scanner-desc">Deep scan for malware, spyware, ransomware, trojans, and malicious APKs using signature-based detection.</div>
-      <button class="scan-btn danger" onclick="openModal('malware-modal')">▶ DEEP SCAN</button>
+      <button class="scan-btn danger" onclick="openModal('malware-modal')">DEEP SCAN</button>
       <div class="progress-track"><div class="progress-fill" style="width:92%;background:var(--safe);box-shadow:0 0 6px var(--safe);"></div></div>
     </div>
-
-    <!-- Device Health -->
     <div class="scanner-card">
       <span class="scanner-status ok">GOOD</span>
-      <div class="scanner-icon">❤️</div>
+      <div class="scanner-icon">HEA</div>
       <div class="scanner-name">DEVICE HEALTH CHECK</div>
       <div class="scanner-desc">Full diagnostic: OS patches, root/jailbreak detection, VPN status, encryption check, and firmware integrity.</div>
-      <button class="scan-btn info" onclick="openModal('device-modal')">▶ DIAGNOSTICS</button>
+      <button class="scan-btn info" onclick="openModal('device-modal')">DIAGNOSTICS</button>
       <div class="progress-track"><div class="progress-fill" style="width:94%;background:var(--info);box-shadow:0 0 6px var(--info);"></div></div>
     </div>
-
+    <div class="scanner-card">
+      <span class="scanner-status ok">READY</span>
+      <div class="scanner-icon">REP</div>
+      <div class="scanner-name">APP REPUTATION CHECK</div>
+      <div class="scanner-desc">Score app reputation based on permissions, behavior, reviews, and known malware associations.</div>
+      <input type="text" class="domain-input" id="reputationInput" placeholder="Package name (e.g. com.example.app)" style="width:100%;padding:9px 12px;margin-bottom:10px;box-sizing:border-box;">
+      <div class="tc-result" id="res-reputation"></div>
+      <button class="scan-btn warn" onclick="checkAppReputation()">CHECK REP</button>
+    </div>
   </div>
-
-  <!-- Caller Scanner (Truecaller-like) -->
-  <div class="section-title" style="margin-top:30px;">📞 CALLER ID & SPAM DETECTION</div>
+  <div class="section-title" style="margin-top:30px;">CALLER ID & SPAM DETECTION</div>
   <div class="caller-scanner-box">
     <div class="caller-input-row">
       <input class="domain-input" id="callerInput" type="text" placeholder="Enter phone number with country code (e.g. +919999999999)" style="flex:1;padding:10px 14px;">
-      <button class="scan-btn primary" onclick="checkCallerScan()" style="padding:10px 24px;font-size:12px;">🔍 LOOKUP</button>
+      <button class="scan-btn primary" onclick="checkCallerScan()" style="padding:10px 24px;font-size:12px;">LOOKUP</button>
     </div>
     <div class="tc-result" id="res-caller" style="margin-top:12px;"></div>
   </div>
-
-  <!-- Real-time Call Feed -->
   <div class="caller-feed-box">
     <div class="feed-header">
-      <span>📲 LIVE CALL FEED — Auto‑detected & Blocked</span>
-      <button class="scan-btn primary" onclick="loadCallerFeed()" style="padding:4px 14px;font-size:9px;">↻ REFRESH</button>
+      <span>LIVE CALL FEED - Auto-detected & Blocked</span>
+      <button class="scan-btn primary" onclick="loadCallerFeed()" style="padding:4px 14px;font-size:9px;">REFRESH</button>
     </div>
     <div class="caller-feed-list" id="caller-feed-list">
-      <div class="caller-feed-item blocked"><span class="cf-number">+919999999999</span><span class="cf-name">SCAM CALLER</span><span class="cf-type">SCAM</span><span class="cf-status">🔴 BLOCKED</span><span class="cf-time">just now</span></div>
-      <div class="caller-feed-item allowed"><span class="cf-number">+911234567890</span><span class="cf-name">Ramesh Kumar</span><span class="cf-type">CONTACT</span><span class="cf-status">✅ ALLOWED</span><span class="cf-time">2 min ago</span></div>
+      <div class="caller-feed-item blocked"><span class="cf-number">+919999999999</span><span class="cf-name">SCAM CALLER</span><span class="cf-type">SCAM</span><span class="cf-status">BLOCKED</span><span class="cf-time">just now</span></div>
+      <div class="caller-feed-item allowed"><span class="cf-number">+911234567890</span><span class="cf-name">Ramesh Kumar</span><span class="cf-type">CONTACT</span><span class="cf-status">ALLOWED</span><span class="cf-time">2 min ago</span></div>
     </div>
   </div>
-
-  <div class="section-title">APP REPUTATION SERVICE</div>
-  <div class="tools-grid">
-
-    <!-- App Reputation -->
-    <div class="tool-card tc-yellow">
-      <div class="tc-header">
-        <span class="tc-icon">⭐</span>
-        <span class="tc-badge badge-warning">Reputation</span>
-      </div>
-      <div class="tc-title">App Reputation Check</div>
-      <div class="tc-desc">Score app reputation based on permissions, behavior, reviews, and known malware associations.</div>
-      <input type="text" class="card-input" id="reputationInput" placeholder="Enter package name (e.g. com.example.app)">
-      <div class="tc-result" id="res-reputation"></div>
-      <button class="tc-btn yellow" onclick="checkAppReputation()">Check Rep</button>
-    </div>
-
-  </div>
-
-  <!-- Two Column: Status Table + Radar -->
   <div class="two-col">
-
-    <!-- Status Table -->
     <div class="status-panel">
       <div class="status-panel-header">
-        📋 SECURITY STATUS REPORT
-        <button class="scan-btn primary" style="width:auto;padding:5px 14px;font-size:10px;" onclick="refreshAllStatus()">↺ REFRESH</button>
+        SECURITY STATUS REPORT
+        <button class="scan-btn primary" style="width:auto;padding:5px 14px;font-size:10px;" onclick="refreshAllStatus()">REFRESH</button>
       </div>
       <table class="status-table">
-        <thead>
-          <tr>
-            <th>MODULE</th>
-            <th>STATUS</th>
-            <th>LAST RUN</th>
-            <th>RESULT</th>
-          </tr>
-        </thead>
+        <thead><tr><th>MODULE</th><th>STATUS</th><th>LAST RUN</th><th>RESULT</th></tr></thead>
         <tbody id="status-tbody">
-          <tr>
-            <td>🦠 Malware Scan</td>
-            <td><span class="badge badge-safe">SAFE</span></td>
-            <td style="color:var(--text-dim)">5m ago</td>
-            <td style="color:var(--safe)">0 Threats</td>
-          </tr>
-          <tr>
-            <td>📩 SMS Analysis</td>
-            <td><span class="badge badge-danger">ALERT</span></td>
-            <td style="color:var(--text-dim)">12m ago</td>
-            <td style="color:var(--danger)">Phishing Link Found</td>
-          </tr>
-          <tr>
-            <td>🔐 Permission Audit</td>
-            <td><span class="badge badge-warn">REVIEW</span></td>
-            <td style="color:var(--text-dim)">1h ago</td>
-            <td style="color:var(--warn)">3 Risky Permissions</td>
-          </tr>
-          <tr>
-            <td>📱 Device Health</td>
-            <td><span class="badge badge-info">GOOD</span></td>
-            <td style="color:var(--text-dim)">2h ago</td>
-            <td style="color:var(--info)">Score: 94/100</td>
-          </tr>
-          <tr>
-            <td>📞 Call Protection</td>
-            <td><span class="badge badge-safe">ACTIVE</span></td>
-            <td style="color:var(--text-dim)">Live</td>
-            <td style="color:var(--safe)">4 Calls Blocked</td>
-          </tr>
-          <tr>
-            <td>🔋 Battery Monitor</td>
-            <td><span class="badge badge-warn">WATCH</span></td>
-            <td style="color:var(--text-dim)">30m ago</td>
-            <td style="color:var(--warn)">2 Apps Flagged</td>
-          </tr>
+          <tr><td>Malware Scan</td><td><span class="badge badge-safe">SAFE</span></td><td style="color:var(--text-dim)">5m ago</td><td style="color:var(--safe)">0 Threats</td></tr>
+          <tr><td>SMS Analysis</td><td><span class="badge badge-danger">ALERT</span></td><td style="color:var(--text-dim)">12m ago</td><td style="color:var(--danger)">Phishing Link Found</td></tr>
+          <tr><td>Permission Audit</td><td><span class="badge badge-warn">REVIEW</span></td><td style="color:var(--text-dim)">1h ago</td><td style="color:var(--warn)">3 Risky Permissions</td></tr>
+          <tr><td>Device Health</td><td><span class="badge badge-info">GOOD</span></td><td style="color:var(--text-dim)">2h ago</td><td style="color:var(--info)">Score: 94/100</td></tr>
+          <tr><td>Call Protection</td><td><span class="badge badge-safe">ACTIVE</span></td><td style="color:var(--text-dim)">Live</td><td style="color:var(--safe)">4 Calls Blocked</td></tr>
+          <tr><td>Battery Monitor</td><td><span class="badge badge-warn">WATCH</span></td><td style="color:var(--text-dim)">30m ago</td><td style="color:var(--warn)">2 Apps Flagged</td></tr>
         </tbody>
       </table>
     </div>
-
-    <!-- Threat Radar Canvas -->
     <div class="radar-panel">
       <div class="section-title" style="margin-bottom:12px;">THREAT RADAR</div>
       <canvas id="radarCanvas" width="260" height="260"></canvas>
       <div style="display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
-        <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--safe)">● Malware</span>
-        <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--warn)">● Phishing</span>
-        <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--danger)">● Intrusion</span>
-        <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--info)">● Spyware</span>
+        <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--safe)">Malware</span>
+        <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--warn)">Phishing</span>
+        <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--danger)">Intrusion</span>
+        <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--info)">Spyware</span>
       </div>
     </div>
   </div>
-
-  <!-- Activity Log -->
   <div class="section-title">ACTIVITY LOG</div>
   <div class="log-panel" id="activity-log">
     <div class="log-line"><span class="log-time">[08:12:34]</span> <span class="log-ok">[OK]</span> Malware scan completed — 0 threats found</div>
@@ -805,21 +368,14 @@
     <div class="log-line"><span class="log-time">[07:21:45]</span> <span class="log-warn">[WARN]</span> App "BatteryBoost" consuming 34% CPU in background</div>
     <div class="log-line"><span class="log-time">[07:00:00]</span> <span class="log-info">[INFO]</span> Scheduled daily scan started</div>
   </div>
-
-</div><!-- /main -->
-
+</div>
 <footer>
   <span>© 2026 CYBERSHIELD SOC | EMAIL & MOBILE SECURITY PLATFORM</span>
-  <span style="color:var(--accent)">🛡️ ALL SYSTEMS OPERATIONAL</span>
+  <span style="color:var(--accent)">ALL SYSTEMS OPERATIONAL</span>
 </footer>
-
-
-<!-- ══════════ MODALS ══════════ -->
-
-<!-- App Permission Modal -->
 <div class="modal-overlay" id="app-modal">
   <div class="modal-box">
-    <div class="modal-title">🔐 APP PERMISSION SCANNER</div>
+    <div class="modal-title">APP PERMISSION SCANNER</div>
     <div id="app-scan-content">
       <div style="font-family:'Share Tech Mono';font-size:11px;color:var(--text-dim);margin-bottom:12px;">Scanning installed applications for dangerous permissions...</div>
       <div class="scan-anim"><div class="scan-fill" id="app-scan-fill"></div></div>
@@ -827,86 +383,70 @@
     </div>
     <div id="app-perm-results" style="display:none;margin-top:12px;max-height:220px;overflow-y:auto;"></div>
     <div class="modal-actions">
-      <button class="scan-btn primary" onclick="startAppScan()">▶ START SCAN</button>
-      <button class="close-btn" onclick="closeMobileModal('app-modal')">✕ CLOSE</button>
+      <button class="scan-btn primary" onclick="startAppScan()">START SCAN</button>
+      <button class="close-btn" onclick="closeMobileModal('app-modal')">CLOSE</button>
     </div>
   </div>
 </div>
-
-<!-- SMS Modal -->
 <div class="modal-overlay" id="sms-modal">
   <div class="modal-box">
-    <div class="modal-title">📩 SMS SECURITY ANALYZER</div>
+    <div class="modal-title">SMS SECURITY ANALYZER</div>
     <label class="input-label">PASTE SMS TEXT TO ANALYZE:</label>
     <textarea class="sms-input-area" id="sms-input" placeholder="Paste suspicious SMS here... e.g. 'Congratulations! Click here to claim your prize: http://bit.ly/win-now'"></textarea>
-    <button class="scan-btn warn" style="margin-top:10px;" onclick="analyzeSMS()">▶ ANALYZE</button>
+    <button class="scan-btn warn" style="margin-top:10px;" onclick="analyzeSMS()">ANALYZE</button>
     <div id="sms-result" style="margin-top:14px;font-family:'Share Tech Mono';font-size:12px;"></div>
     <div class="modal-actions">
-      <button class="close-btn" onclick="closeMobileModal('sms-modal')">✕ CLOSE</button>
+      <button class="close-btn" onclick="closeMobileModal('sms-modal')">CLOSE</button>
     </div>
   </div>
 </div>
-
-<!-- Malware Modal -->
 <div class="modal-overlay" id="malware-modal">
   <div class="modal-box">
-    <div class="modal-title">🦠 MALWARE DEEP SCAN</div>
+    <div class="modal-title">MALWARE DEEP SCAN</div>
     <div style="font-family:'Share Tech Mono';font-size:11px;color:var(--text-dim);margin-bottom:12px;">Full device scan: APK signatures, memory, storage, boot sector.</div>
     <div class="scan-anim"><div class="scan-fill" id="malware-scan-fill"></div></div>
     <div class="scan-log-area" id="malware-scan-log"></div>
     <div id="malware-result" style="margin-top:14px;"></div>
     <div class="modal-actions">
-      <button class="scan-btn danger" onclick="startMalwareScan()">▶ START SCAN</button>
-      <button class="close-btn" onclick="closeMobileModal('malware-modal')">✕ CLOSE</button>
+      <button class="scan-btn danger" onclick="startMalwareScan()">START SCAN</button>
+      <button class="close-btn" onclick="closeMobileModal('malware-modal')">CLOSE</button>
     </div>
   </div>
 </div>
-
-<!-- Battery Modal -->
 <div class="modal-overlay" id="battery-modal">
   <div class="modal-box">
-    <div class="modal-title">🔋 BATTERY ABUSE DETECTION</div>
+    <div class="modal-title">BATTERY ABUSE DETECTION</div>
     <div id="battery-content">
       <div style="font-family:'Share Tech Mono';font-size:11px;color:var(--text-dim);margin-bottom:16px;">Apps sorted by background resource usage:</div>
       <div id="battery-list"></div>
     </div>
     <div class="modal-actions">
-      <button class="scan-btn warn" onclick="loadBatteryData()">↺ REFRESH</button>
-      <button class="close-btn" onclick="closeMobileModal('battery-modal')">✕ CLOSE</button>
+      <button class="scan-btn warn" onclick="loadBatteryData()">REFRESH</button>
+      <button class="close-btn" onclick="closeMobileModal('battery-modal')">CLOSE</button>
     </div>
   </div>
 </div>
-
-<!-- Call Modal -->
 <div class="modal-overlay" id="call-modal">
   <div class="modal-box">
-    <div class="modal-title">📞 CALL PROTECTION CENTER</div>
+    <div class="modal-title">CALL PROTECTION CENTER</div>
     <div style="font-family:'Share Tech Mono';font-size:11px;color:var(--text-dim);margin-bottom:14px;">Recent suspicious calls intercepted:</div>
     <div id="call-list"></div>
     <div class="modal-actions">
-      <button class="close-btn" onclick="closeMobileModal('call-modal')">✕ CLOSE</button>
+      <button class="close-btn" onclick="closeMobileModal('call-modal')">CLOSE</button>
     </div>
   </div>
 </div>
-
-<!-- Device Health Modal -->
 <div class="modal-overlay" id="device-modal">
   <div class="modal-box">
-    <div class="modal-title">❤️ DEVICE HEALTH DIAGNOSTICS</div>
+    <div class="modal-title">DEVICE HEALTH DIAGNOSTICS</div>
     <div id="device-health-content"></div>
     <div class="modal-actions">
-      <button class="scan-btn info" onclick="loadDeviceHealth()">↺ RE-RUN</button>
-      <button class="close-btn" onclick="closeMobileModal('device-modal')">✕ CLOSE</button>
+      <button class="scan-btn info" onclick="loadDeviceHealth()">RE-RUN</button>
+      <button class="close-btn" onclick="closeMobileModal('device-modal')">CLOSE</button>
     </div>
   </div>
 </div>
-
-<!-- Toast Container -->
 <div id="toast-container"></div>
-
-
-
-<script src="js/script.js"></script>
-
+<script src="js/script.js?v=2"></script>
 </body>
 </html>

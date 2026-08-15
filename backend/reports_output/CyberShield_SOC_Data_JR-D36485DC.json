@@ -1,0 +1,181 @@
+{
+  "report": {
+    "report_id": "JR-D36485DC",
+    "report_name": "CyberShield SOC Complete Security Report",
+    "platform": "CyberShield SOC v6.0",
+    "generated_at": "2026-08-13T19:16:50.109479Z",
+    "classification": "CONFIDENTIAL"
+  },
+  "summary": {
+    "total_devices": 5,
+    "healthy_devices": 3,
+    "warning_devices": 1,
+    "critical_devices": 1,
+    "phishing_sms": 4,
+    "spam_sms": 2,
+    "blocked_calls": 4,
+    "overall_health_score": 81
+  },
+  "total_features": 75,
+  "modules": 12,
+  "devices": [
+    {
+      "id": "DEV001",
+      "name": "Rahul's iPhone 15",
+      "os": "iOS 18.2",
+      "type": "corporate",
+      "status": "healthy",
+      "health_score": 96,
+      "last_scan": "2026-06-11T08:00:00Z",
+      "apps_installed": 42,
+      "jailbroken": false,
+      "encrypted": true,
+      "vpn_active": true,
+      "patch_level": "2026-06"
+    },
+    {
+      "id": "DEV002",
+      "name": "Priya's Galaxy S24",
+      "os": "Android 14",
+      "type": "BYOD",
+      "status": "warning",
+      "health_score": 74,
+      "last_scan": "2026-06-11T07:30:00Z",
+      "apps_installed": 68,
+      "rooted": false,
+      "encrypted": true,
+      "vpn_active": false,
+      "patch_level": "2026-04"
+    },
+    {
+      "id": "DEV003",
+      "name": "Amit's Pixel 8",
+      "os": "Android 15",
+      "type": "corporate",
+      "status": "healthy",
+      "health_score": 92,
+      "last_scan": "2026-06-11T06:45:00Z",
+      "apps_installed": 35,
+      "rooted": false,
+      "encrypted": true,
+      "vpn_active": true,
+      "patch_level": "2026-06"
+    },
+    {
+      "id": "DEV004",
+      "name": "Sneha's iPad Air",
+      "os": "iPadOS 18.2",
+      "type": "corporate",
+      "status": "healthy",
+      "health_score": 98,
+      "last_scan": "2026-06-10T22:00:00Z",
+      "apps_installed": 28,
+      "jailbroken": false,
+      "encrypted": true,
+      "vpn_active": true,
+      "patch_level": "2026-06"
+    },
+    {
+      "id": "DEV005",
+      "name": "Vikram's OnePlus 12",
+      "os": "Android 14",
+      "type": "BYOD",
+      "status": "critical",
+      "health_score": 45,
+      "last_scan": "2026-06-11T05:00:00Z",
+      "apps_installed": 95,
+      "rooted": true,
+      "encrypted": false,
+      "vpn_active": false,
+      "patch_level": "2026-02"
+    }
+  ],
+  "sms_messages": [
+    {
+      "id": 1,
+      "from": "+91-9876543210",
+      "text": "Congratulations! You won a free iPhone. Claim now: http://bit.ly/fr33-prize",
+      "type": "phishing",
+      "timestamp": "2026-06-11T08:09:11Z"
+    },
+    {
+      "id": 2,
+      "from": "AXISBANK",
+      "text": "Your ATM card has been blocked. Update KYC immediately: https://axis-secure-verify.com",
+      "type": "phishing",
+      "timestamp": "2026-06-11T07:55:00Z"
+    },
+    {
+      "id": 3,
+      "from": "FLIPKART",
+      "text": "Flipkart Big Billion Days! 90% off on all items. Shop here: http://flipkart-deals.tk",
+      "type": "spam",
+      "timestamp": "2026-06-11T07:30:00Z"
+    },
+    {
+      "id": 4,
+      "from": "+1-800-123-4567",
+      "text": "Your Netflix account is suspended. Verify payment: https://netflix-verify.tk",
+      "type": "phishing",
+      "timestamp": "2026-06-11T06:45:00Z"
+    },
+    {
+      "id": 5,
+      "from": "ICICI",
+      "text": "Dear customer, your loan offer of Rs 5,00,000 is approved. Call 1800-XXX-XXX",
+      "type": "spam",
+      "timestamp": "2026-06-11T06:00:00Z"
+    },
+    {
+      "id": 6,
+      "from": "DELHIVERY",
+      "text": "Your package #DH28471 will be delivered today. Track: http://delhivery-track.com",
+      "type": "safe",
+      "timestamp": "2026-06-11T08:15:00Z"
+    },
+    {
+      "id": 7,
+      "from": "+91-9999888877",
+      "text": "Job offer! Work from home, earn Rs 50,000/month. Register: https://easy-money.cc",
+      "type": "phishing",
+      "timestamp": "2026-06-11T05:20:00Z"
+    }
+  ],
+  "call_logs": [
+    {
+      "id": 1,
+      "from": "+1-800-FRAUD",
+      "type": "scam",
+      "blocked": true,
+      "timestamp": "2026-06-11T07:33:07Z"
+    },
+    {
+      "id": 2,
+      "from": "+91-1122334455",
+      "type": "robocall",
+      "blocked": true,
+      "timestamp": "2026-06-11T07:15:00Z"
+    },
+    {
+      "id": 3,
+      "from": "+44-20-7946-0958",
+      "type": "spoofed",
+      "blocked": true,
+      "timestamp": "2026-06-11T06:50:00Z"
+    },
+    {
+      "id": 4,
+      "from": "UNKNOWN",
+      "type": "scam",
+      "blocked": true,
+      "timestamp": "2026-06-11T06:22:00Z"
+    },
+    {
+      "id": 5,
+      "from": "+91-9988776655",
+      "type": "safe",
+      "blocked": false,
+      "timestamp": "2026-06-11T08:00:00Z"
+    }
+  ]
+}

@@ -4,8 +4,8 @@ let AUTH_TOKEN = localStorage.getItem("cybershield_token") || null;
 function apiUrl(p) { return `${API_BASE}${p}`; }
 function authHeaders() { const h = {"Content-Type":"application/json"}; if(AUTH_TOKEN) h["Authorization"]=`Bearer ${AUTH_TOKEN}`; return h; }
 function authHeadersNoType() { const h = {}; if(AUTH_TOKEN) h["Authorization"]=`Bearer ${AUTH_TOKEN}`; return h; }
-async function apiGet(p) { const r=await fetch(apiUrl(p),{headers:authHeaders()}); if(r.status===401 && !window.location.pathname.includes("login")){localStorage.removeItem("cybershield_token");AUTH_TOKEN=null;showToast("Session Expired","Redirecting to login","danger");setTimeout(()=>{window.location.href="login.html"},1500);return{error:"Token expired"}}; return r.json(); }
-async function apiPost(p,b) { const r=await fetch(apiUrl(p),{method:"POST",headers:authHeaders(),body:JSON.stringify(b)}); if(r.status===401 && !window.location.pathname.includes("login")){localStorage.removeItem("cybershield_token");AUTH_TOKEN=null;showToast("Session Expired","Redirecting to login","danger");setTimeout(()=>{window.location.href="login.html"},1500);return{error:"Token expired"}}; return r.json(); }
+async function apiGet(p) { const r=await fetch(apiUrl(p),{headers:authHeaders()}); if(r.status===401){localStorage.removeItem("cybershield_token");AUTH_TOKEN=null;showToast("Session Expired","Redirecting to login","danger");setTimeout(()=>{window.location.href="login.html"},1500);return{error:"Token expired"}}; return r.json(); }
+async function apiPost(p,b) { const r=await fetch(apiUrl(p),{method:"POST",headers:authHeaders(),body:JSON.stringify(b)}); if(r.status===401 && !p.includes("/auth/")){localStorage.removeItem("cybershield_token");AUTH_TOKEN=null;showToast("Session Expired","Redirecting to login","danger");setTimeout(()=>{window.location.href="login.html"},1500);return{error:"Token expired"}}; return r.json(); }
 async function apiDownload(p,fn) {
   const r=await fetch(apiUrl(p),{headers:authHeaders()});
   if(!r.ok){showToast("Download Failed","Try again","danger");return;}
@@ -29,8 +29,8 @@ function showAlert(msg){
   if(el&&t){el.style.display="flex";t.textContent=msg;}
 }
 
-let loginUserId = null;
-let loginDelivery = "email";
+let loginEmail = null;
+let mobileLoginPhone = null;
 
 async function doLogin(){
   const email=document.getElementById("emailInput")?.value.trim();
@@ -41,15 +41,27 @@ async function doLogin(){
   try{
     const res=await apiPost("/auth/login",{email,password:pw});
     if(res.success){
-      if(res.requires2FA){
-        loginUserId = email;
-        loginDelivery = res.delivery || "email";
-        document.getElementById("otpDeliveryMsg").textContent = `📧 OTP sent to ${email}`;
+      if(res.requiresEmailOTP){
+        loginEmail = email;
         document.getElementById("mfaSection").classList.add("show");
         document.getElementById("loginBtn").style.display = "none";
         document.getElementById("verifyOtpBtn").style.display = "flex";
-        document.getElementById("resendOtpLink").style.display = "block";
-        showToast("OTP Sent",`Check your ${res.delivery} for the code`,"info");
+        const deliveryMsg = document.getElementById("otpDeliveryMsg");
+        if(deliveryMsg) deliveryMsg.textContent = res.message || `OTP sent to ${email}`;
+        showToast("Email OTP Sent",`Check your email for the verification code`,"info");
+        btn?.classList.remove("loading");
+        return;
+      }
+      if(res.requires2FA || res.user?.mfa_enabled){
+        loginEmail = email;
+        if(res.qrCode){
+          const qrDiv = document.getElementById("qrSetup");
+          if(qrDiv) qrDiv.innerHTML = `<img src="${res.qrCode}" alt="TOTP QR" style="width:140px;height:140px;margin:8px auto;display:block;border-radius:8px;"><p style="font-size:11px;color:var(--muted);text-align:center;word-break:break-all;">Secret: ${res.qrCode.split('secret=')[1]?.split('&')[0] || ''}</p>`;
+        }
+        document.getElementById("mfaSection").classList.add("show");
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("verifyOtpBtn").style.display = "flex";
+        showToast("MFA Required","Enter your TOTP code to continue","info");
         btn?.classList.remove("loading");
         return;
       }
@@ -62,6 +74,23 @@ async function doLogin(){
   btn?.classList.remove("loading");
 }
 
+async function verifyOtpAndLogin(){
+  const otp = Array.from({length:6}, (_,i) => document.getElementById(`o${i+1}`)?.value).join("");
+  const btn = document.getElementById("verifyOtpBtn");
+  if(otp.length !== 6){showAlert("Please enter all 6 OTP digits");return;}
+  btn?.classList.add("loading");
+  try{
+    const res=await apiPost("/auth/verify-email-otp",{email:loginEmail,otp});
+    if(res.success){
+      AUTH_TOKEN=res.token;
+      localStorage.setItem("cybershield_token",res.token);
+      showToast("Login Successful","Email verified — redirecting","safe");
+      setTimeout(()=>{window.location.href="dashboard.html";},500);
+    } else showAlert(res.message||"OTP verification failed");
+  }catch(e){showAlert("Connection error");}
+  btn?.classList.remove("loading");
+}
+
 async function doMobileLogin(){
   const phone=document.getElementById("mobileInput")?.value.trim();
   const pin=document.getElementById("pinInput")?.value;
@@ -71,60 +100,55 @@ async function doMobileLogin(){
   try{
     const res=await apiPost("/auth/mobile-login",{phone,pin});
     if(res.success){
-      if(res.requires2FA){
-        loginUserId = phone;
-        loginDelivery = "sms";
-        document.getElementById("otpDeliveryMsg").textContent = `📱 OTP sent to ${phone}`;
-        document.getElementById("mfaSection").classList.add("show");
+      if(res.requiresOtp){
+        mobileLoginPhone = phone;
+        document.getElementById("smsOtpSection").classList.add("show");
         document.getElementById("mobileLoginBtn").style.display = "none";
-        document.getElementById("verifyOtpBtn").style.display = "flex";
-        document.getElementById("resendOtpLink").style.display = "block";
-        showToast("OTP Sent",`Check your phone for the code`,"info");
-        btn?.classList.remove("loading");
-        return;
+        document.getElementById("mobileVerifyBtn").style.display = "flex";
+        const deliveryMsg = document.getElementById("mobileOtpDeliveryMsg");
+        if(deliveryMsg) deliveryMsg.textContent = res.message || "OTP sent to your phone";
+        showToast("SMS OTP Sent", res.message || "Check your phone for the verification code","info");
+        startOtpTimer("otpTimer");
+      } else {
+        AUTH_TOKEN=res.token; localStorage.setItem("cybershield_token",res.token);
+        showToast("Mobile Login Successful","Welcome","safe");
+        setTimeout(()=>{window.location.href="dashboard.html";},500);
       }
-      AUTH_TOKEN=res.token; localStorage.setItem("cybershield_token",res.token);
-      showToast("Mobile Login Successful","Welcome","safe");
-      setTimeout(()=>{window.location.href="dashboard.html";},500);
     } else showAlert(res.message||"Login failed");
   }catch(e){showAlert("Connection error");}
   btn?.classList.remove("loading");
 }
 
-async function verifyOtpAndLogin(){
-  const otp = Array.from({length:6}, (_,i) => document.getElementById(`o${i+1}`)?.value).join("");
-  const btn = document.getElementById("verifyOtpBtn");
-  if(otp.length !== 6){showAlert("Please enter all 6 OTP digits");return;}
+async function verifyMobileOtp(){
+  const btn=document.getElementById("mobileVerifyBtn");
+  const otp=[1,2,3,4,5,6].map(i=>document.getElementById("s"+i)?.value||"").join("");
+  if(otp.length!==6||!/^\d{6}$/.test(otp)){showAlert("Enter 6-digit OTP");return;}
   btn?.classList.add("loading");
   try{
-    const payload = loginDelivery === "sms"
-      ? {otp, phone: loginUserId}
-      : {otp, email: loginUserId};
-    const res=await apiPost("/auth/verify-2fa", payload);
+    const res=await apiPost("/auth/verify-mobile-otp",{phone:mobileLoginPhone,otp});
     if(res.success){
-      AUTH_TOKEN=res.token;
-      localStorage.setItem("cybershield_token",res.token);
-      showToast("Login Successful","MFA verified — redirecting","safe");
+      AUTH_TOKEN=res.token; localStorage.setItem("cybershield_token",res.token);
+      showToast("Mobile Login Successful","Welcome","safe");
       setTimeout(()=>{window.location.href="dashboard.html";},500);
     } else showAlert(res.message||"OTP verification failed");
   }catch(e){showAlert("Connection error");}
   btn?.classList.remove("loading");
 }
 
-async function resendOTP(){
-  const payload = loginDelivery === "sms"
-    ? {phone: loginUserId}
-    : {email: loginUserId};
+async function sendMobileOtp(){
+  if(!mobileLoginPhone) return;
   try{
-    const res=await apiPost("/auth/send-otp", payload);
-    if(res.success) showToast("OTP Resent",res.message,"info");
-    else showAlert(res.message||"Failed to resend OTP");
-  }catch(e){showAlert("Connection error");}
+    const res=await apiPost("/auth/send-mobile-otp",{phone:mobileLoginPhone});
+    showToast("OTP Resent", res.message || "New code sent","info");
+    startOtpTimer("otpTimer");
+  }catch(e){}
 }
 
-/* ════════════════════════════════════════════
-   DASHBOARD
-   ════════════════════════════════════════════ */
+function startOtpTimer(id){
+  let sec=30; const el=document.getElementById(id); if(!el) return;
+  el.textContent=sec;
+  const iv=setInterval(()=>{sec--;el.textContent=sec;if(sec<=0){clearInterval(iv);el.textContent="0";}},1000);
+}
 
 async function loadDashboardStats(){
   try{
@@ -142,10 +166,6 @@ async function loadDashboardStats(){
   }catch(e){}
 }
 function setText(id,val){ const el=document.getElementById(id); if(el) el.textContent=val; }
-
-/* ════════════════════════════════════════════
-   EMAIL SECURITY (23 features)
-   ════════════════════════════════════════════ */
 
 async function checkSPF(){
   const d=document.getElementById("spfInput")?.value||document.getElementById("domainInput")?.value||"cybershield.com";
@@ -241,7 +261,7 @@ async function runHeaderAnalysis(){
   const result=document.getElementById("headerResult");
   if(!result)return;
   result.style.display="block";
-  result.innerHTML='<div style="font-family:\'Share Tech Mono\',monospace;font-size:12px;color:var(--warn)">⏳ Parsing headers...</div>';
+  result.innerHTML='<div style="font-family:\'Share Tech Mono\',monospace;font-size:12px;color:var(--warn)">Parsing headers...</div>';
   try{
     const res=await apiPost("/email/analyze-header",{headers,domain});
     if(res.success){
@@ -259,23 +279,23 @@ async function runHeaderAnalysis(){
           <div><span style="opacity:0.5">Source IP:</span> ${a.source_ip||"N/A"} (${a.source_country})</div>
         </div>
         <div style="display:flex;gap:12px;margin-bottom:12px;">
-          <span>SPF: <span style="color:${a.spf_pass?"var(--safe)":"var(--danger)"}">${a.spf_pass?"✓":"✗"}</span></span>
-          <span>DKIM: <span style="color:${a.dkim_pass?"var(--safe)":"var(--danger)"}">${a.dkim_pass?"✓":"✗"}</span></span>
-          <span>DMARC: <span style="color:${a.dmarc_pass?"var(--safe)":"var(--danger)"}">${a.dmarc_pass?"✓":"✗"}</span></span>
+          <span>SPF: <span style="color:${a.spf_pass?"var(--safe)":"var(--danger)"}">${a.spf_pass?"PASS":"FAIL"}</span></span>
+          <span>DKIM: <span style="color:${a.dkim_pass?"var(--safe)":"var(--danger)"}">${a.dkim_pass?"PASS":"FAIL"}</span></span>
+          <span>DMARC: <span style="color:${a.dmarc_pass?"var(--safe)":"var(--danger)"}">${a.dmarc_pass?"PASS":"FAIL"}</span></span>
         </div>`;
       if(a.spoof_indicators&&a.spoof_indicators.length){
         html+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)">
-          <div style="color:var(--danger);margin-bottom:4px;font-weight:bold">⚠ Spoof Indicators</div>`;
-        a.spoof_indicators.forEach(s=>{html+=`<div style="font-size:11px;opacity:0.8;padding:2px 0">• ${s}</div>`;});
+          <div style="color:var(--danger);margin-bottom:4px;font-weight:bold">Spoof Indicators</div>`;
+        a.spoof_indicators.forEach(s=>{html+=`<div style="font-size:11px;opacity:0.8;padding:2px 0">${s}</div>`;});
         html+=`</div>`;
       }
       if(a.hops&&a.hops.length){
         html+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)">
-          <div style="opacity:0.5;margin-bottom:4px">📡 Hops (${res.hops_parsed})</div>`;
+          <div style="opacity:0.5;margin-bottom:4px">Hops (${res.hops_parsed})</div>`;
         a.hops.forEach(h=>{html+=`<div style="font-size:10px;opacity:0.6;padding:1px 0">${h.from||"?"} → ${h.by||"?"} (${h.ip})</div>`;});
         html+=`</div>`;
       }
-      html+=`<div style="margin-top:12px;font-size:11px;opacity:0.6">💡 ${res.recommendation}</div></div>`;
+      html+=`<div style="margin-top:12px;font-size:11px;opacity:0.6">${res.recommendation}</div></div>`;
       result.innerHTML=html;
     } else {
       result.innerHTML=`<div style="color:var(--danger);font-family:'Share Tech Mono';font-size:12px">Error: ${res.message}</div>`;
@@ -285,28 +305,145 @@ async function runHeaderAnalysis(){
   }
 }
 
-/* ════════════════════════════════════════════
-   MOBILE SECURITY (35 features)
-   ════════════════════════════════════════════ */
-
 async function checkAppReputation(){
   const pkg=document.getElementById("reputationInput")?.value||"com.cleanmaster.pro";
   showLoading("res-reputation");
   const r=await apiPost("/mobile/app-reputation",{package_name:pkg,app_name:"App Reputation Check"});
   showResult("res-reputation",r,"App Rep");
 }
+function isoToFlagEmoji(iso){
+  if(!iso||typeof iso!=="string"||iso.length!==2) return "FLAG";
+  const cp=iso.toUpperCase().split("").map(c=>127397+c.charCodeAt(0));
+  return String.fromCodePoint(...cp);
+}
+
+function renderCallerCard(r, el){
+  if(!r.valid_number){
+    el.className="tc-result show res-warn";
+    el.innerHTML=`<strong>Invalid Number</strong><br><span style="opacity:0.7">${r.explanation||""}</span>${r.recommendation?`<br><span style="opacity:0.5;font-size:11px">${r.recommendation}</span>`:""}`;
+    return;
+  }
+  const flag=isoToFlagEmoji(r.country_iso);
+  const vc=r.verdict==="SPAM"?"spam":r.verdict==="VERIFIED"?"verified":r.verdict==="CAUTION"?"caution":"unknown";
+  const score=typeof r.score==="number"?r.score:0;
+  const barC={green:"var(--safe)",yellow:"var(--warn)",orange:"var(--accent3)",red:"var(--danger)"}[r.color]||"var(--text-dim)";
+  const badgeC={green:"var(--safe)",yellow:"var(--warn)",orange:"var(--accent3)",red:"var(--danger)"}[r.color]||"var(--text-dim)";
+  const vcLabel=r.verdict==="SPAM"?"SCAM LIKELY":r.verdict==="VERIFIED"?"VERIFIED":r.verdict==="CAUTION"?"CAUTION":"UNKNOWN";
+  el.innerHTML=`<div class="caller-result-card">
+    <div class="caller-country-hero">
+      <div class="caller-flag-large">${flag}</div>
+      <div class="caller-country-info">
+        <div class="caller-country-name">${r.country_name||"Unknown"}</div>
+        <div class="caller-country-sub">${r.country_iso||""} · ${r.country_dial_code||""} · ${r.region||""}</div>
+      </div>
+      <div class="caller-verdict-badge ${vc}">${vcLabel}</div>
+    </div>
+    <div class="caller-phone-row">
+      <div class="caller-phone-number">${r.e164||r.phone}</div>
+      <div class="caller-phone-formats">
+        <span>INTL: <strong>${r.international_format||"N/A"}</strong></span>
+        <span>NATL: <strong>${r.national_format||"N/A"}</strong></span>
+      </div>
+    </div>
+    <div class="result-grid">
+      <div class="result-field"><div class="result-field-label">Carrier</div><div class="result-field-value">${r.carrier||"Unknown"}</div></div>
+      <div class="result-field"><div class="result-field-label">Caller Name</div><div class="result-field-value">${r.caller_name||"Unknown"}</div></div>
+      <div class="result-field"><div class="result-field-label">Location</div><div class="result-field-value">${r.region||"Unknown"}</div></div>
+      <div class="result-field"><div class="result-field-label">Dial Code</div><div class="result-field-value">${r.country_dial_code||"N/A"}</div></div>
+      <div class="result-field"><div class="result-field-label">Identity Verified</div><div class="result-field-value"><span class="${r.identity_verified?"verified-yes":"verified-no"}">${r.identity_verified?"Verified Contact":"Not Verified"}</span></div></div>
+      <div class="result-field"><div class="result-field-label">Spam Reports</div><div class="result-field-value">${r.total_reports!=null?r.total_reports.toLocaleString():"0"}</div></div>
+    </div>
+    <div class="risk-banner ${score>=70?'dangerous':score>=40?'medium':'safe'}">${score>=70?'DANGEROUS':score>=40?'MEDIUM RISK':'SAFE'}</div>
+    <div class="risk-progress-section">
+      <div class="risk-progress-header">
+        <span class="risk-progress-label">Risk Assessment</span>
+        <span class="risk-badge-display" style="color:${badgeC};font-size:16px">${r.risk_label||"UNKNOWN"} · <strong style="font-size:18px;color:${badgeC}">${score}</strong><span style="font-size:12px;opacity:0.6">/100</span></span>
+      </div>
+      <div class="risk-progress-track"><div class="risk-progress-fill" style="width:0%;background:${barC};box-shadow:0 0 8px ${barC}"></div></div>
+      <div class="risk-progress-text">Trust Score: <strong style="color:${badgeC}">${100-score}</strong>/100 — ${r.risk_label||"Unknown Risk"}</div>
+    </div>
+    <div class="caller-flashcards">
+      <div class="flashcard explain">
+        <div class="flashcard-icon">Analysis</div>
+        <div class="flashcard-title">Analysis</div>
+        <div class="flashcard-text">${r.explanation||"No analysis available."}</div>
+      </div>
+      <div class="flashcard recommend">
+        <div class="flashcard-icon">Action</div>
+        <div class="flashcard-title">Action</div>
+        <div class="flashcard-text">${r.recommendation||"No recommendation available."}</div>
+      </div>
+    </div>
+  </div>`;
+  setTimeout(()=>{const f=el.querySelector(".risk-progress-fill");if(f)f.style.width=score+"%";},100);
+}
+
+const CALLER_DEMO = {
+  "success": true, "valid_number": true,
+  "phone": "+919999999999", "e164": "+919999999999",
+  "international_format": "+91 99999 99999",
+  "national_format": "099999 99999",
+  "carrier": "Airtel India", "region": "New Delhi, India",
+  "country_iso": "IN", "country_name": "India",
+  "country_dial_code": "+91",
+  "caller_name": "SPAM RISK", "identity_verified": false,
+  "spam": true, "spam_type": "telemarketer", "color": "red",
+  "score": 82, "risk_level": "high", "risk_label": "HIGH RISK",
+  "total_reports": 347,
+  "tags": ["telemarketer"],
+  "verdict": "SPAM",
+  "explanation": "This India number has been reported 347 times as 'telemarketer'. Community reports at this volume strongly indicate unsolicited or malicious calling activity.",
+  "recommendation": "Block this number and report it to your local telecom regulator (e.g. India's DND registry)"
+};
+
+const CALLER_DEMO_VERIFIED = {
+  "success": true, "valid_number": true,
+  "phone": "+14155551234", "e164": "+14155551234",
+  "international_format": "+1 415-555-1234",
+  "national_format": "(415) 555-1234",
+  "carrier": "AT&T Mobility", "region": "California, United States",
+  "country_iso": "US", "country_name": "United States",
+  "country_dial_code": "+1",
+  "caller_name": "Sarah Johnson", "identity_verified": true,
+  "spam": false, "spam_type": "legitimate", "color": "green",
+  "score": 5, "risk_level": "safe", "risk_label": "SAFE",
+  "total_reports": 0,
+  "tags": ["safe"],
+  "verdict": "VERIFIED",
+  "explanation": "This number is recognized as a legitimate, previously-verified contact (United States) with no spam reports on file.",
+  "recommendation": "Caller appears legitimate"
+};
+
 async function checkCallerScan(){
-  const phone=document.getElementById("callerInput")?.value||"+919999999999";
+  const phone=document.getElementById("callerInput")?.value?.trim();
+  const el=document.getElementById("res-caller");
+  if(!phone){if(el){el.className="tc-result show res-warn";el.innerHTML="Please enter a phone number";}return;}
   showLoading("res-caller");
-  const r=await apiPost("/mobile/caller-scan",{phone});
-  showResult("res-caller",r,"Caller");
+  try{
+    const r=await apiPost("/mobile/caller-scan",{phone});
+    if(!r||r.error||!r.success){
+      const demo = phone.includes("+91") || phone.startsWith("91") ? CALLER_DEMO : CALLER_DEMO_VERIFIED;
+      demo.e164 = phone.startsWith("+") ? phone : "+"+phone.replace(/[^0-9]/g,"");
+      demo.phone = phone;
+      renderCallerCard(demo, el);
+      showToast("Demo Mode","Backend offline — showing sample data","warn");
+      return;
+    }
+    renderCallerCard(r, el);
+  }catch(e){
+    const demo = phone.includes("+91") || phone.startsWith("91") ? CALLER_DEMO : CALLER_DEMO_VERIFIED;
+    demo.e164 = phone.startsWith("+") ? phone : "+"+phone.replace(/[^0-9]/g,"");
+    demo.phone = phone;
+    renderCallerCard(demo, el);
+    showToast("Demo Mode","Backend offline — showing sample data","warn");
+  }
 }
 async function loadCallerFeed(){
   const list=document.getElementById("caller-feed-list");
   if(!list)return;
   try{
     const res=await apiGet("/mobile/caller-feed");
-    if(res.success) list.innerHTML=res.feed.map(c=>`<div class="caller-feed-item ${c.status}"><span class="cf-number">${c.number}</span><span class="cf-name">${c.name}</span><span class="cf-type">${c.type.toUpperCase()}</span><span class="cf-status">${c.status==='blocked'?'🔴 BLOCKED':'✅ ALLOWED'}</span><span class="cf-time">${c.time}</span></div>`).join("");
+    if(res.success) list.innerHTML=res.feed.map(c=>`<div class="caller-feed-item ${c.status}"><span class="cf-number">${c.number}</span><span class="cf-name">${c.name}</span><span class="cf-type">${c.type.toUpperCase()}</span><span class="cf-status">${c.status==='blocked'?'BLOCKED':'ALLOWED'}</span><span class="cf-time">${c.time}</span></div>`).join("");
   }catch(e){}
 }
 async function checkSenderScan(){
@@ -315,10 +452,6 @@ async function checkSenderScan(){
   const r=await apiPost("/email/sender-scan",{email});
   showResult("res-sender",r,"Sender");
 }
-
-/* ════════════════════════════════════════════
-   THREAT INTEL
-   ════════════════════════════════════════════ */
 
 async function checkIOC(){
   const ind=document.getElementById("iocInput")?.value||"45.33.32.156";
@@ -332,15 +465,11 @@ async function checkFeeds(){
   showResult("res-feeds",r,"Feeds");
 }
 async function checkHash(){
-  const h=document.getElementById("hashInput")?.value||"a"+"0"*31;
+  const h=document.getElementById("hashInput")?.value||"a0000000000000000000000000000000";
   showLoading("res-hash");
   const r=await apiPost("/threat-intel/scan-hash",{hash:h});
   showResult("res-hash",r,"Hash");
 }
-
-/* ════════════════════════════════════════════
-   UEBA
-   ════════════════════════════════════════════ */
 
 async function checkBehavior(){
   showLoading("res-behavior");
@@ -352,10 +481,6 @@ async function checkRiskScore(){
   const r=await apiPost("/ueba/risk-score",{user_id:"admin@corp.com",device_trust_score:45,failed_attempts:3,ip_reputation:30});
   showResult("res-riskscore",r,"Risk Score");
 }
-
-/* ════════════════════════════════════════════
-   ENCRYPTION
-   ════════════════════════════════════════════ */
 
 async function checkEncrypt(){
   showLoading("res-enc");
@@ -377,10 +502,6 @@ async function checkDecrypt(){
   const r=await apiPost("/encryption/decrypt",{data:"encrypted-data-here",key:"test-key"});
   showResult("res-decrypt",r,"Decrypt");
 }
-
-/* ════════════════════════════════════════════
-   AI ENGINE (IOC, Email, Search, Report, Models)
-   ════════════════════════════════════════════ */
 
 async function checkAIIOC(){
   showLoading("res-ai-ioc");
@@ -408,14 +529,6 @@ async function checkAIModels(){
   showResult("res-ai-models",r,"AI Models");
 }
 
-/* ════════════════════════════════════════════
-   SANDBOX (Create, Upload, Status, Destroy)
-   ════════════════════════════════════════════ */
-
-/* ════════════════════════════════════════════
-   APK ANALYZER (Decompile, Static, Malware Scan)
-   ════════════════════════════════════════════ */
-
 async function checkAPKDecompile(){
   showLoading("res-apk-decompile");
   const r=await apiPost("/apk/decompile",{apk_name:"sample.apk",package_name:"com.example.app"});
@@ -442,10 +555,6 @@ async function checkAPKTools(){
   showResult("res-apk-tools",r,"APK Tools");
 }
 
-/* ════════════════════════════════════════════
-   YARA RULES (Scan IP, List Rules, Create)
-   ════════════════════════════════════════════ */
-
 async function checkYaraScan(){
   showLoading("res-yara-scan");
   const r=await apiPost("/yara/scan-ip",{ip:"45.33.32.156"});
@@ -462,27 +571,10 @@ async function checkYaraCreate(){
   showResult("res-yara-create",r,"YARA Create");
 }
 
-/* ════════════════════════════════════════════
-   INTEGRATIONS (Gmail API, Microsoft Graph)
-   ════════════════════════════════════════════ */
-
 async function checkGmailConnect(){
   showLoading("res-gmail-connect");
-  const el=document.getElementById("gmailCredentials");
-  let creds={};
-  if(el && el.value.trim()){
-    try{creds=JSON.parse(el.value.trim())}catch(e){creds={access_token:el.value.trim()}}
-  }
-  const r=await apiPost("/integration/gmail/connect",{credentials_json:creds});
+  const r=await apiPost("/integration/gmail/connect",{credentials_json:{}});
   showResult("res-gmail-connect",r,"Gmail");
-  if(r.auth_url){
-    document.getElementById("res-gmail-connect").innerHTML+='<br><a href="'+r.auth_url+'" target="_blank" style="color:var(--cyan)">Open Auth URL →</a>';
-  }
-  if(r.success&&r.connection_status==="CONNECTED"){
-    const card=document.getElementById("gmail-status");
-    if(card){card.querySelector(".sc-value").innerHTML="Connected";card.querySelector(".sc-value").style.color="var(--green)";card.querySelector(".sc-sub").textContent="Gmail API connected";}
-    const banner=document.getElementById("alertBanner"); if(banner)banner.querySelector(".alert-text").innerHTML="<strong>INTEGRATIONS STATUS:</strong> Gmail connected. Microsoft 365 is disconnected. SIEM forwarding is active. 3 webhooks configured.";
-  }
 }
 async function checkGmailScan(){
   showLoading("res-gmail-scan");
@@ -497,38 +589,8 @@ async function checkGmailSearch(){
 }
 async function checkGraphConnect(){
   showLoading("res-graph-connect");
-  const el=document.getElementById("graphCredentials");
-  let creds={};
-  if(el && el.value.trim()){
-    try{creds=JSON.parse(el.value.trim())}catch(e){creds={}}
-  }
-  const r=await apiPost("/integration/graph/connect",{...creds,access_token:creds.access_token||""});
+  const r=await apiPost("/integration/graph/connect",{access_token:""});
   showResult("res-graph-connect",r,"Graph");
-  if(r.success&&r.connection_status==="CONNECTED"){
-    const card=document.getElementById("graph-status");
-    if(card){card.querySelector(".sc-value").innerHTML="Connected";card.querySelector(".sc-value").style.color="var(--green)";card.querySelector(".sc-sub").textContent="Microsoft Graph connected";}
-    const banner=document.getElementById("alertBanner"); if(banner)banner.querySelector(".alert-text").innerHTML="<strong>INTEGRATIONS STATUS:</strong> Gmail connected. Microsoft 365 connected. SIEM forwarding is active. 3 webhooks configured.";
-  }
-}
-async function checkGmailDisconnect(){
-  showLoading("res-gmail-connect");
-  const r=await apiPost("/integration/gmail/disconnect",{});
-  showResult("res-gmail-connect",r,"Gmail");
-  if(r.success){
-    const card=document.getElementById("gmail-status");
-    if(card){card.querySelector(".sc-value").innerHTML="Disconnected";card.querySelector(".sc-value").style.color="var(--red)";card.querySelector(".sc-sub").textContent="Click to connect";}
-    const banner=document.getElementById("alertBanner"); if(banner)banner.querySelector(".alert-text").innerHTML="<strong>INTEGRATIONS STATUS:</strong> Gmail and Microsoft 365 are disconnected. SIEM forwarding is active. 3 webhooks configured.";
-  }
-}
-async function checkGraphDisconnect(){
-  showLoading("res-graph-connect");
-  const r=await apiPost("/integration/graph/disconnect",{});
-  showResult("res-graph-connect",r,"Graph");
-  if(r.success){
-    const card=document.getElementById("graph-status");
-    if(card){card.querySelector(".sc-value").innerHTML="Disconnected";card.querySelector(".sc-value").style.color="var(--red)";card.querySelector(".sc-sub").textContent="Click to connect";}
-    const banner=document.getElementById("alertBanner"); if(banner)banner.querySelector(".alert-text").innerHTML="<strong>INTEGRATIONS STATUS:</strong> Gmail and Microsoft 365 are disconnected. SIEM forwarding is active. 3 webhooks configured.";
-  }
 }
 async function checkGraphUsers(){
   showLoading("res-graph-users");
@@ -546,15 +608,11 @@ async function checkGraphScan(){
   showResult("res-graph-scan",r,"Graph Scan");
 }
 
-/* ════════════════════════════════════════════
-   UI HELPERS
-   ════════════════════════════════════════════ */
-
 function showLoading(id){
   const el=document.getElementById(id);
   if(!el) return;
   el.className="tc-result show res-loading";
-  el.innerHTML="⏳ Processing...";
+  el.innerHTML="Processing...";
 }
 function showResult(id,res,label){
   const el=document.getElementById(id);
@@ -565,39 +623,62 @@ function showResult(id,res,label){
     return;
   }
   const verdict=res.verdict||res.status||"OK";
-  const cls=!verdict||verdict==="PASS"||verdict==="CLEAN"||verdict==="SAFE"||verdict==="SECURE"||verdict==="PROTECTED"||verdict==="VERIFIED"||verdict==="LEGITIMATE"||verdict==="BENIGN"||verdict==="ENCRYPTED"||verdict==="ALLOWED"||verdict==="AUTHENTICATED"||verdict==="COMPLIANT"||verdict==="OPERATIONAL"||verdict.includes("OK")||verdict.includes("PASS")||verdict.includes("COMPLETE")||verdict.includes("_VALID")||verdict.includes("_CREATED")||verdict.includes("_READY")||verdict.includes("_LISTED")||verdict.includes("DECOMPILED")||verdict.includes("GENERATED")||verdict==="SESSION_VALID"||verdict==="TOKEN_VERIFIED"||verdict==="ARGON2_READY"||verdict==="SANDBOX_CREATED"?"res-pass":
-    verdict==="FAIL"||verdict==="BLOCKED"||verdict==="MALICIOUS"||verdict==="PHISHING"||verdict==="BEC_ATTACK"||verdict==="DRIVE_BY_DOWNLOAD"||verdict==="SPOOFING_DETECTED"||verdict==="EXFILTRATION_BLOCKED"||verdict==="ROGUE_MDM_DETECTED"||verdict==="ZERO_CLICK_EXPLOIT"||verdict==="CREDENTIAL_PHISHING"||verdict==="ATO_ATTEMPT_DETECTED"||verdict==="DOUBLE_AUTH_PASSED"?"res-fail":"res-warn";
+  if(res.risk_level){
+    const clsMap={safe:"res-pass",low:"res-warn",medium:"res-warn",high:"res-fail",unknown:"res-info"};
+    const cls=clsMap[res.risk_level]||"res-warn";
+    el.className=`tc-result show ${cls}`;
+    let html=`<strong>${label}:</strong> ${verdict}`;
+    if(res.score!=null) html+=` <span style="opacity:0.6">| Score: ${res.score}/100</span>`;
+    if(res.message) html+=`<br><span style="opacity:0.7;font-size:12px">${res.message}</span>`;
+    if(res.findings&&res.findings.length){
+      html+=`<div style="margin-top:6px;font-size:11px">${res.findings.slice(0,3).map(f=>`${f}`).join("<br>")}</div>`;
+    }
+    if(res.explanation) html+=`<div style="margin-top:8px;font-size:11px;opacity:0.85;line-height:1.5">${res.explanation}</div>`;
+    if(res.recommendation) html+=`<div style="margin-top:4px;font-size:10px;opacity:0.6">${res.recommendation}</div>`;
+    el.innerHTML=html;
+    return;
+  }
+  const passVerdicts=["PASS","CLEAN","SAFE","SECURE","PROTECTED","VERIFIED","LEGITIMATE","BENIGN","ENCRYPTED","ALLOWED","AUTHENTICATED","COMPLIANT","OPERATIONAL"];
+  const failVerdicts=["FAIL","BLOCKED","MALICIOUS","PHISHING","BEC_ATTACK","DRIVE_BY_DOWNLOAD","SPOOFING_DETECTED"];
+  const cls=passVerdicts.includes(verdict)?"res-pass":failVerdicts.includes(verdict)?"res-fail":"res-warn";
   el.className=`tc-result show ${cls}`;
   let html=`<strong>${label}:</strong> ${verdict}`;
-  if(res.score||res.threat_score||res.bec_score||res.risk_score||res.phishing_score||res.heuristic_score||res.bec_score){html+=` <span style="opacity:0.6">| Score: ${res.score||res.threat_score||res.bec_score||res.risk_score||res.phishing_score||res.heuristic_score||0}</span>`;}
-  if(res.message) html+=`<br><span style="opacity:0.7;font-size:.78rem">${res.message}</span>`;
+  const score=res.score||res.threat_score||res.bec_score||res.risk_score||res.phishing_score||res.heuristic_score||0;
+  if(score) html+=` <span style="opacity:0.6">| Score: ${score}</span>`;
+  if(res.message) html+=`<br><span style="opacity:0.7;font-size:12px">${res.message}</span>`;
   el.innerHTML=html;
   if(res.findings&&res.findings.length){
-    el.innerHTML+=`<div style="margin-top:6px;font-size:.72rem">${res.findings.slice(0,3).map(f=>`• ${f}`).join("<br>")}</div>`;
+    el.innerHTML+=`<div style="margin-top:6px;font-size:11px">${res.findings.slice(0,3).map(f=>`${f}`).join("<br>")}</div>`;
   }
-  if(res.recommendation){
-    el.innerHTML+=`<div style="margin-top:4px;font-size:.68rem;opacity:0.6">💡 ${res.recommendation}</div>`;
-  }
+  if(res.recommendation) el.innerHTML+=`<div style="margin-top:4px;font-size:10px;opacity:0.6">${res.recommendation}</div>`;
 }
-
-/* ════════════════════════════════════════════
-   EXISTING MOBILE FUNCTIONS
-   ════════════════════════════════════════════ */
 
 async function analyzeSMS(){
   const text=document.getElementById("sms-input")?.value.trim();
   const result=document.getElementById("sms-result");
   if(!text){result.innerHTML='<span style="color:var(--danger)">Please paste an SMS message</span>';return;}
-  result.innerHTML='<span style="color:var(--warn)">⏳ Analyzing...</span>';
+  result.innerHTML='<span style="color:var(--warn)">Analyzing...</span>';
   try{
     const res=await apiPost("/mobile/analyze-sms",{text});
-    if(res.success){
+    if(res&&res.success){
       const color=res.verdict==="PHISHING"?"var(--danger)":res.verdict==="SUSPICIOUS"?"var(--warn)":"var(--safe)";
       let html=`<div style="color:${color};padding:12px;background:rgba(0,0,0,0.2);border:1px solid ${color};border-radius:4px;font-family:'Share Tech Mono';font-size:12px;"><strong>VERDICT: ${res.verdict}</strong> (Score: ${res.score}/100)<br>`;
-      res.findings.forEach(f=>{html+=`• ${f}<br>`;}); html+="</div>";
+      res.findings.forEach(f=>{html+=`${f}<br>`;}); html+="</div>";
       result.innerHTML=html;
+      return;
     }
-  }catch(e){result.innerHTML='<span style="color:var(--danger)">Error analyzing SMS</span>';}
+    throw new Error("Backend unavailable");
+  }catch(e){
+    const kw=["click here","claim now","free prize","won","lottery","congratulations","account blocked","verify now","urgent","suspended"];
+    const score=kw.some(k=>text.toLowerCase().includes(k))?75:5;
+    const verdict=score>=30?"PHISHING":"SAFE";
+    const findings=score>=30?["Suspicious urgency/reward language detected","Potential phishing pattern identified"]:["Message appears legitimate","No phishing indicators found"];
+    const color=score>=30?"var(--danger)":"var(--safe)";
+    let html=`<div style="color:${color};padding:12px;background:rgba(0,0,0,0.2);border:1px solid ${color};border-radius:4px;font-family:'Share Tech Mono';font-size:12px;"><strong>VERDICT: ${verdict}</strong> (Score: ${score}/100)<br>`;
+    findings.forEach(f=>{html+=`${f}<br>`;}); html+="</div>";
+    result.innerHTML=html;
+    showToast("Demo Mode","Backend offline — showing local analysis","warn");
+  }
 }
 
 async function startAppScan(){
@@ -616,10 +697,10 @@ async function startAppScan(){
       if(res.success&&result){
         result.style.display="block";
         result.innerHTML=`<div style="font-family:'Share Tech Mono';font-size:11px">${res.apps.map(a=>`<div class="perm-item"><span>${a.name}</span><span style="color:${a.risk==='high'?'var(--danger)':a.risk==='medium'?'var(--warn)':'var(--safe)'}">${a.permissions?.length||0} permissions | ${a.risk.toUpperCase()} Risk</span></div>`).join("")}</div>`;
-        log.innerHTML+='<div style="color:var(--safe);line-height:2">✅ Scan completed. Permissions audited.</div>';
+        log.innerHTML+='<div style="color:var(--safe);line-height:2">Scan completed. Permissions audited.</div>';
       }
     },2500);
-  }catch(e){log.innerHTML+='<div style="color:var(--danger)">❌ Scan error</div>';}
+  }catch(e){log.innerHTML+='<div style="color:var(--danger)">Scan error</div>';}
 }
 async function startMalwareScan(){
   const fill=document.getElementById("malware-scan-fill");
@@ -635,7 +716,7 @@ async function startMalwareScan(){
   setTimeout(()=>{
     if(res.success){
       const color=res.threats_found>0?"var(--danger)":"var(--safe)";
-      result.innerHTML=`<div style="color:${color};font-family:'Share Tech Mono';font-size:12px;padding:12px;background:rgba(0,0,0,0.2);border:1px solid ${color};border-radius:4px;"><strong>${res.threats_found>0?"⚠ THREATS FOUND":"✅ CLEAN"}</strong><br>Apps Scanned: ${res.apps_scanned} | Threats: ${res.threats_found} | Clean: ${res.clean}</div>`;
+      result.innerHTML=`<div style="color:${color};font-family:'Share Tech Mono';font-size:12px;padding:12px;background:rgba(0,0,0,0.2);border:1px solid ${color};border-radius:4px;"><strong>${res.threats_found>0?"THREATS FOUND":"CLEAN"}</strong><br>Apps Scanned: ${res.apps_scanned} | Threats: ${res.threats_found} | Clean: ${res.clean}</div>`;
     }
   },2600);
 }
@@ -669,7 +750,7 @@ async function loadCallData(){
   if(!list) return;
   try{
     const res=await apiGet("/mobile/call-logs");
-    if(res.success) list.innerHTML=res.calls.map(c=>`<div class="perm-item"><span>${c.from}</span><span style="color:${c.blocked?'var(--danger)':'var(--safe)'}">${c.type.toUpperCase()} ${c.blocked?'🔴 BLOCKED':'✅ ALLOWED'}</span></div>`).join("");
+    if(res.success) list.innerHTML=res.calls.map(c=>`<div class="perm-item"><span>${c.from}</span><span style="color:${c.blocked?'var(--danger)':'var(--safe)'}">${c.type.toUpperCase()} ${c.blocked?'BLOCKED':'ALLOWED'}</span></div>`).join("");
   }catch(e){list.innerHTML="Error loading calls";}
 }
 
@@ -701,10 +782,10 @@ async function runScan(){
     const val=document.getElementById("urlInput")?.value||"https://example.com";
     endpoint="/email/url-analysis"; payload={url:val}; label="URL";
   }else{el.innerHTML='<span style="color:var(--danger)">No tab selected</span>';return;}
-  el.innerHTML='<span style="color:var(--warn)">⏳ Scanning...</span>';
+  el.innerHTML='<span style="color:var(--warn)">Scanning...</span>';
   try{
     const r=await apiPost(endpoint,payload);
-    if(!r||r.error){el.innerHTML=`<span style="color:var(--danger)">✗ ${label} Scan Failed: ${r?.error||"Unknown error"}</span>`;return;}
+    if(!r||r.error){el.innerHTML=`<span style="color:var(--danger)">${label} Scan Failed: ${r?.error||"Unknown error"}</span>`;return;}
     const verdict=r.verdict||r.status||"COMPLETE";
     const score=r.score||r.risk_score||r.threat_score||0;
     const cls=verdict==="PHISHING"||verdict==="MALICIOUS"||verdict==="BLOCKED"||verdict==="SPOOFING_DETECTED"?"danger":verdict==="SUSPICIOUS"||score>50?"warn":"safe";
@@ -712,16 +793,12 @@ async function runScan(){
     html+=`<strong style="color:var(--${cls})">${label}: ${verdict}</strong>`;
     if(score>0)html+=` <span style="opacity:0.6">| Score: ${score}/100</span>`;
     if(r.reputation||r.category)html+=`<br><span style="opacity:0.7">${r.reputation||""} ${r.category||""}</span>`;
-    if(r.findings&&r.findings.length)html+=`<br>${r.findings.slice(0,3).map(f=>`• ${f}`).join("<br>")}`;
-    if(r.recommendation)html+=`<br><span style="opacity:0.5;font-size:11px">💡 ${r.recommendation}</span>`;
+    if(r.findings&&r.findings.length)html+=`<br>${r.findings.slice(0,3).map(f=>`${f}`).join("<br>")}`;
+    if(r.recommendation)html+=`<br><span style="opacity:0.5;font-size:11px">${r.recommendation}</span>`;
     html+=`</div>`;
     el.innerHTML=html;
-  }catch(e){el.innerHTML=`<span style="color:var(--danger)">✗ Scan error: ${e.message||"Request failed"}</span>`;}
+  }catch(e){el.innerHTML=`<span style="color:var(--danger)">Scan error: ${e.message||"Request failed"}</span>`;}
 }
-
-/* ════════════════════════════════════════════
-   UI: MODALS, TABS, CLOCK, CHARTS
-   ════════════════════════════════════════════ */
 
 function openModal(id){const el=document.getElementById(id);if(el)el.classList.add("open");}
 function closeMobileModal(id){const el=document.getElementById(id);if(el)el.classList.remove("open");}
@@ -774,7 +851,7 @@ async function analyzeEmail(){
     const fd=new FormData();fd.append("file",file);
     const r=await fetch(apiUrl("/email/analyze-eml-file"),{method:"POST",headers:authHeadersNoType(),body:fd});
     const res=await r.json();
-    if(!res.success||res.error){alertBar.innerHTML=`<span style="color:var(--danger)">✗ ${res.error||"Analysis failed"}</span>`;btn.disabled=false;if(scanning)scanning.style.display="none";return;}
+    if(!res.success||res.error){alertBar.innerHTML=`<span style="color:var(--danger)">${res.error||"Analysis failed"}</span>`;btn.disabled=false;if(scanning)scanning.style.display="none";return;}
     _lastEmlId = res.analysis_id;
     const v=res.verdict||"UNKNOWN";
     const score=res.phishing_score||0;
@@ -788,24 +865,24 @@ async function analyzeEmail(){
     }
     if(res.findings&&res.findings.length){
       html+=`<br><strong style="color:var(--${vc})">Findings (${res.findings.length}):</strong><br>`;
-      res.findings.forEach(f=>{html+=`<span style="opacity:0.8">• ${f}</span><br>`;});
+      res.findings.forEach(f=>{html+=`${f}<br>`;});
     }
     if(res.attachments&&res.attachments.length){
       html+=`<br><strong>Attachments (${res.attachment_count}):</strong><br>`;
-      res.attachments.forEach(a=>{html+=`<span style="opacity:0.7">• ${a.filename} (${(a.size/1024).toFixed(1)} KB)</span><br>`;});
+      res.attachments.forEach(a=>{html+=`${a.filename} (${(a.size/1024).toFixed(1)} KB)<br>`;});
     }
     if(res.urls_found&&res.urls_found.length){
       html+=`<br><strong>URLs found:</strong><br>`;
-      res.urls_found.forEach(u=>{html+=`<span style="opacity:0.6;font-size:11px">• ${u}</span><br>`;});
+      res.urls_found.forEach(u=>{html+=`${u}<br>`;});
     }
-    if(res.recommendation)html+=`<br><span style="opacity:0.5">💡 ${res.recommendation}</span>`;
+    if(res.recommendation)html+=`<br><span style="opacity:0.5">${res.recommendation}</span>`;
     html+=`</div>`;
     html+=`<div style="margin-top:10px;display:flex;gap:8px;">`;
-    html+=`<button class="btn-scan" onclick="downloadEmlReport('pdf')" style="flex:1;padding:10px;font-size:11px;background:rgba(255,51,85,0.15);border-color:var(--danger);color:var(--danger)">📄 DOWNLOAD PDF</button>`;
-    html+=`<button class="btn-scan" onclick="downloadEmlReport('xlsx')" style="flex:1;padding:10px;font-size:11px;background:rgba(0,255,136,0.1);border-color:var(--safe);color:var(--safe)">📊 DOWNLOAD EXCEL</button>`;
+    html+=`<button class="btn-scan" onclick="downloadEmlReport('pdf')" style="flex:1;padding:10px;font-size:11px;background:rgba(255,51,85,0.15);border-color:var(--danger);color:var(--danger)">DOWNLOAD PDF</button>`;
+    html+=`<button class="btn-scan" onclick="downloadEmlReport('xlsx')" style="flex:1;padding:10px;font-size:11px;background:rgba(0,255,136,0.1);border-color:var(--safe);color:var(--safe)">DOWNLOAD EXCEL</button>`;
     html+=`</div>`;
-    resultBox.innerHTML=html;alertBar.innerHTML=`<span style="color:var(--safe)">✓ Analysis complete — ${res.findings?res.findings.length:0} findings, verdict: ${v}</span>`;
-  }catch(e){alertBar.innerHTML=`<span style="color:var(--danger)">✗ Error: ${e.message}</span>`;}
+    resultBox.innerHTML=html;alertBar.innerHTML=`<span style="color:var(--safe)">Analysis complete — ${res.findings?res.findings.length:0} findings, verdict: ${v}</span>`;
+  }catch(e){alertBar.innerHTML=`<span style="color:var(--danger)">Error: ${e.message}</span>`;}
   btn.disabled=false;if(scanning)scanning.style.display="none";
 }
 function downloadEmlReport(fmt){
@@ -817,8 +894,42 @@ function downloadEmlReport(fmt){
 
 function togglePassword(){const inp=document.getElementById("pwInput");if(inp)inp.type=inp.type==="password"?"text":"password";}
 function togglePin(){const inp=document.getElementById("pinInput");if(inp)inp.type=inp.type==="password"?"text":"password";}
-function toggleMFA(){const section=document.getElementById("mfaSection");const check=document.getElementById("mfaCheck");if(section&&check){section.classList.toggle("show");check.textContent=section.classList.contains("show")?"✓":"";}}
+function toggleRegPin(){const inp=document.getElementById("regPinInput");if(inp)inp.type=inp.type==="password"?"text":"password";}
+
+function toggleMobileRegister(){
+  const box=document.getElementById("mobileRegisterBox");
+  if(box) box.style.display=box.style.display==="none"?"block":"none";
+}
+
+async function doMobileRegister(){
+  const name=document.getElementById("regNameInput")?.value.trim();
+  const phone=document.getElementById("regPhoneInput")?.value.trim();
+  const pin=document.getElementById("regPinInput")?.value;
+  const confirm=document.getElementById("regPinConfirmInput")?.value;
+  const btn=document.getElementById("mobileRegBtn");
+  if(!name||!phone||!pin){showAlert("Please fill all fields");return;}
+  if(pin!==confirm){showAlert("PINs do not match");return;}
+  btn?.classList.add("loading");
+  try{
+    const res=await apiPost("/auth/mobile-register",{name,phone,pin});
+    if(res.success){
+      showToast("Account Created","You can now login with your phone and PIN","safe");
+      toggleMobileRegister();
+      document.getElementById("mobileInput").value=phone;
+    } else showAlert(res.message||"Registration failed");
+  }catch(e){showAlert("Connection error");}
+  btn?.classList.remove("loading");
+}
+function toggleMFA(){const section=document.getElementById("mfaSection");const check=document.getElementById("mfaCheck");if(section&&check){section.classList.toggle("show");check.textContent=section.classList.contains("show")?"DONE":"";}}
 function otpNext(el,nextId){if(el.value.length>=1&&nextId)document.getElementById(nextId)?.focus();}
+async function resendOTP(){
+  if(!loginEmail){showToast("Error","No email found. Please login again.","danger");return;}
+  try{
+    const res=await apiPost("/auth/send-email-otp",{email:loginEmail});
+    if(res.success) showToast("OTP Sent",res.message||"New verification code sent","info");
+    else showToast("Failed",res.message||"Could not resend OTP","danger");
+  }catch(e){showToast("Error","Connection error","danger");}
+}
 function altLogin(method){showToast("Alternative Login",`${method} authentication initiated`,"info");}
 function showForgot(){showToast("Password Reset","Reset link sent to your email","info");}
 
@@ -876,7 +987,7 @@ function drawRadar(){
   const cx=130,cy=130,r=90;
   ctx.clearRect(0,0,260,260);
   for(let i=1;i<=3;i++){ctx.beginPath();ctx.arc(cx,cy,r*i/3,0,Math.PI*2);ctx.strokeStyle="rgba(13,42,69,0.6)";ctx.lineWidth=1;ctx.stroke();}
-  const threats=[{angle:0.2,dist:0.8,color:"var(--safe)",label:"Malware"},{angle:1.8,dist:0.5,color:"var(--warn)",label:"Phishing"},{angle:3.0,dist:0.3,color:"var(--danger)",label:"Intrusion"},{angle:4.5,dist:0.6,color:"var(--info)",label:"Spyware"}];
+  const threats=[{angle:0.2,dist:0.8,color:"#00ff88",label:"Malware"},{angle:1.8,dist:0.5,color:"#f5c400",label:"Phishing"},{angle:3.0,dist:0.3,color:"#ff3a6e",label:"Intrusion"},{angle:4.5,dist:0.6,color:"#00ffe7",label:"Spyware"}];
   threats.forEach(t=>{const x=cx+r*t.dist*Math.cos(t.angle);const y=cy+r*t.dist*Math.sin(t.angle);ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fillStyle=t.color;ctx.shadowBlur=12;ctx.shadowColor=t.color;ctx.fill();ctx.shadowBlur=0;});
 }
 
@@ -907,15 +1018,11 @@ function validateToken(){
   }).catch(()=>{});
 }
 document.addEventListener("DOMContentLoaded",()=>{
-  const isLogin = window.location.pathname.includes("login");
-  const isIndex = window.location.pathname === "/" || window.location.pathname.includes("index");
-  validateToken();
-  if(!isLogin){
-    initClock();initReveal();initThreatLog();
-    drawRadar();drawBarChart();
-  }
-  if(!isLogin && !isIndex){
-    loadDashboardStats();loadBatteryData();loadDeviceHealth();loadCallData();
-    setTimeout(animateCounters,500);
-  }
+  const isLogin = !!document.querySelector(".auth-tabs");
+  initClock();
+  if(isLogin) return;
+  validateToken();initReveal();initThreatLog();
+  drawRadar();drawBarChart();
+  loadDashboardStats();loadBatteryData();loadDeviceHealth();loadCallData();
+  setTimeout(animateCounters,500);
 });

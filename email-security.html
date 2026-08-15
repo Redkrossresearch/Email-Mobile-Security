@@ -602,27 +602,6 @@
       <a href="reports.html" class="nav-link">
         <span class="nav-icon">📊</span> Reports
       </a>
-      <a href="threat-intel.html" class="nav-link">
-        <span class="nav-icon">🌐</span> Threat Intel
-      </a>
-      <a href="ai-engine.html" class="nav-link">
-        <span class="nav-icon">🤖</span> AI Engine
-      </a>
-      <a href="apk-analyzer.html" class="nav-link">
-        <span class="nav-icon">📱</span> APK Analyzer
-      </a>
-      <a href="yara-rules.html" class="nav-link">
-        <span class="nav-icon">📜</span> YARA Rules
-      </a>
-      <a href="integrations.html" class="nav-link">
-        <span class="nav-icon">🔗</span> Integrations
-      </a>
-      <a href="encryption.html" class="nav-link">
-        <span class="nav-icon">🔐</span> Encryption
-      </a>
-      <a href="ueba.html" class="nav-link">
-        <span class="nav-icon">🧠</span> UEBA
-      </a>
     </nav>
 
     <div class="sidebar-footer">
@@ -752,6 +731,35 @@
         <button class="tc-btn btn-blue" onclick="checkDMARC()">Check DMARC</button>
       </div>
 
+      <!-- Health Scorecard -->
+      <div class="tool-card tc-yellow">
+        <div class="tc-header">
+          <span class="tc-icon">📊</span>
+          <span class="tc-badge badge-active">Advanced</span>
+        </div>
+        <div class="tc-title">Email Health Scorecard</div>
+        <div class="tc-desc">Batch analysis: SPF + DKIM + DMARC + sender reputation + phishing in one grade.</div>
+        <input type="text" class="card-input" id="scoreDomainInput" placeholder="Domain (e.g. cybershield.com)">
+        <input type="text" class="card-input" id="scoreSenderInput" placeholder="Sender email (optional)">
+        <input type="text" class="card-input" id="scoreBodyInput" placeholder="Email body (optional)">
+        <div class="tc-result" id="res-scorecard"></div>
+        <button class="tc-btn btn-yellow" onclick="checkHealthScorecard()">📊 Generate Scorecard</button>
+      </div>
+
+      <!-- DKIM Key Generator -->
+      <div class="tool-card tc-green">
+        <div class="tc-header">
+          <span class="tc-icon">🔑</span>
+          <span class="tc-badge badge-active">Advanced</span>
+        </div>
+        <div class="tc-title">DKIM Key Generator</div>
+        <div class="tc-desc">Generate an RSA keypair for DKIM signing and get the DNS TXT record to publish.</div>
+        <input type="text" class="card-input" id="dkimGenDomainInput" placeholder="Domain (e.g. cybershield.com)">
+        <input type="text" class="card-input" id="dkimGenSelectorInput" placeholder="Selector (optional, default: default)">
+        <div class="tc-result" id="res-dkimgen"></div>
+        <button class="tc-btn btn-green" onclick="generateDkim()">🔑 Generate DKIM Key</button>
+      </div>
+
       <!-- Header Analyzer -->
       <div class="tool-card tc-orange">
         <div class="tc-header">
@@ -784,7 +792,7 @@
           <span class="tc-badge badge-warning">Scanner</span>
         </div>
         <div class="tc-title">URL Scanner</div>
-        <div class="tc-desc">Paste a URL below to scan against threat intel feeds, blocklists, and redirect chain analysis.</div>
+        <div class="tc-desc">Paste a URL below to scan against security blocklists, reputation sources, and redirect chain analysis.</div>
         <input type="text" id="urlInput" placeholder="https://example.com/malicious-link" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;margin-bottom:8px;font-family:'Share Tech Mono',monospace;">
         <div class="tc-result" id="res-url"></div>
         <button class="tc-btn btn-yellow" onclick="scanURL()">Scan URL</button>
@@ -1000,7 +1008,7 @@
 </div>
 
 
-<script src="js/script.js"></script>
+<script src="js/script.js?v=2"></script>
 
 </body>
 </html>

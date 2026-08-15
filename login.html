@@ -693,7 +693,7 @@
         <!-- Threat status -->
         <div class="threat-bar">
             <div>
-                <div class="label">🔍 Threat Intelligence</div>
+                <div class="label">🔍 Threat Level</div>
             </div>
             <div class="threat-level">
                 <div class="threat-dot"></div>
@@ -750,7 +750,7 @@
 
             <!-- MFA OTP section -->
             <div class="mfa-section" id="mfaSection">
-                <div id="otpDeliveryMsg" style="font-size:13px;color:var(--cyan);text-align:center;margin-bottom:12px;font-family:var(--mono);"></div>
+                <div id="otpDeliveryMsg" style="font-size:13px;color:var(--accent);text-align:center;margin-bottom:12px;font-family:var(--font-mono);"></div>
                 <div class="mfa-label">🔐 One-Time Password (OTP)</div>
                 <div class="otp-inputs">
                     <input type="text" maxlength="1" class="otp" id="o1" oninput="otpNext(this,'o2')">
@@ -792,6 +792,10 @@
                 <button class="alt-btn" onclick="altLogin('Certificate')">📜 Cert Auth</button>
             </div>
 
+            <div style="text-align:center;font-size:13px;color:var(--muted);letter-spacing:0.5px;">
+                New to CyberShield? <a href="register.html" class="forgot-link" style="color:var(--accent);">Create an account</a>
+            </div>
+
         </div>
 
         <!-- ── MOBILE LOGIN PANEL ── -->
@@ -814,8 +818,9 @@
                 </div>
             </div>
 
-            <!-- SMS OTP section for mobile -->
-            <div class="mfa-section show" id="smsOtpSection">
+            <!-- SMS OTP section for mobile (shown after PIN is verified) -->
+            <div class="mfa-section" id="smsOtpSection">
+                <div id="mobileOtpDeliveryMsg" style="font-size:13px;color:var(--accent);text-align:center;margin-bottom:12px;font-family:var(--font-mono);"></div>
                 <div class="mfa-label">💬 SMS Verification Code</div>
                 <div class="otp-inputs">
                     <input type="text" maxlength="1" class="otp" id="s1" oninput="otpNext(this,'s2')">
@@ -826,16 +831,62 @@
                     <input type="text" maxlength="1" class="otp" id="s6" oninput="otpNext(this,null)">
                 </div>
                 <div style="text-align:center;margin-top:10px;">
-                    <button onclick="resendOTP()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font-mono);letter-spacing:1px;" id="resendBtn">
-                        📤 Resend OTP (<span id="otpTimer">60</span>s)
+                    <button onclick="sendMobileOtp()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font-mono);letter-spacing:1px;" id="resendBtn">
+                        📤 Resend OTP (<span id="otpTimer">30</span>s)
                     </button>
                 </div>
             </div>
 
             <button class="btn-login" id="mobileLoginBtn" onclick="doMobileLogin()">
-                <span class="btn-text">📱 VERIFY &amp; LOGIN</span>
+                <span class="btn-text">📱 VERIFY PIN</span>
                 <div class="spinner"></div>
             </button>
+
+            <button class="btn-login" id="mobileVerifyBtn" onclick="verifyMobileOtp()" style="display:none;">
+                <span class="btn-text">🔓 VERIFY OTP &amp; LOGIN</span>
+                <div class="spinner"></div>
+            </button>
+
+            <div style="text-align:center;margin-top:12px;">
+                <a href="javascript:void(0)" onclick="toggleMobileRegister()" id="mobileRegToggle" style="color:var(--accent);font-size:13px;font-family:var(--font-mono);letter-spacing:1px;">🆕 New mobile user? Set your security PIN</a>
+            </div>
+
+            <!-- ── MOBILE REGISTER / SET PIN ── -->
+            <div id="mobileRegisterBox" style="display:none;margin-top:16px;">
+                <div class="field">
+                    <label><span class="ico">👤</span> Full Name</label>
+                    <div class="input-wrap">
+                        <input type="text" id="regNameInput" placeholder="Your name" autocomplete="name">
+                        <div class="input-bar"></div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label><span class="ico">📱</span> Mobile Number</label>
+                    <div class="input-wrap">
+                        <input type="tel" id="regPhoneInput" placeholder="+91 98765 43210" autocomplete="tel">
+                        <div class="input-bar"></div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label><span class="ico">🔒</span> Create Security PIN (4-6 digits)</label>
+                    <div class="input-wrap">
+                        <input type="password" id="regPinInput" placeholder="••••••" maxlength="6" autocomplete="new-password">
+                        <div class="input-bar"></div>
+                        <button class="toggle-pw" onclick="toggleRegPin()" type="button">👁</button>
+                    </div>
+                </div>
+                <div class="field">
+                    <label><span class="ico">🔒</span> Confirm PIN</label>
+                    <div class="input-wrap">
+                        <input type="password" id="regPinConfirmInput" placeholder="••••••" maxlength="6" autocomplete="new-password">
+                        <div class="input-bar"></div>
+                    </div>
+                </div>
+                <button class="btn-login" id="mobileRegBtn" onclick="doMobileRegister()">
+                    <span class="btn-text">🆕 CREATE ACCOUNT &amp; SET PIN</span>
+                    <div class="spinner"></div>
+                </button>
+            </div>
 
             <div class="divider">
                 <hr><span>OR</span><hr>
@@ -871,6 +922,6 @@
 
 
 <div id="toast-container" style="position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;"></div>
-<script src="js/script.js"></script>
+<script src="js/script.js?v=2"></script>
 </body>
 </html>

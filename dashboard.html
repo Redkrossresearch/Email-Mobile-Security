@@ -514,7 +514,7 @@
         }
     </style>
 </head>
-<body>
+<body data-page="dashboard">
 
 <!-- SIDEBAR -->
 <div class="sidebar">
@@ -534,27 +534,6 @@
     </a>
     <a href="reports.html" class="nav-item">
         <span class="icon">📊</span> REPORTS
-    </a>
-    <a href="threat-intel.html" class="nav-item">
-        <span class="icon">🌐</span> THREAT INTEL
-    </a>
-    <a href="ai-engine.html" class="nav-item">
-        <span class="icon">🤖</span> AI ENGINE
-    </a>
-    <a href="apk-analyzer.html" class="nav-item">
-        <span class="icon">📱</span> APK ANALYZER
-    </a>
-    <a href="yara-rules.html" class="nav-item">
-        <span class="icon">📜</span> YARA RULES
-    </a>
-    <a href="integrations.html" class="nav-item">
-        <span class="icon">🔗</span> INTEGRATIONS
-    </a>
-    <a href="encryption.html" class="nav-item">
-        <span class="icon">🔐</span> ENCRYPTION
-    </a>
-    <a href="ueba.html" class="nav-item">
-        <span class="icon">🧠</span> UEBA
     </a>
 
     <div class="sidebar-bottom">
@@ -599,15 +578,10 @@
             <div class="stat-value" id="dash-score">98%</div>
             <div class="stat-sub">Updated 5 min ago</div>
         </div>
-        <div class="stat-card" style="border-top:2px solid var(--accent);">
-            <div class="stat-label">IOCs Blocked</div>
-            <div class="stat-value" style="color:var(--accent)" id="dash-iocs">847</div>
-            <div class="stat-sub">From 5 intel feeds</div>
-        </div>
         <div class="stat-card" style="border-top:2px solid var(--yellow);">
-            <div class="stat-label">UEBA Alerts</div>
-            <div class="stat-value" style="color:var(--yellow)" id="dash-ueba">12</div>
-            <div class="stat-sub">Anomalous behaviors</div>
+            <div class="stat-label">Phishing Blocked</div>
+            <div class="stat-value" style="color:var(--yellow)" id="dash-phish">147</div>
+            <div class="stat-sub">This week</div>
         </div>
     </div>
 
@@ -648,27 +622,11 @@
                 </div>
                 <div class="threat-count" style="color:var(--green)" id="mon-mobile">7</div>
             </div>
-
-            <div class="threat-row">
-                <div class="threat-label">🌐 IOC Matches</div>
-                <div class="threat-bar-wrap">
-                    <div class="threat-bar" style="width:33%;background:var(--accent);"></div>
-                </div>
-                <div class="threat-count" style="color:var(--accent)" id="mon-ioc">33</div>
-            </div>
-
-            <div class="threat-row">
-                <div class="threat-label">🧠 UEBA Anomalies</div>
-                <div class="threat-bar-wrap">
-                    <div class="threat-bar" style="width:18%;background:var(--yellow);"></div>
-                </div>
-                <div class="threat-count" style="color:var(--yellow)" id="mon-ueba">12</div>
-            </div>
         </div>
 
         <!-- Security Features -->
         <div class="panel">
-            <div class="panel-title">🔒 Active Protections (50 Features)</div>
+            <div class="panel-title">🔒 Active Protections</div>
             <div class="feature-grid">
                 <div class="feature-item">✅ SPF Check</div>
                 <div class="feature-item">✅ DKIM Verify</div>
@@ -689,8 +647,6 @@
                 <div class="feature-item">✅ Remote Wipe</div>
                 <div class="feature-item">✅ VoLTE Check</div>
                 <div class="feature-item">✅ WebRTC Leak</div>
-                <div class="feature-item">✅ UEBA</div>
-                <div class="feature-item">✅ Threat Intel</div>
                 <div class="feature-item">✅ SIEM Ingest</div>
                 <div class="feature-item">✅ Auto-Remediate</div>
             </div>
@@ -711,7 +667,7 @@
 </div>
 
 
-<script src="js/script.js"></script>
+<script src="js/script.js?v=2"></script>
 <script>
 // ══ DASHBOARD LIVE STATS ══
 async function loadAllStats(){

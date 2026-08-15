@@ -1,6 +1,5 @@
 import random
 import smtplib
-import uuid
 import os
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
@@ -12,37 +11,17 @@ def generate_otp(length=6):
     return str(random.randint(10**(length-1), 10**length - 1))
 
 def store_otp(key, otp, ttl_minutes=5):
-    OTP_STORE[key] = {
-        "otp": otp,
-        "expires_at": datetime.utcnow() + timedelta(minutes=ttl_minutes),
-        "verified": False
-    }
-    OTP_STORE[key]["otp"] = otp
-
-def get_stored_otp(key):
-    entry = OTP_STORE.get(key)
-    if not entry:
-        return None
-    if datetime.utcnow() > entry["expires_at"]:
-        OTP_STORE.pop(key, None)
-        return None
-    return entry
+    OTP_STORE[key] = {"otp": otp, "expires_at": datetime.utcnow() + timedelta(minutes=ttl_minutes), "verified": False}
 
 def verify_otp(key, otp):
-    entry = get_stored_otp(key)
-    if not entry:
+    entry = OTP_STORE.get(key)
+    if not entry or datetime.utcnow() > entry["expires_at"]:
+        OTP_STORE.pop(key, None)
         return False
     if entry["otp"] == otp:
-        entry["verified"] = True
         OTP_STORE.pop(key, None)
         return True
     return False
-
-def cleanup_expired():
-    now = datetime.utcnow()
-    expired = [k for k, v in OTP_STORE.items() if now > v["expires_at"]]
-    for k in expired:
-        OTP_STORE.pop(k, None)
 
 def send_email_otp(to_email, otp):
     subject = "CyberShield SOC — Your OTP Code"
@@ -57,11 +36,8 @@ This code expires in 5 minutes. Do not share it with anyone.
     msg["To"] = to_email
     if SMTP_HOST and SMTP_USER:
         try:
-            if SMTP_PORT == 465:
-                server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=10)
-            else:
-                server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10)
-                server.starttls()
+            server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=10) if SMTP_PORT == 465 else smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10)
+            if SMTP_PORT != 465: server.starttls()
             server.login(SMTP_USER, SMTP_PASS)
             server.sendmail(SMTP_FROM, [to_email], msg.as_string())
             server.quit()
@@ -69,19 +45,48 @@ This code expires in 5 minutes. Do not share it with anyone.
         except Exception as e:
             return False, f"SMTP error: {str(e)}"
     print(f"[OTP] Email to {to_email}: {otp}")
-    return True, f"OTP {otp} (console mode) sent to {to_email}"
+    return True, f"OTP {otp} (console)"
 
-def send_sms_otp(to_phone, otp):
+def send_verify_otp(to_phone):
+    """Send an OTP using Twilio Verify (works on trial accounts — no custom
+    message body needed, Twilio handles the template and the code itself)."""
     account_sid = os.environ.get("TWILIO_ACCOUNT_SID", "")
     auth_token = os.environ.get("TWILIO_AUTH_TOKEN", "")
-    twilio_from = os.environ.get("TWILIO_FROM", "")
-    if account_sid and auth_token and twilio_from:
+    verify_sid = os.environ.get("TWILIO_VERIFY_SERVICE_SID", "")
+    if account_sid and auth_token and verify_sid:
         try:
             from twilio.rest import Client
             client = Client(account_sid, auth_token)
-            client.messages.create(body=f"CyberShield OTP: {otp}. Expires in 5 min.", from_=twilio_from, to=to_phone)
-            return True, f"OTP sent to {to_phone}"
+            verification = client.verify.v2.services(verify_sid).verifications.create(
+                to=to_phone, channel="sms"
+            )
+            return True, f"Verification SMS sent to {to_phone} (status: {verification.status})"
         except Exception as e:
-            return False, f"Twilio error: {str(e)}"
-    print(f"[OTP] SMS to {to_phone}: {otp}")
-    return True, f"OTP {otp} (console mode) sent to {to_phone}"
+            return False, f"Twilio Verify error: {str(e)}"
+    print(f"[OTP] Verify SMS to {to_phone}: TWILIO_VERIFY_SERVICE_SID not configured")
+    return False, "Twilio Verify not configured"
+
+
+def check_verify_otp(to_phone, code):
+    """Check an OTP code against Twilio Verify. Returns True/False."""
+    account_sid = os.environ.get("TWILIO_ACCOUNT_SID", "")
+    auth_token = os.environ.get("TWILIO_AUTH_TOKEN", "")
+    verify_sid = os.environ.get("TWILIO_VERIFY_SERVICE_SID", "")
+    if not (account_sid and auth_token and verify_sid):
+        print("[OTP] Verify check skipped: TWILIO_VERIFY_SERVICE_SID not configured")
+        return False
+    try:
+        from twilio.rest import Client
+        client = Client(account_sid, auth_token)
+        check = client.verify.v2.services(verify_sid).verification_checks.create(
+            to=to_phone, code=code
+        )
+        return check.status == "approved"
+    except Exception as e:
+        print(f"[OTP] Verify check error: {e}")
+        return False
+
+
+def send_sms_otp(to_phone, otp):
+    from services.sms_service import send_sms
+    return send_sms(to_phone, otp)

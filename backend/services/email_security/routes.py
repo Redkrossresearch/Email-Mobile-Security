@@ -5,6 +5,7 @@ from services.email_security.email_service import (
     analyze_phishing, sender_reputation as svc_sender_rep,
     content_disarm as svc_disarm, add_to_allow_list, add_to_block_list
 )
+from config.database import _query, _get_stat
 
 # Re-use old controller functions for endpoints not yet ported to the service layer
 from controllers.email_controller import (
@@ -13,7 +14,9 @@ from controllers.email_controller import (
     heuristic_scan as ctrl_heuristic, attachment_block as ctrl_attachment,
     outbound_encrypt as ctrl_encrypt, analyze_header as ctrl_header,
     analyze_eml_file as ctrl_eml, generate_eml_pdf as ctrl_pdf,
-    generate_eml_xlsx as ctrl_xlsx, auto_remediate as ctrl_remediate
+    generate_eml_xlsx as ctrl_xlsx,     auto_remediate as ctrl_remediate,
+    email_health_scorecard as ctrl_scorecard,
+    generate_dkim as ctrl_generate_dkim
 )
 
 email_bp = Blueprint("email", __name__)
@@ -129,3 +132,31 @@ def eml_xlsx(current_user=None):
 @token_required
 def auto_remediate(current_user=None):
     return ctrl_remediate(current_user)
+
+@email_bp.route("/health-scorecard", methods=["POST"])
+@token_required
+def health_scorecard(current_user=None):
+    return ctrl_scorecard(current_user)
+
+@email_bp.route("/generate-dkim", methods=["POST"])
+@token_required
+def generate_dkim(current_user=None):
+    return ctrl_generate_dkim(current_user)
+
+@email_bp.route("/scan-history", methods=["GET"])
+@token_required
+def scan_history(current_user=None):
+    limit = int(request.args.get("limit", 50))
+    rows = _query("SELECT * FROM email_scan_history ORDER BY created_at DESC LIMIT ?", (limit,))
+    return jsonify({"success": True, "history": rows, "total": len(rows)})
+
+@email_bp.route("/stats", methods=["GET"])
+@token_required
+def email_stats(current_user=None):
+    return jsonify({
+        "success": True,
+        "stats": {
+            "total_scans": _get_stat("total_email_scans"),
+            "malicious_urls": _get_stat("malicious_urls_blocked"),
+        }
+    })

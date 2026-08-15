@@ -1,0 +1,72 @@
+
+=================================================================
+  CyberShield Zero Trust Platform v6.0
+=================================================================
+  Auth (RS256+OAuth2+SAML+OIDC+TOTP) | Email | Mobile
+  Threat Intel | UEBA | Encryption | AI | APK | YARA
+-----------------------------------------------------------------
+  http://localhost:5000
+=================================================================
+
+ * Serving Flask app 'app'
+ * Debug mode: on
+
+=================================================================
+  CyberShield Zero Trust Platform v6.0
+=================================================================
+  Auth (RS256+OAuth2+SAML+OIDC+TOTP) | Email | Mobile
+  Threat Intel | UEBA | Encryption | AI | APK | YARA
+-----------------------------------------------------------------
+  http://localhost:5000
+=================================================================
+
+[EMAIL][CONSOLE] To: testuser@demo.com | Subject: [CyberShield] Your login verification code
+
+    <div style="font-family:Arial,sans-serif;background:#04111e;padding:24px;color:#c9e8f5;">
+      <h2 style="color:#00ffe7;letter-spacing:2px;margin:0 0 12px;">CYBERSHIELD SOC</h2>
+      <p>Hello Test User,</p>
+      <p>Your one-time verification code is:</p>
+      <div style="font-size:34px;font-weight:bold;letter-spacing:8px;color:#00ffe7;padding:14px 0;">659551</div>
+      <p>This code expires in 5 minutes. Do not share it with anyone.</p>
+      <p style="opacity:.6;font-size:12px;">— CyberShield Security Team</p>
+    </div>
+[EMAIL][CONSOLE] To: bhoomiwadke@gmail.com | Subject: [CyberShield] Your login verification code
+
+    <div style="font-family:Arial,sans-serif;background:#04111e;padding:24px;color:#c9e8f5;">
+      <h2 style="color:#00ffe7;letter-spacing:2px;margin:0 0 12px;">CYBERSHIELD SOC</h2>
+      <p>Hello bhoomiwadke,</p>
+      <p>Your one-time verification code is:</p>
+      <div style="font-size:34px;font-weight:bold;letter-spacing:8px;color:#00ffe7;padding:14px 0;">783620</div>
+      <p>This code expires in 5 minutes. Do not share it with anyone.</p>
+      <p style="opacity:.6;font-size:12px;">— CyberShield Security Team</p>
+    </div>
+
+=================================================================
+  CyberShield Zero Trust Platform v6.0
+=================================================================
+  Auth (RS256+OAuth2+SAML+OIDC+TOTP) | Email | Mobile
+  Threat Intel | UEBA | Encryption | AI | APK | YARA
+-----------------------------------------------------------------
+  http://localhost:5000
+=================================================================
+
+
+=================================================================
+  CyberShield Zero Trust Platform v6.0
+=================================================================
+  Auth (RS256+OAuth2+SAML+OIDC+TOTP) | Email | Mobile
+  Threat Intel | UEBA | Encryption | AI | APK | YARA
+-----------------------------------------------------------------
+  http://localhost:5000
+=================================================================
+
+[EMAIL][CONSOLE] To: admin@cybershield.com | Subject: [CyberShield] Your login verification code
+
+    <div style="font-family:Arial,sans-serif;background:#04111e;padding:24px;color:#c9e8f5;">
+      <h2 style="color:#00ffe7;letter-spacing:2px;margin:0 0 12px;">CYBERSHIELD SOC</h2>
+      <p>Hello SOC Admin,</p>
+      <p>Your one-time verification code is:</p>
+      <div style="font-size:34px;font-weight:bold;letter-spacing:8px;color:#00ffe7;padding:14px 0;">823469</div>
+      <p>This code expires in 5 minutes. Do not share it with anyone.</p>
+      <p style="opacity:.6;font-size:12px;">— CyberShield Security Team</p>
+    </div>

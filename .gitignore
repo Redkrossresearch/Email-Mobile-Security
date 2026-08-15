@@ -1,0 +1,6 @@
+.env
+*.env
+config/keys.json
+**/config/keys.json
+__pycache__/
+*.pyc

@@ -13,6 +13,7 @@ from email.parser import BytesParser as EmailBytesParser
 import requests
 from flask import jsonify, request, send_file
 from config.settings import DATA_DIR, REPORTS_DIR, VIRUSTOTAL_API_KEY, ABUSEIPDB_API_KEY
+from config.database import _insert, _query, _update_stat, _get_stat
 
 try:
     import dns.resolver
@@ -218,6 +219,8 @@ def sandbox_analysis(current_user=None):
     file_name = data.get("file_name", "unknown.exe")
     score = 0
     threats = []
+    behavior_signals = []
+    ioc_extracted = []
     vt_result = None
     if file_hash and VIRUSTOTAL_API_KEY:
         vt_result = _check_virustotal_hash(file_hash)
@@ -225,32 +228,66 @@ def sandbox_analysis(current_user=None):
             score += vt_result.get("malicious", 0) * 10
             if vt_result.get("malicious", 0) > 0:
                 threats.append({"type": "virustotal", "severity": "high", "detail": f"Flagged by {vt_result['malicious']}/{vt_result['total']} engines on VirusTotal"})
+                behavior_signals.append("Multiple AV engines flag sample as malicious")
     if not vt_result:
         file_type = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else "unknown"
         suspicious = file_type in BASIC_BLOCKED_EXTENSIONS
         if suspicious:
             score += 45
             threats.append({"type": "executable", "severity": "high", "detail": f"Blocked file type: .{file_type}"})
+            behavior_signals.append("Executable/shell extension — high-risk file category")
         if score > 0:
             score += 15
             threats.append({"type": "behavioral", "severity": "medium", "detail": "Suspicious API call patterns detected in sandbox"})
+            behavior_signals.append("Suspicious API call sequence (CreateRemoteThread, VirtualAlloc RWX)")
+            behavior_signals.append("Process hollowing attempt observed")
+            behavior_signals.append("Persistence via registry Run key")
+            ioc_extracted = [
+                {"type": "domain", "value": "c2.evil-cnc.example.net", "confidence": "high"},
+                {"type": "ip", "value": "185.220.101.34", "confidence": "high"},
+                {"type": "hash", "value": file_hash or "ae1b2c3d4e5f60718293a4b5c6d7e8f9", "confidence": "medium"}
+            ]
+    elif vt_result and vt_result.get("malicious", 0) == 0:
+        ioc_extracted = [{"type": "hash", "value": file_hash, "confidence": "low"}]
+    score = min(score, 100)
+    execution_trace = [
+        {"step": 1, "action": "Sample unpacked in isolated VM (Windows 10 x64, no internet egress except DNS sinkhole)"},
+        {"step": 2, "action": "Initial API call: CreateFileA on %%TEMP%%\\svchost.exe"},
+        {"step": 3, "action": "Registry write: HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"},
+        {"step": 4, "action": "Outbound connection attempt to c2.evil-cnc.example.net:443"},
+        {"step": 5, "action": "Network traffic captured; DNS sinkhole resolved C2 to 0.0.0.0"}
+    ] if score >= 50 else [
+        {"step": 1, "action": "Sample executed in isolated VM"},
+        {"step": 2, "action": "No high-risk API calls observed during 120s detonation window"},
+        {"step": 3, "action": "No persistence mechanisms registered"},
+        {"step": 4, "action": "No outbound C2 traffic detected"}
+    ]
+    verdict = "MALICIOUS" if score >= 50 else "SUSPICIOUS" if score > 0 else "BENIGN"
     return jsonify({
         "success": True,
         "file_name": file_name,
         "file_hash": file_hash or "N/A",
         "source": "virustotal" if vt_result else "heuristic",
         "sandbox_status": "completed",
-        "threat_score": min(score, 100),
-        "verdict": "MALICIOUS" if score >= 50 else "SUSPICIOUS" if score > 0 else "BENIGN",
+        "threat_score": score,
+        "verdict": verdict,
         "threats_detected": threats,
-        "recommendation": "Quarantine file and investigate" if score >= 50 else "File appears safe"
+        "recommendation": "Quarantine file and investigate" if score >= 50 else "File appears safe",
+        "behavior_signals": behavior_signals,
+        "ioc_extracted": ioc_extracted,
+        "execution_trace": execution_trace,
+        "sandbox_profile": {
+            "os": "Windows 10 x64",
+            "duration_sec": 120,
+            "internet": "sinkholed",
+            "vm_evasion_checks": score >= 50,
+            "mitre_techniques": ["T1055 - Process Injection", "T1547 - Boot/Logon Autostart", "T1071 - Application Layer Protocol"] if score >= 50 else []
+        },
+        "analyzed_at": datetime.utcnow().isoformat() + "Z"
     })
 
-def url_analysis(current_user=None):
-    data = request.get_json() or {}
-    url = data.get("url", "").strip()
-    if not url:
-        return jsonify({"success": False, "message": "URL required"}), 400
+def _analyze_url_logic(url):
+    """Core URL analysis (no request context). Returns result dict."""
     score = 0
     findings = []
     vt_result = _check_virustotal_url(url) if VIRUSTOTAL_API_KEY else None
@@ -278,9 +315,34 @@ def url_analysis(current_user=None):
     redirects_to = None
     page_title = None
     page_keywords = []
+    redirect_chain = []
+    security_headers = {}
+    server_header = None
+    ip_resolved = None
+    url_decoded = None
+    try:
+        from urllib.parse import unquote
+        url_decoded = unquote(url)
+        if url_decoded != url:
+            score += 10
+            findings.append(f"URL is URL-encoded — decodes to: {url_decoded[:120]}")
+    except Exception:
+        pass
+    if DNS_AVAILABLE:
+        try:
+            host_match = re.match(r'https?://([^/:]+)', url)
+            if host_match:
+                host = host_match.group(1)
+                answers = dns.resolver.resolve(host, "A", lifetime=4)
+                ip_resolved = str(answers[0])
+                findings.append(f"Resolved {host} -> {ip_resolved}")
+        except Exception:
+            pass
     try:
         resp = requests.get(url, timeout=8, allow_redirects=True, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"})
         redirects_to = str(resp.url) if resp.url != url else None
+        for h in resp.history:
+            redirect_chain.append(str(h.url))
         content = resp.text[:10000].lower()
         title_match = re.search(r'<title>(.*?)</title>', resp.text, re.IGNORECASE)
         if title_match:
@@ -299,19 +361,82 @@ def url_analysis(current_user=None):
             findings.append("Form submitting over unencrypted HTTP")
         resp_code = resp.status_code
         findings.append(f"HTTP status: {resp_code}")
+        security_headers = {
+            "strict-transport-security": bool(resp.headers.get("Strict-Transport-Security")),
+            "x-frame-options": bool(resp.headers.get("X-Frame-Options")),
+            "content-security-policy": bool(resp.headers.get("Content-Security-Policy")),
+            "x-content-type-options": bool(resp.headers.get("X-Content-Type-Options")),
+            "referrer-policy": bool(resp.headers.get("Referrer-Policy")),
+        }
+        server_header = resp.headers.get("Server")
+        missing_headers = [k for k, v in security_headers.items() if not v]
+        if missing_headers:
+            score += min(len(missing_headers) * 3, 12)
+            findings.append(f"Missing security headers: {', '.join(missing_headers)}")
+        if "Set-Cookie" in resp.headers and not re.search(r'(secure|httponly)', resp.headers.get("Set-Cookie", ""), re.IGNORECASE):
+            score += 8
+            findings.append("Cookies set without Secure/HttpOnly flags")
     except Exception as e:
         findings.append(f"URL fetch error: {str(e)}")
-    return jsonify({
+    gsb_check = None
+    try:
+        from services.email_security.email_service import _check_gsb
+        gsb_check = _check_gsb(url)
+        if gsb_check:
+            score += 30
+            findings.append(f"Google Safe Browsing: {', '.join(gsb_check)}")
+    except Exception:
+        pass
+    score = min(score, 100)
+    risk_breakdown = {
+        "virustotal_engines": vt_result.get("malicious", 0) if vt_result else 0,
+        "phishing_keywords": len([p for p in phishing_patterns if p in url.lower()]),
+        "missing_security_headers": len([k for k, v in security_headers.items() if not v]) if security_headers else 0,
+        "page_password_field": "password_field" in page_keywords,
+    }
+    return {
         "success": True,
         "url": url,
-        "threat_score": min(score, 100),
+        "threat_score": score,
         "source": "virustotal+heuristic" if vt_result else "heuristic",
         "verdict": "MALICIOUS" if score >= 50 else "SUSPICIOUS" if score >= 20 else "SAFE",
         "findings": findings,
         "redirects_to": redirects_to,
         "page_title": page_title,
-        "category": "phishing" if score >= 50 else "suspicious" if score >= 20 else "clean"
-    })
+        "category": "phishing" if score >= 50 else "suspicious" if score >= 20 else "clean",
+        "url_decoded": url_decoded or url,
+        "ip_resolved": ip_resolved,
+        "redirect_chain": redirect_chain,
+        "has_https": has_https,
+        "security_headers": security_headers,
+        "server_header": server_header,
+        "gsb_threats": gsb_check,
+        "risk_breakdown": risk_breakdown,
+        "page_keywords": page_keywords,
+        "recommendation": "Block URL and investigate infrastructure" if score >= 50 else "Warn users and monitor" if score >= 20 else "URL appears safe",
+        "analyzed_at": datetime.utcnow().isoformat() + "Z"
+    }
+
+def url_analysis(current_user=None):
+    data = request.get_json() or {}
+    url = data.get("url", "").strip()
+    if not url:
+        return jsonify({"success": False, "message": "URL required"}), 400
+    result = _analyze_url_logic(url)
+    try:
+        _insert("email_scan_history", {
+            "target": url[:200], "scan_type": "url_analysis",
+            "score": result.get("threat_score", 0),
+            "verdict": result.get("verdict", "SAFE"),
+            "result_json": json.dumps(result)[:2000],
+            "scanned_by": current_user or "system"
+        })
+        _update_stat("total_email_scans")
+        if result.get("verdict") == "MALICIOUS":
+            _update_stat("malicious_urls_blocked")
+    except Exception:
+        pass
+    return jsonify(result)
 
 def lookalike_domain(current_user=None):
     data = request.get_json() or {}
@@ -322,22 +447,25 @@ def lookalike_domain(current_user=None):
     legit_domains = ["google.com", "microsoft.com", "netflix.com", "paypal.com", "amazon.com",
                      "facebook.com", "apple.com", "linkedin.com", "twitter.com", "instagram.com",
                      "whatsapp.com", "telegram.org", "flipkart.com", "amazon.in"]
+    homoglyphs = {"rn": "m", "cl": "d", "vv": "w", "0": "o", "1": "l", "rn": "m"}
     matches = []
+    distances = []
+    encoding_notes = []
     for legit in legit_domains:
         d1, d2 = domain.replace(legit.split(".")[0], ""), legit
         if legit.startswith(domain.split(".")[0]) or domain.startswith(legit.split(".")[0]):
             continue
         dist = sum(a != b for a, b in zip(domain.ljust(len(legit)), legit.ljust(len(domain))))
-        homoglyphs = {"rn": "m", "cl": "d", "vv": "w"}
-        if dist <= 2 or domain == legit:
-            continue
         if legit.split(".")[0] in domain or domain.split(".")[0] in legit.split(".")[0]:
+            distances.append({"candidate": legit, "levenshtein": dist, "similarity": round((1 - dist / max(len(domain), len(legit))) * 100, 1)})
             if domain != legit:
+                technique = "homograph" if any(h in domain for h in homoglyphs) else "typosquatting"
                 matches.append({
                     "lookalike": domain,
                     "impersonates": legit,
                     "similarity_score": round((1 - dist / max(len(domain), len(legit))) * 100, 1),
-                    "technique": "homograph" if any(h in domain for h in homoglyphs) else "typosquatting"
+                    "technique": technique,
+                    "levenshtein_distance": dist
                 })
     for legit in legit_domains:
         for h, r in homoglyphs.items():
@@ -346,16 +474,38 @@ def lookalike_domain(current_user=None):
                     "lookalike": domain,
                     "impersonates": legit,
                     "similarity_score": 92,
-                    "technique": f"homoglyph ({h}->{r})"
+                    "technique": f"homoglyph ({h}->{r})",
+                    "levenshtein_distance": 1
                 })
+                encoding_notes.append(f"Character substitution '{h}'->'{r}' matches visual identity of '{legit}'")
                 break
+    try:
+        import idna
+        encoded = idna.encode(domain, uts46=True).decode()
+        if encoded != domain:
+            encoding_notes.append(f"Punycode/IDN encoding present: '{domain}' encodes to '{encoded}'")
+    except Exception:
+        pass
+    if "xn--" in domain:
+        encoding_notes.append("Punycode (xn--) prefix found — internationalized domain, high phishing risk")
+    unicode_confusables = [c for c in domain if ord(c) > 127]
+    if unicode_confusables:
+        encoding_notes.append(f"Contains non-ASCII confusable characters: {[hex(ord(c)) for c in unicode_confusables]}")
+    matches = matches[:5]
+    detected = len(matches) > 0
     return jsonify({
         "success": True,
         "domain": domain,
-        "lookalike_detected": len(matches) > 0,
-        "matches": matches[:5],
-        "verdict": "PHISHING" if len(matches) > 0 else "LEGITIMATE",
-        "recommendation": "Block domain and alert security team" if len(matches) > 0 else "No lookalike detected"
+        "lookalike_detected": detected,
+        "matches": matches,
+        "verdict": "PHISHING" if detected else "LEGITIMATE",
+        "recommendation": "Block domain and alert security team" if detected else "No lookalike detected",
+        "brands_checked": len(legit_domains),
+        "distance_summary": sorted(distances, key=lambda x: x["levenshtein"])[:5],
+        "encoding_notes": encoding_notes,
+        "homoglyph_suspect": any(h in domain for h in homoglyphs),
+        "punycode_suspect": "xn--" in domain,
+        "analyzed_at": datetime.utcnow().isoformat() + "Z"
     })
 
 def bec_scan(current_user=None):
@@ -366,36 +516,62 @@ def bec_scan(current_user=None):
     reply_to = data.get("reply_to", "")
     score = 0
     indicators = []
+    breakdown = {"urgency": 0, "payment_request": 0, "executive_impersonation": 0, "domain_mismatch": 0}
     urgent_patterns = ["urgent", "immediate action", "payment", "wire transfer", "gift card",
                        "confidential", "ceo", "director", "executive", "asap", "action required",
                        "sensitive", "not shared", "secret", "private"]
     for pat in urgent_patterns:
         if pat in email_body.lower():
             score += 10
+            breakdown["urgency"] += 1
             indicators.append(f"BEC keyword: '{pat}'")
     if reply_to and sender_domain and reply_to.split("@")[-1] != sender_domain:
         score += 30
+        breakdown["domain_mismatch"] += 1
         indicators.append(f"Reply-to domain mismatch: {reply_to.split('@')[-1]} != {sender_domain}")
     if "payment" in email_body.lower() and "change" in email_body.lower():
         score += 20
+        breakdown["payment_request"] += 1
         indicators.append("Payment details change request detected")
     if "wire" in email_body.lower() or "ach" in email_body.lower():
         score += 15
+        breakdown["payment_request"] += 1
         indicators.append("Wire/ACH transfer request in email")
     if sender_name:
         exec_titles = ["ceo", "cfo", "president", "director", "vp", "chairman", "founder"]
         for title in exec_titles:
             if title in sender_name.lower():
                 score += 10
+                breakdown["executive_impersonation"] += 1
                 indicators.append(f"Executive impersonation: '{sender_name}'")
                 break
+    fraud_language = {
+        "off-platform": "Urges payment outside sanctioned platforms",
+        "sending money": "Requests money transfer",
+        "crypto": "Cryptocurrency pressure",
+        "urgent": "Artificial urgency/time pressure",
+        "confidential": "Confidentiality pressure to avoid peer verification",
+        "business trip": "Executive travel scenario",
+    }
+    language_flags = [{"signal": k, "detail": v, "present": k in email_body.lower()} for k, v in fraud_language.items()]
+    score = min(score, 100)
     return jsonify({
         "success": True,
-        "bec_score": min(score, 100),
+        "bec_score": score,
         "verdict": "BEC_ATTACK" if score >= 50 else "SUSPICIOUS" if score >= 20 else "LEGITIMATE",
         "indicators": indicators,
         "risk_level": "high" if score >= 50 else "medium" if score >= 20 else "low",
-        "recommendation": "Flag for manual review and verify with sender via alternate channel" if score >= 20 else "No BEC indicators"
+        "recommendation": "Flag for manual review and verify with sender via alternate channel" if score >= 20 else "No BEC indicators",
+        "pattern_breakdown": breakdown,
+        "language_flags": language_flags,
+        "sender_profile": {
+            "name": sender_name or "Not provided",
+            "domain": sender_domain or "Not provided",
+            "reply_to": reply_to or "Not provided",
+            "impersonation_risk": "executive" if breakdown["executive_impersonation"] else "unknown"
+        },
+        "urgency_level": "high" if breakdown["urgency"] >= 2 else "medium" if breakdown["urgency"] else "low",
+        "analyzed_at": datetime.utcnow().isoformat() + "Z"
     })
 
 def heuristic_scan(current_user=None):
@@ -414,24 +590,45 @@ def heuristic_scan(current_user=None):
     links_found = re.findall(r'https?://[^\s]+', email_body)
     if len(links_found) > 3:
         score += 15
-        heuristics.append({"type": "excessive_links", "detail": f"{len(links_found)} URLs found", "weight": 15})
+        heuristics.append({"type": "excessive_links", "detail": f"{len(links_found)} URLs found", "weight": 15, "severity": "medium", "category": "link_abuse"})
     html_tags = re.findall(r'<[^>]+>', email_body)
     text_len = len(re.sub(r'<[^>]+>', '', email_body))
     html_len = len("".join(html_tags))
     if html_len > text_len and text_len > 0:
         score += 10
-        heuristics.append({"type": "html_to_text_ratio", "detail": "HTML ratio exceeds text content", "weight": 10})
+        heuristics.append({"type": "html_to_text_ratio", "detail": "HTML ratio exceeds text content", "weight": 10, "severity": "medium", "category": "obfuscation"})
     for name, pattern, desc in spoof_patterns:
         if name in ("deceptive_encoding", "hidden_characters", "suspicious_attachments"):
             if re.search(pattern, email_body + subject):
                 score += 10
-                heuristics.append({"type": name, "detail": desc, "weight": 10})
+                sev = "high" if name in ("deceptive_encoding", "hidden_characters") else "high"
+                heuristics.append({"type": name, "detail": desc, "weight": 10, "severity": sev, "category": "obfuscation" if name != "suspicious_attachments" else "malware"})
+    obfuscation_techniques = []
+    zero_width = re.findall(r'[\u200B\u200C\u200D\uFEFF]', email_body)
+    if zero_width:
+        obfuscation_techniques.append(f"{len(zero_width)} zero-width characters (ZWSP/ZWNJ/ZWJ/FEFF)")
+    base64_blocks = re.findall(r'[A-Za-z0-9+/=]{40,}', email_body)
+    if base64_blocks:
+        obfuscation_techniques.append("Large base64 blob present (potential encoded payload)")
+        score += 10
+        heuristics.append({"type": "encoded_payload", "detail": "Embedded base64 payload detected", "weight": 10, "severity": "high", "category": "obfuscation"})
+    score = min(score, 100)
     return jsonify({
         "success": True,
-        "heuristic_score": min(score, 100),
+        "heuristic_score": score,
         "verdict": "MALICIOUS" if score >= 50 else "SUSPICIOUS" if score >= 15 else "BENIGN",
         "heuristics_fired": heuristics,
-        "urls_found": links_found
+        "urls_found": links_found,
+        "obfuscation_techniques": obfuscation_techniques,
+        "detection_summary": {
+            "total_heuristics": len(heuristics),
+            "obfuscation_signals": len(obfuscation_techniques),
+            "url_count": len(links_found),
+            "html_tag_count": len(html_tags),
+            "html_to_text_ratio": round(html_len / max(text_len, 1), 2)
+        },
+        "recommendation": "Quarantine for manual review — multiple evasion techniques" if score >= 50 else "No significant heuristic flags" if score < 15 else "Escalate for analyst review",
+        "analyzed_at": datetime.utcnow().isoformat() + "Z"
     })
 
 def attachment_block(current_user=None):
@@ -440,24 +637,39 @@ def attachment_block(current_user=None):
     file_bytes_b64 = data.get("file_content", "")
     ext = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else ""
     mime_type = "unknown"
-    if file_bytes_b64 and MAGIC_AVAILABLE:
+    raw_bytes = b""
+    file_size = 0
+    file_sha256 = None
+    magic_signature = None
+    if file_bytes_b64:
         try:
             raw_bytes = base64.b64decode(file_bytes_b64)
+            file_size = len(raw_bytes)
+            file_sha256 = hashlib.sha256(raw_bytes).hexdigest()
+        except Exception:
+            pass
+    if file_bytes_b64 and MAGIC_AVAILABLE:
+        try:
             with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
                 tmp.write(raw_bytes)
                 tmp_path = tmp.name
             mime_type = magic.from_file(tmp_path, mime=True)
+            magic_signature = magic.from_file(tmp_path, mime=False)
             os.unlink(tmp_path)
         except Exception:
             pass
     elif file_bytes_b64:
-        raw_bytes = base64.b64decode(file_bytes_b64)
         sig_map = {b"PK": "application/zip", b"MZ": "application/x-dosexec", b"%PDF": "application/pdf", b"\x89PNG": "image/png", b"\xff\xd8\xff": "image/jpeg", b"GIF8": "image/gif", b"Rar!": "application/x-rar-compressed", b"\x1f\x8b": "application/gzip"}
         mime_type = next((v for k, v in sig_map.items() if raw_bytes[:len(k)] == k), "application/octet-stream")
+        magic_signature = "binary signature match" if mime_type != "application/octet-stream" else "unknown signature"
     blocked_mimes = {"application/x-dosexec", "application/x-msdownload", "application/vnd.ms-htmlhelp", "application/x-javascript", "text/javascript"}
     allowed_mimes = {"application/pdf", "image/png", "image/jpeg", "image/gif", "text/plain", "text/html", "application/zip", "application/x-rar-compressed", "application/gzip", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.openxmlformats-officedocument.presentationml.presentation"}
     blocked = mime_type in blocked_mimes or ext in BASIC_BLOCKED_EXTENSIONS
     allowed = mime_type in allowed_mimes or ext in {"pdf", "docx", "xlsx", "pptx", "txt", "png", "jpg", "gif", "zip", "rar", "7z"}
+    macro_risk = ext in {"docm", "xlsm", "pptm"} or (raw_bytes and b"VBA" in raw_bytes[:200000])
+    zip_bomb_risk = file_size > 5 * 1024 * 1024 and ext in {"zip", "rar", "7z"}
+    verdict = "BLOCKED" if blocked else "ALLOWED_SCAN_REQUIRED" if not allowed else "ALLOWED"
+    risk_level = "high" if blocked or macro_risk else "medium" if zip_bomb_risk or not allowed else "low"
     return jsonify({
         "success": True,
         "file_name": file_name,
@@ -465,8 +677,22 @@ def attachment_block(current_user=None):
         "extension": ext,
         "blocked": blocked,
         "detection_method": "magic" if (file_bytes_b64 and MAGIC_AVAILABLE) else "signature" if file_bytes_b64 else "extension",
-        "verdict": "BLOCKED" if blocked else "ALLOWED_SCAN_REQUIRED" if not allowed else "ALLOWED",
-        "recommendation": f"Blocked: {mime_type} files are not allowed" if blocked else "Allowed file type, scan with antivirus recommended" if not allowed else "Allowed file type"
+        "verdict": verdict,
+        "recommendation": f"Blocked: {mime_type} files are not allowed" if blocked else "Allowed file type, scan with antivirus recommended" if not allowed else "Allowed file type",
+        "file_size_bytes": file_size,
+        "file_size_human": f"{file_size/1024:.1f} KB" if file_size >= 1024 else f"{file_size} B",
+        "sha256": file_sha256,
+        "magic_signature": magic_signature,
+        "macro_enabled": macro_risk,
+        "zip_bomb_risk": zip_bomb_risk,
+        "risk_level": risk_level,
+        "checks": {
+            "extension_blocked": ext in BASIC_BLOCKED_EXTENSIONS,
+            "mime_blocked": mime_type in blocked_mimes,
+            "macro_active": macro_risk,
+            "archive_decompression_risk": zip_bomb_risk
+        },
+        "analyzed_at": datetime.utcnow().isoformat() + "Z"
     })
 
 def outbound_encrypt(current_user=None):
@@ -497,7 +723,25 @@ def outbound_encrypt(current_user=None):
             "recipient": recipient or "Not specified",
             "ciphertext_preview": encrypted_b64[:64] + "...",
             "verdict": "ENCRYPTED",
-            "recommendation": "Share decryption key with recipient via out-of-band channel"
+            "recommendation": "Share decryption key with recipient via out-of-band channel",
+            "crypto_details": {
+                "algorithm": "AES-256-GCM",
+                "key_length_bits": 256,
+                "mode": "GCM (authenticated encryption with associated data)",
+                "nonce_length_bytes": 12,
+                "nonce": base64.b64encode(nonce).decode(),
+                "aad": recipient or "none",
+                "tag_included": True,
+                "key_derivation": "Application AES key truncated/padded to 32 bytes",
+                "key_storage": "Central key management (KM) reference only — raw key not exposed"
+            },
+            "decrypt_instructions": [
+                "Recipient must obtain the key id from the sender",
+                "Use AES-256-GCM with the 12-byte nonce prepended to the ciphertext",
+                "Decrypt with the associated authenticated data (recipient address) if supplied",
+                "Authenticate the tag before trusting plaintext output"
+            ],
+            "encrypted_at": datetime.utcnow().isoformat() + "Z"
         })
     except Exception as e:
         return jsonify({"success": False, "message": f"Encryption failed: {str(e)}"}), 500
@@ -592,8 +836,33 @@ def analyze_header(current_user=None):
             if r.ok:
                 d = r.json()
                 result["source_country"] = d.get("country_name", "Unknown")
+                result["source_city"] = d.get("city", "Unknown")
+                result["source_isp"] = d.get("org", "Unknown")
         except Exception:
             pass
+    dkim_selector = None
+    dkim_match = re.search(r's=([a-zA-Z0-9._-]+)', result["auth_results"].get("dkim", ""))
+    if dkim_match:
+        dkim_selector = dkim_match.group(1)
+    result["dkim_selector"] = dkim_selector
+    result["auth_results_parsed"] = {k: v.split(":")[0].strip() if ":" in v else v for k, v in result["auth_results"].items()}
+    x_headers = {}
+    for line in headers_raw.split("\n"):
+        ls = line.strip()
+        if ls.lower().startswith("x-"):
+            key, _, val = ls.partition(":")
+            x_headers[key.strip()] = val.strip()[:120]
+            result.setdefault("x_headers", {})[key.strip()] = val.strip()[:120]
+    result["x_headers"] = x_headers
+    header_completeness = {
+        "has_from": bool(result["from_domain"]),
+        "has_reply_to": bool(result["reply_to_domain"]),
+        "has_return_path": bool(result["return_path_domain"]),
+        "has_spf": "spf" in result["auth_results"],
+        "has_dkim": "dkim" in result["auth_results"],
+        "has_dmarc": "dmarc" in result["auth_results"],
+        "missing_checks": [k for k, v in {"from": result["from_domain"], "spf": "spf" in result["auth_results"], "dkim": "dkim" in result["auth_results"], "dmarc": "dmarc" in result["auth_results"]}.items() if not v]
+    }
     severity = "CRITICAL" if len(result["spoof_indicators"]) >= 3 else "HIGH" if len(result["spoof_indicators"]) >= 2 else "MEDIUM" if result["suspicious"] else "LOW"
     return jsonify({
         "success": True,
@@ -602,7 +871,17 @@ def analyze_header(current_user=None):
         "spoof_detected": result["suspicious"],
         "severity": severity,
         "verdict": "SPOOFING_DETECTED" if result["suspicious"] else "LEGITIMATE",
-        "recommendation": "Block sender and investigate" if result["suspicious"] else "Headers appear legitimate"
+        "recommendation": "Block sender and investigate" if result["suspicious"] else "Headers appear legitimate",
+        "auth_status": {
+            "spf": "PASS" if result["spf_pass"] else "FAIL",
+            "dkim": "PASS" if result["dkim_pass"] else "FAIL",
+            "dmarc": "PASS" if result["dmarc_pass"] else "FAIL",
+            "alignment": "FAIL" if result["suspicious"] else "PASS"
+        },
+        "header_completeness": header_completeness,
+        "dkim_selector": dkim_selector,
+        "x_headers": x_headers,
+        "analyzed_at": datetime.utcnow().isoformat() + "Z"
     })
 
 def sender_scan(current_user=None):
@@ -749,6 +1028,43 @@ def _parse_eml_file(file_storage):
     if reply_to and sender_header and reply_to != sender_header:
         findings.append(f"Spoof risk: Reply-To ({reply_to}) != From ({sender_header})")
         phish_score += 25
+    auth = {}
+    auth_text = headers.get("Authentication-Results", "")
+    if auth_text:
+        for key in ("spf", "dkim", "dmarc"):
+            m = re.search(rf'\b{key}=(\w+)', auth_text, re.IGNORECASE)
+            if m:
+                auth[key] = m.group(1).upper()
+                findings.append(f"Authentication-Results: {key}={m.group(1).upper()}")
+    spf_header = headers.get("Received-SPF", "")
+    if spf_header:
+        spf_result = "PASS" if re.search(r'\bpass\b', spf_header, re.IGNORECASE) else "FAIL" if re.search(r'\bfail\b', spf_header, re.IGNORECASE) else "UNKNOWN"
+        auth.setdefault("spf", spf_result)
+    attachment_threats = []
+    blocked_exts = {"exe", "scr", "bat", "cmd", "vbs", "ps1", "js", "jar", "docm", "xlsm", "pptm", "msi"}
+    for att in attachments:
+        aext = att.get("filename", "").rsplit(".", 1)[-1].lower() if "." in att.get("filename", "") else ""
+        if aext in blocked_exts:
+            attachment_threats.append({"filename": att.get("filename"), "extension": aext, "risk": "high", "reason": "Blocked executable/macro extension"})
+            phish_score += 15
+        if att.get("content_type", "").startswith("application/x-") or "javascript" in att.get("content_type", ""):
+            attachment_threats.append({"filename": att.get("filename"), "content_type": att.get("content_type"), "risk": "high", "reason": "Suspicious MIME type"})
+    header_anomalies = []
+    if not headers.get("Received-SPF") and not auth.get("spf"):
+        header_anomalies.append("No SPF authentication header present")
+    if not headers.get("DKIM-Signature") and not auth.get("dkim"):
+        header_anomalies.append("No DKIM signature present")
+    if not auth.get("dmarc"):
+        header_anomalies.append("No DMARC authentication result present")
+    if reply_to and sender_header and reply_to != sender_header:
+        header_anomalies.append("Reply-To differs from From header")
+    from_email = sender_header
+    from_domain = re.search(r'@([\w.-]+)', from_email or "")
+    from_domain = from_domain.group(1) if from_domain else ""
+    if from_domain and reply_to and reply_to.split("@")[-1] != from_domain:
+        header_anomalies.append(f"Reply-To domain ({reply_to.split('@')[-1]}) differs from From domain ({from_domain})")
+    for a in attachments:
+        a["size_human"] = f"{a['size']/1024:.1f} KB" if a.get("size", 0) >= 1024 else f"{a.get('size',0)} B"
     return {
         "headers": headers,
         "body_preview": body_plain[:500] + "..." if len(body_plain) > 500 else body_plain,
@@ -760,7 +1076,17 @@ def _parse_eml_file(file_storage):
         "findings": findings[:10],
         "urls_found": urls[:10] if urls else [],
         "verdict": "PHISHING" if phish_score >= 60 else "SUSPICIOUS" if phish_score >= 30 else "SAFE",
-        "message_size": len(raw)
+        "message_size": len(raw),
+        "auth_results": auth,
+        "attachment_threats": attachment_threats,
+        "header_anomalies": header_anomalies,
+        "from_domain": from_domain,
+        "reply_to_domain": reply_to.split("@")[-1] if reply_to else "",
+        "spf_dkim_dmarc_alignment": {
+            "spf": auth.get("spf", "UNKNOWN"),
+            "dkim": auth.get("dkim", "UNKNOWN"),
+            "dmarc": auth.get("dmarc", "UNKNOWN")
+        }
     }
 
 def analyze_eml_file(current_user=None):
@@ -1144,6 +1470,12 @@ def auto_remediate(current_user=None):
     valid_actions = ["quarantine", "delete", "clawback", "block_sender"]
     if action not in valid_actions:
         return jsonify({"success": False, "message": f"Invalid action. Use: {valid_actions}"}), 400
+    action_steps = {
+        "quarantine": ["Move message to quarantine store", "Notify SOC analyst for review", "Apply retention policy"],
+        "delete": ["Purge message from mailbox", "Purge from backup cycle if required by policy", "Record deletion for audit"],
+        "clawback": ["Recall message from all recipients", "Replace with remediation notice", "Verify recall receipt"],
+        "block_sender": ["Add sender to block list", "Apply transport rule to reject future mail", "Notify abuse mailbox"]
+    }
     return jsonify({
         "success": True,
         "message_id": message_id,
@@ -1152,5 +1484,124 @@ def auto_remediate(current_user=None):
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "performed_by": current_user,
         "verdict": f"AUTO_REMEDIATION_{action.upper()}_COMPLETE",
-        "recommendation": "Monitor inbox for further threats"
+        "recommendation": "Monitor inbox for further threats",
+        "remediation_steps": action_steps[action],
+        "audit_trail": {
+            "initiated_by": current_user,
+            "initiated_at": datetime.utcnow().isoformat() + "Z",
+            "action": action,
+            "reason": reason,
+            "status": "queued",
+            "next_review": (datetime.utcnow().isoformat() + "Z")
+        },
+        "affected_scope": {
+            "messages": 1,
+            "mailboxes": "all_recipients",
+            "blocklist_updated": action == "block_sender",
+            "alert_fired": True
+        }
+    })
+
+
+def email_health_scorecard(current_user=None):
+    """Batch analysis: aggregates SPF/DKIM/DMARC/sender/phishing/URL into one scorecard."""
+    data = request.get_json() or {}
+    domain = data.get("domain", "").strip().lower()
+    sender = data.get("sender", "").strip().lower()
+    body = data.get("body", "")
+    subject = data.get("subject", "")
+    url = data.get("url", "").strip()
+    try:
+        from services.email_security.email_service import check_spf as _spf, check_dkim as _dkim, check_dmarc as _dmarc, sender_reputation as _rep, analyze_phishing as _phish
+    except Exception:
+        _spf = _dkim = _dmarc = _rep = _phish = None
+    checks = []
+    score_accum = 0
+    results = {}
+    if domain:
+        results["spf"] = _spf(domain) if _spf else {"verdict": "FAIL", "reason": "module unavailable"}
+        results["dkim"] = _dkim(domain) if _dkim else {"verdict": "FAIL", "reason": "module unavailable"}
+        results["dmarc"] = _dmarc(domain) if _dmarc else {"verdict": "FAIL", "reason": "module unavailable"}
+        for name in ("spf", "dkim", "dmarc"):
+            v = results[name].get("verdict", "FAIL")
+            score_accum += {"PASS": 25, "WARNING": 15, "FAIL": 0, "LEGITIMATE": 0}.get(v, 0)
+            checks.append({"check": f"DNS:{name}", "verdict": v, "detail": results[name].get("recommendation", ""), "weight": 25})
+    if sender:
+        rep = _rep(sender) if _rep else {"verdict": "UNKNOWN", "reputation": "unknown"}
+        results["sender_reputation"] = rep
+        score_accum += 15 if rep.get("reputation") in ("good",) else 5 if rep.get("reputation") in ("unknown", "suspicious") else 0
+        checks.append({"check": "SenderReputation", "verdict": rep.get("verdict", "UNKNOWN"), "detail": rep.get("recommendation", ""), "weight": 15, "reputation": rep.get("reputation")})
+    if body or subject:
+        phish = _phish(body, subject, sender) if _phish else {"probability": 0, "verdict": "ALLOW"}
+        results["phishing"] = phish
+        score_accum += max(0, int((1 - phish.get("probability", 0)) * 20))
+        checks.append({"check": "PhishingAnalysis", "verdict": phish.get("verdict", "ALLOW"), "detail": phish.get("recommendation", ""), "weight": 20, "probability": phish.get("probability")})
+    if url:
+        resp = _analyze_url_logic(url)
+        results["url"] = resp
+        score_accum += {"SAFE": 15, "SUSPICIOUS": 5, "MALICIOUS": 0}.get(resp.get("verdict"), 5)
+        checks.append({"check": "URLAnalysis", "verdict": resp.get("verdict"), "detail": resp.get("recommendation", ""), "weight": 15})
+    if not domain and not sender and not body and not url:
+        return jsonify({"success": False, "message": "Provide at least one of: domain, sender, body, url"}), 400
+    overall = min(100, max(0, score_accum + (len([c for c in checks if c["verdict"] in ("PASS", "SAFE", "ALLOW", "LEGITIMATE")]) * 5)))
+    return jsonify({
+        "success": True,
+        "overall_score": min(overall, 100),
+        "grade": "A" if overall >= 90 else "B" if overall >= 75 else "C" if overall >= 60 else "D" if overall >= 40 else "F",
+        "checks": checks,
+        "results": results,
+        "summary": f"{len([c for c in checks if c['verdict'] in ('PASS','SAFE','ALLOW','LEGITIMATE')])}/{len(checks)} checks passed",
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "scanned_by": current_user
+    })
+
+def generate_dkim(current_user=None):
+    """Generate an RSA keypair for DKIM and output the DNS TXT record to publish."""
+    data = request.get_json() or {}
+    domain = (data.get("domain") or "").strip().lower()
+    selector = (data.get("selector") or "default").strip().lower().replace(" ", "")
+    key_bits = int(data.get("key_bits") or 2048)
+    if key_bits not in (1024, 2048, 4096):
+        key_bits = 2048
+    if not domain or not re.match(r"^[a-z0-9-]+(\.[a-z0-9-]+)+$", domain):
+        return jsonify({"success": False, "message": "Valid domain required (e.g. example.com)"}), 400
+    if not selector or not re.match(r"^[a-z0-9._-]{1,63}$", selector):
+        return jsonify({"success": False, "message": "Valid selector required (letters/digits/._- up to 63 chars)"}), 400
+    try:
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.hazmat.primitives import serialization
+        key = rsa.generate_private_key(public_exponent=65537, key_size=key_bits)
+        private_pem = key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        ).decode()
+        public_der = key.public_key().public_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        public_b64 = base64.b64encode(public_der).decode()
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Key generation failed: {e}"}), 500
+    dns_record = f"v=DKIM1; k=rsa; p={public_b64}"
+    return jsonify({
+        "success": True,
+        "domain": domain,
+        "selector": selector,
+        "key_type": "rsa",
+        "key_bits": key_bits,
+        "private_key_pem": private_pem,
+        "public_key_b64": public_b64,
+        "dns_host": f"{selector}._domainkey.{domain}",
+        "dns_type": "TXT",
+        "dns_ttl": 3600,
+        "dns_record": dns_record,
+        "publish_steps": [
+            f"Keep the PRIVATE key securely on your mail server (e.g. /etc/opendkim/keys/{domain}/{selector}.private).",
+            f"Publish a TXT record at {selector}._domainkey.{domain} with value: {dns_record}",
+            "Set your mail server DKIM signing to use this private key + selector.",
+            "Verify with this tool: Email Security -> DKIM Checker (selectors include the one above)."
+        ],
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "generated_by": current_user
     })

@@ -1,0 +1,43 @@
+{
+  "report_id": "ER-D9F5A59B",
+  "generated_at": "2026-08-02T13:14:08.146721Z",
+  "encryption_status": {
+    "aes_256_gcm": {
+      "status": "operational",
+      "library": "cryptography",
+      "key_rotation": "enabled"
+    },
+    "tls_1_3": {
+      "status": "enforced",
+      "hsts": true,
+      "forward_secrecy": true
+    },
+    "pgp": {
+      "status": "available",
+      "key_size": 2048,
+      "algorithm": "RSA-2048/AES-256"
+    },
+    "key_management": {
+      "status": "active",
+      "keys": 3,
+      "hsm": true,
+      "kms": "AWS KMS (simulated)"
+    },
+    "outbound_email_encryption": {
+      "status": "operational",
+      "protocol": "TLS 1.3"
+    }
+  },
+  "coverage": {
+    "data_at_rest": "AES-256-GCM",
+    "data_in_transit": "TLS 1.3",
+    "email_encryption": "PGP/RSA-2048",
+    "api_encryption": "HTTPS/TLS 1.3"
+  },
+  "recommendations": [
+    "Rotate master encryption keys quarterly",
+    "Enable HSM-backed key storage for all production keys",
+    "Implement automatic re-encryption on key rotation",
+    "Audit all TLS certificates before expiry"
+  ]
+}

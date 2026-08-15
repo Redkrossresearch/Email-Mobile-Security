@@ -96,7 +96,7 @@ def generate_pdf(current_user=None):
     pdf.set_font("Helvetica", "", 8)
     pdf.set_text_color(80, 80, 80)
     pdf.cell(0, 5, "CyberShield SOC v6.0 | 75+ Features | 12 Modules", ln=True, align="C")
-    pdf.cell(0, 5, "Email Security | Mobile Security | Threat Intelligence | UEBA | Encryption | AI", ln=True, align="C")
+    pdf.cell(0, 5, "Email Security | Mobile Security | Reporting | Authentication", ln=True, align="C")
 
     with open(f"{DATA_DIR}/devices.json") as f:
         devices = json.load(f)
@@ -162,7 +162,7 @@ def generate_pdf(current_user=None):
         ("Remote Browser Isolation", "Active", "PASS"), ("DNS Sinkholing", "Active", "PASS"),
         ("SSL Decryption", "Active", "PASS"), ("Drive-by Download Protection", "Active", "PASS"),
         ("Credential Phishing Prevention", "Active", "PASS"), ("Ad & Tracker Blocking", "Active", "PASS"),
-        ("Auto-Remediation (Clawback)", "Active", "PASS"), ("UEBA Integration", "Active", "PASS"),
+        ("Auto-Remediation (Clawback)", "Active", "PASS"),
         ("SIEM/SOAR Integration", "Active", "PASS"), ("Warning Banners", "Active", "PASS"),
         ("ATO Protection", "Active", "PASS"), ("MFA Enforcement", "Active", "PASS"),
         ("Rate Limiting", "Active", "PASS")
@@ -212,7 +212,7 @@ def generate_pdf(current_user=None):
         ("MEDIUM", "Run weekly malware scans on all endpoints"),
         ("MEDIUM", "Enable DMARC reject policy for all domains"),
         ("LOW", "Deploy RBI for high-risk browsing sessions"),
-        ("LOW", "Monitor UEBA anomaly alerts for insider threats"),
+        ("LOW", "Reinforce phishing awareness training for employees"),
     ]
     w = [25, 155]
     _pdf_table_header(pdf, ["Priority", "Recommendation"], w)
@@ -321,85 +321,14 @@ def generate_comprehensive(current_user=None):
         "total_features": 50,
         "modules": {
             "identity_access": {"features": ["login", "mfa", "sso", "oauth", "rbac", "recovery"], "status": "operational"},
-            "email_security": {"features_count": 23, "status": "operational"},
+            "email_security": {"features_count": 25, "status": "operational"},
             "mobile_security": {"features_count": 25, "status": "operational"},
-            "threat_intelligence": {"features": ["ioc_lookup", "feeds", "alerts", "hash_scan"], "status": "operational"},
-            "ueba": {"features": ["behavior_analysis", "anomaly_detection", "risk_scoring"], "status": "operational"},
-            "encryption": {"features": ["aes256", "tls13", "pgp", "key_management"], "status": "operational"},
             "reporting": {"features": ["pdf", "csv", "json"], "status": "operational"}
         },
         "overall_status": "OPERATIONAL",
         "total_endpoints": 70
     }
     filename = f"CyberShield_Comprehensive_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    filepath = os.path.join(REPORTS_DIR, filename)
-    with open(filepath, "w") as f:
-        json.dump(report, f, indent=2)
-    return send_file(filepath, as_attachment=True, download_name=filename)
-
-def generate_encryption_report(current_user=None):
-    report = {
-        "report_id": f"ER-{uuid.uuid4().hex[:8].upper()}",
-        "generated_at": datetime.utcnow().isoformat() + "Z",
-        "encryption_status": {
-            "aes_256_gcm": {"status": "operational", "library": "cryptography", "key_rotation": "enabled"},
-            "tls_1_3": {"status": "enforced", "hsts": True, "forward_secrecy": True},
-            "pgp": {"status": "available", "key_size": 2048, "algorithm": "RSA-2048/AES-256"},
-            "key_management": {"status": "active", "keys": 3, "hsm": True, "kms": "AWS KMS (simulated)"},
-            "outbound_email_encryption": {"status": "operational", "protocol": "TLS 1.3"}
-        },
-        "coverage": {
-            "data_at_rest": "AES-256-GCM",
-            "data_in_transit": "TLS 1.3",
-            "email_encryption": "PGP/RSA-2048",
-            "api_encryption": "HTTPS/TLS 1.3"
-        },
-        "recommendations": [
-            "Rotate master encryption keys quarterly",
-            "Enable HSM-backed key storage for all production keys",
-            "Implement automatic re-encryption on key rotation",
-            "Audit all TLS certificates before expiry"
-        ]
-    }
-    filename = f"CyberShield_Encryption_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    filepath = os.path.join(REPORTS_DIR, filename)
-    with open(filepath, "w") as f:
-        json.dump(report, f, indent=2)
-    return send_file(filepath, as_attachment=True, download_name=filename)
-
-def generate_ueba_report(current_user=None):
-    from controllers.ueba_controller import BEHAVIOR_PROFILES
-    users = []
-    for uid, prof in BEHAVIOR_PROFILES.items():
-        level = "CRITICAL" if prof["risk_score"] >= 75 else "HIGH" if prof["risk_score"] >= 50 else "MEDIUM" if prof["risk_score"] >= 25 else "LOW"
-        users.append({"user_id": uid, "risk_score": prof["risk_score"], "risk_level": level, "events_logged": prof["events_logged"], "anomalies": prof.get("anomalies", [])})
-    if not users:
-        users = [
-            {"user_id": "admin@cybershield.com", "risk_score": 12, "risk_level": "LOW", "events_logged": 45, "anomalies": []},
-            {"user_id": "user@example.com", "risk_score": 58, "risk_level": "HIGH", "events_logged": 120, "anomalies": ["Unusual IP: 203.0.113.5", "Login at 03:00 UTC"]},
-            {"user_id": "test@domain.com", "risk_score": 34, "risk_level": "MEDIUM", "events_logged": 78, "anomalies": ["New device fingerprint"]},
-            {"user_id": "finance@company.com", "risk_score": 82, "risk_level": "CRITICAL", "events_logged": 210, "anomalies": ["Impossible travel detected", "Failed login attempts: 15", "Data exfiltration pattern"]}
-        ]
-    report = {
-        "report_id": f"UR-{uuid.uuid4().hex[:8].upper()}",
-        "generated_at": datetime.utcnow().isoformat() + "Z",
-        "total_users_analyzed": len(users),
-        "users": users,
-        "risk_distribution": {
-            "critical": len([u for u in users if u["risk_level"] == "CRITICAL"]),
-            "high": len([u for u in users if u["risk_level"] == "HIGH"]),
-            "medium": len([u for u in users if u["risk_level"] == "MEDIUM"]),
-            "low": len([u for u in users if u["risk_level"] == "LOW"])
-        },
-        "model": "IsolationForest (v2.1)",
-        "recommendations": [
-            "Investigate CRITICAL risk users immediately",
-            "Enforce MFA for all HIGH risk users",
-            "Review recent access logs for anomalous patterns",
-            "Update behavioral baselines for new users"
-        ]
-    }
-    filename = f"CyberShield_UEBA_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     filepath = os.path.join(REPORTS_DIR, filename)
     with open(filepath, "w") as f:
         json.dump(report, f, indent=2)

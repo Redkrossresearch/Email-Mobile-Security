@@ -266,13 +266,6 @@
     <a href="email-security.html" class="nav-item">✉ Email Security</a>
     <a href="mobile-security.html" class="nav-item">📱 Mobile Security</a>
     <a href="reports.html" class="nav-item active">📋 Reports</a>
-    <a href="threat-intel.html" class="nav-item">🌐 Threat Intel</a>
-    <a href="ai-engine.html" class="nav-item">🤖 AI Engine</a>
-    <a href="apk-analyzer.html" class="nav-item">📱 APK Analyzer</a>
-    <a href="yara-rules.html" class="nav-item">📜 YARA Rules</a>
-    <a href="integrations.html" class="nav-item">🔗 Integrations</a>
-    <a href="encryption.html" class="nav-item">🔐 Encryption</a>
-    <a href="ueba.html" class="nav-item">🧠 UEBA</a>
   </div>
   <div class="sidebar-status">
     <div style="font-family:'Share Tech Mono';font-size:10px;letter-spacing:1px;color:var(--text-dim);margin-bottom:8px;">SYSTEM STATUS</div>
@@ -369,26 +362,14 @@
     <div class="export-card ec-email">
       <div class="export-icon">📋</div>
       <div class="export-name">COMPREHENSIVE REPORT</div>
-      <div class="export-desc">Full platform audit combining email, mobile, threat intel, UEBA, and encryption modules.</div>
+      <div class="export-desc">Full platform audit combining email, mobile, and reporting modules.</div>
       <button class="export-btn email" onclick="generateReport('COMPREHENSIVE')">▶ GENERATE</button>
     </div>
     <div class="export-card ec-pdf">
       <div class="export-icon">⚠️</div>
       <div class="export-name">THREAT ANALYSIS REPORT</div>
-      <div class="export-desc">Deep-dive threat analysis with IOC correlations, attack timelines, and risk scoring data.</div>
+      <div class="export-desc">Deep-dive threat analysis with attack timelines and risk scoring data.</div>
       <button class="export-btn pdf" onclick="generateReport('THREAT')">▶ GENERATE</button>
-    </div>
-    <div class="export-card ec-csv">
-      <div class="export-icon">📊</div>
-      <div class="export-name">ENCRYPTION STATUS</div>
-      <div class="export-desc">AES-256, TLS 1.3, PGP key status and encryption coverage across all communication channels.</div>
-      <button class="export-btn csv" onclick="generateReport('ENCRYPTION')">▶ EXPORT</button>
-    </div>
-    <div class="export-card ec-json">
-      <div class="export-icon">🧠</div>
-      <div class="export-name">UEBA RISK REPORT</div>
-      <div class="export-desc">User and entity behavior analysis — risk scores, login anomalies, and insider threat indicators.</div>
-      <button class="export-btn json" onclick="generateReport('UEBA')">▶ EXPORT</button>
     </div>
   </div>
 
@@ -593,7 +574,7 @@ function quickDownload(name){
   showToast('📄 Opening Report', name, 'info');
 }
 
-// ══ GENERATE REPORT (PDF/CSV/JSON/COMPREHENSIVE/THREAT/ENCRYPTION/UEBA) ══
+// ══ GENERATE REPORT (PDF/CSV/JSON/COMPREHENSIVE/THREAT) ══
 function generateReport(type){
   openModal('generate-modal');
   const fill=document.getElementById('gen-fill');
@@ -601,15 +582,12 @@ function generateReport(type){
   const result=document.getElementById('gen-result');
   const titles={
     PDF:'📄 GENERATING PDF REPORT',CSV:'📊 EXPORTING CSV DATA',JSON:'🔧 EXPORTING JSON DATA',
-    COMPREHENSIVE:'📋 COMPREHENSIVE PLATFORM AUDIT',THREAT:'⚠️ THREAT ANALYSIS REPORT',
-    ENCRYPTION:'🔐 ENCRYPTION STATUS REPORT',UEBA:'🧠 UEBA RISK REPORT'
+    COMPREHENSIVE:'📋 COMPREHENSIVE PLATFORM AUDIT',THREAT:'⚠️ THREAT ANALYSIS REPORT'
   };
   const descs={
     PDF:'Compiling PDF output from all security modules...',CSV:'Compiling CSV data export...',JSON:'Compiling JSON structured export...',
-    COMPREHENSIVE:'Aggregating email, mobile, threat intel, UEBA, and encryption data into single audit...',
-    THREAT:'Correlating IOCs, attack timelines, and risk scores for deep threat analysis...',
-    ENCRYPTION:'Gathering AES-256, TLS 1.3, PGP key status, and encryption coverage metrics...',
-    UEBA:'Analyzing user behavior, risk scores, login anomalies, and insider threat indicators...'
+    COMPREHENSIVE:'Aggregating email, mobile, and reporting data into a single audit...',
+    THREAT:'Correlating attack timelines and risk scores for deep threat analysis...'
   };
   document.getElementById('gen-modal-title').textContent=titles[type]||'📄 GENERATING REPORT';
   document.getElementById('gen-modal-desc').textContent=descs[type]||'Compiling data...';
@@ -633,39 +611,22 @@ function generateReport(type){
     ],
     JSON:[
       [200,'<span style="color:var(--info)">[INFO]</span> Building JSON schema v2.1...'],
-      [700,'<span style="color:var(--info)">[INFO]</span> Mapping threat events to STIX format...'],
+      [700,'<span style="color:var(--info)">[INFO]</span> Structuring export records...'],
       [1300,'<span style="color:var(--info)">[INFO]</span> Validating JSON structure — 0 errors'],
       [1800,'<span style="color:var(--safe)">[OK]</span> JSON export ready — 48 KB | valid schema'],
     ],
     COMPREHENSIVE:[
       [300,'<span style="color:var(--info)">[INFO]</span> Aggregating email security module — 23 features...'],
       [700,'<span style="color:var(--info)">[INFO]</span> Aggregating mobile security module — 35 features...'],
-      [1200,'<span style="color:var(--info)">[INFO]</span> Compiling threat intelligence feeds — 5 sources...'],
-      [1700,'<span style="color:var(--info)">[INFO]</span> Processing UEBA risk scores and anomalies...'],
-      [2200,'<span style="color:var(--info)">[INFO]</span> Gathering encryption status (AES-256, TLS 1.3, PGP)...'],
-      [2800,'<span style="color:var(--safe)">[OK]</span> Comprehensive report compiled — all 50 features audited'],
+      [1400,'<span style="color:var(--info)">[INFO]</span> Compiling reporting analytics...'],
+      [2200,'<span style="color:var(--safe)">[OK]</span> Comprehensive report compiled — all modules audited'],
     ],
     THREAT:[
-      [200,'<span style="color:var(--info)">[INFO]</span> Correlating IOCs from 5 threat intel feeds...'],
-      [600,'<span style="color:var(--warn)">[WARN]</span> 12 high-severity indicators matched from email module'],
-      [1100,'<span style="color:var(--info)">[INFO]</span> Analyzing attack timelines and kill chain...'],
-      [1600,'<span style="color:var(--info)">[INFO]</span> Calculating risk scores and threat priorities...'],
-      [2100,'<span style="color:var(--info)">[INFO]</span> Generating remediation recommendations...'],
-      [2700,'<span style="color:var(--safe)">[OK]</span> Threat analysis report complete — actionable intel ready'],
-    ],
-    ENCRYPTION:[
-      [200,'<span style="color:var(--info)">[INFO]</span> Checking AES-256 encryption status...'],
-      [600,'<span style="color:var(--info)">[INFO]</span> Verifying TLS 1.3 configurations...'],
-      [1000,'<span style="color:var(--info)">[INFO]</span> Auditing PGP key management status...'],
-      [1500,'<span style="color:var(--info)">[INFO]</span> Testing outbound email encryption...'],
-      [2000,'<span style="color:var(--safe)">[OK]</span> Encryption report ready — all ciphers operational'],
-    ],
-    UEBA:[
-      [200,'<span style="color:var(--info)">[INFO]</span> Processing 30-day user behavior baseline...'],
-      [700,'<span style="color:var(--warn)">[WARN]</span> 12 anomalous login events detected'],
-      [1200,'<span style="color:var(--info)">[INFO]</span> Calculating risk scores for all users...'],
-      [1700,'<span style="color:var(--info)">[INFO]</span> Identifying insider threat indicators...'],
-      [2200,'<span style="color:var(--safe)">[OK]</span> UEBA risk report generated — 3 users flagged for review'],
+      [200,'<span style="color:var(--info)">[INFO]</span> Analyzing attack timelines and kill chain...'],
+      [700,'<span style="color:var(--warn)">[WARN]</span> 12 high-severity indicators matched from email module'],
+      [1100,'<span style="color:var(--info)">[INFO]</span> Calculating risk scores and threat priorities...'],
+      [1600,'<span style="color:var(--info)">[INFO]</span> Generating remediation recommendations...'],
+      [2200,'<span style="color:var(--safe)">[OK]</span> Threat analysis report complete — actionable intel ready'],
     ],
   };
 
@@ -673,7 +634,7 @@ function generateReport(type){
   msgs.forEach(([t,m])=>setTimeout(()=>{ log.innerHTML+=`<div style="font-family:'Share Tech Mono';font-size:11px;line-height:2">${m}</div>`; log.scrollTop=9999; },t));
 
   let p=0;
-  const duration=type==='CSV'?2200:type==='JSON'?2000:type==='ENCRYPTION'?2200:type==='UEBA'?2400:type==='THREAT'?2900:type==='COMPREHENSIVE'?3000:3800;
+  const duration=type==='CSV'?2200:type==='JSON'?2000:type==='THREAT'?2900:type==='COMPREHENSIVE'?3000:3800;
   const ext=type==='PDF'?'pdf':type==='CSV'?'csv':'json';
   const iv=setInterval(()=>{
     p+=100/((duration/80));
@@ -684,7 +645,7 @@ function generateReport(type){
       result.innerHTML=`<div style="color:var(--safe);font-family:'Share Tech Mono';font-size:12px;padding:10px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:4px;">✓ ${type} ready: <strong style="color:#fff">${filename}</strong></div>`;
       showToast(`📥 ${type} Ready`, `${filename} is available for download`, 'safe');
       // Fetch from backend API
-      const ep={PDF:'/reports/download-pdf',CSV:'/reports/download-csv',JSON:'/reports/download-json',COMPREHENSIVE:'/reports/comprehensive',THREAT:'/reports/threat-report',ENCRYPTION:'/reports/encryption',UEBA:'/reports/ueba-risk'}[type];
+      const ep={PDF:'/reports/download-pdf',CSV:'/reports/download-csv',JSON:'/reports/download-json',COMPREHENSIVE:'/reports/comprehensive',THREAT:'/reports/threat-report'}[type];
       if(ep) fetch(apiUrl(ep),{headers:authHeaders()}).then(r=>{if(!r.ok)throw Error(r.statusText);return r.blob()}).then(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href)}).catch(e=>{showToast('Download Failed',ep+' — '+e.message,'danger');result.innerHTML=`<div style="color:var(--danger);font-size:12px;padding:10px;border:1px solid var(--danger);border-radius:4px;">✗ Download failed: ${e.message}</div>`});
     }
   },80);
@@ -840,7 +801,7 @@ setInterval(()=>{
   logIdx++;
 },18000);
 </script>
-<script src="js/script.js"></script>
+<script src="js/script.js?v=2"></script>
 
 
 </body>

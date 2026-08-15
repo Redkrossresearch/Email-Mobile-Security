@@ -5,9 +5,10 @@ from services.auth.auth_service import (
     oauth_authorize, oauth_token,
     sso_saml_login, sso_oidc_login,
     initiate_password_reset, reset_password,
-    register, refresh_token, list_users
+    register, refresh_token, list_users, send_email_otp, verify_email_otp,
+    mobile_register, send_mobile_otp, verify_mobile_otp
 )
-from services.auth.otp_service import generate_otp, store_otp, verify_otp as check_otp, send_email_otp, send_sms_otp
+from services.auth.otp_service import generate_otp, store_otp, verify_otp as check_otp, send_email_otp as send_email_otp_raw, send_sms_otp
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -26,10 +27,51 @@ def mobile_login_route():
     result, status = mobile_login(data.get("phone", "").strip(), data.get("pin", ""))
     return jsonify(result), status
 
+@auth_bp.route("/mobile-register", methods=["POST"])
+def mobile_register_route():
+    data = request.get_json() or {}
+    result, status = mobile_register(
+        data.get("phone", "").strip(),
+        data.get("name", ""),
+        data.get("pin", "")
+    )
+    return jsonify(result), status
+
+@auth_bp.route("/send-mobile-otp", methods=["POST"])
+def send_mobile_otp_route():
+    data = request.get_json() or {}
+    result, status = send_mobile_otp(data.get("phone", "").strip())
+    return jsonify(result), status
+
+@auth_bp.route("/verify-mobile-otp", methods=["POST"])
+def verify_mobile_otp_route():
+    data = request.get_json() or {}
+    result, status = verify_mobile_otp(data.get("phone", "").strip(), data.get("otp", ""))
+    return jsonify(result), status
+
 @auth_bp.route("/register", methods=["POST"])
 def register_route():
     data = request.get_json() or {}
-    result, status = register(data.get("username"), data.get("email", "").strip().lower(), data.get("password", ""), data.get("name"))
+    result, status = register(
+        data.get("username"),
+        data.get("email", "").strip().lower(),
+        data.get("password", ""),
+        data.get("fullName") or data.get("name"),
+        data.get("mobile", ""),
+        data.get("role", "analyst")
+    )
+    return jsonify(result), status
+
+@auth_bp.route("/send-email-otp", methods=["POST"])
+def send_email_otp_route():
+    data = request.get_json() or {}
+    result, status = send_email_otp(data.get("email", "").strip().lower())
+    return jsonify(result), status
+
+@auth_bp.route("/verify-email-otp", methods=["POST"])
+def verify_email_otp_route():
+    data = request.get_json() or {}
+    result, status = verify_email_otp(data.get("email", "").strip().lower(), data.get("otp", ""))
     return jsonify(result), status
 
 @auth_bp.route("/verify-2fa", methods=["POST"])
@@ -57,7 +99,7 @@ def send_otp():
     otp = generate_otp()
     if email:
         store_otp(f"otp:{email}", otp)
-        sent, msg = send_email_otp(email, otp)
+        sent, msg = send_email_otp_raw(email, otp)
     else:
         store_otp(f"otp:{phone}", otp)
         sent, msg = send_sms_otp(phone, otp)
